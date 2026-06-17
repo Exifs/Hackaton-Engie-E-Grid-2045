@@ -1,0 +1,22 @@
+﻿filename,description,status
+regions.csv,"30 régions UE: slots, tags, potentiels, population abstraite et état initial jouable.",generated_v0_5_playable_placeholder
+buildings.csv,"Coûts, durées, productions, consommations, contraintes et déblocages; wind_offshore verrouillé P0.",p0_freeze_v0_8_patched
+technologies.csv,Arbre technologique minimal; offshore_wind déverrouille wind_offshore.,p0_freeze_v0_8_patched
+events.csv,"Événements MVP avec poids, conditions, durées, effets et alertes actionnables.",generated_v0_5_playable_placeholder
+balance_constants.json,"Source de vérité runtime P0 pour constantes gameplay et économie. Charger ce fichier, pas global_constants.csv.",runtime_source_of_truth_p0_freeze_v0_8
+global_constants.csv,Copie documentaire/fallback des constantes; ne pas utiliser comme source runtime prioritaire P0.,documentation_fallback_v0_8
+initial_state.csv,Résumé calculé de l’état de départ 2025.,generated_v0_5_playable_placeholder
+simulation_formulas.csv,"Formules stables + contrat P0: sources runtime, réseau, layout, comptabilité ressources.",p0_freeze_v0_8_patched
+network_graph.json,Source de vérité réseau P0: graphe de voisins; distances générées par BFS au chargement.,network_source_of_truth_p0_freeze_v0_8
+network_edges.csv,Version CSV/debug du graphe; ne remplace pas network_graph.json au runtime P0.,debug_fallback_v0_8
+network_distances_generated.csv,"Distances BFS plafonnées à 5, format long; debug/fallback.",debug_fallback_v0_8
+network_distance_matrix.csv,"Distances BFS plafonnées à 5, format matrice 30x30; debug/fallback.",debug_fallback_v0_8
+network_distance_efficiency.csv,Efficacité par distance avant/après Supergrid.,generated_v0_5_playable_placeholder
+network_volume_efficiency.csv,Paliers de congestion volume avant/après Supergrid.,generated_v0_5_playable_placeholder
+region_layout.json,Source de vérité layout carte P0: positions normalisées approximatives des 30 régions pour MapView Node2D.,layout_source_of_truth_p0_freeze_v0_8
+region_layout.csv,Miroir CSV éditable de region_layout.json pour ajustements rapides de positions.,layout_editable_mirror_p0_freeze_v0_8
+renewable_variation_profiles.csv,Profils de variation des renouvelables.,generated_v0_5_playable_placeholder
+co2_tiers.csv,Paliers CO2 et effets gameplay; watchlist à retester après première boucle jouable.,balance_watchlist_v0_8
+usa_agi_curve.csv,Courbe scriptée USA 2025-2045.,generated_v0_5_playable_placeholder
+scoring_weights.csv,Poids du score final.,generated_v0_5_playable_placeholder
+P0_TECHNICAL_FREEZE.md,"Résumé humain du gel technique P0: sources, layout, comptabilité ressources, offshore, watchlist CO2/cooling.",p0_freeze_v0_8_human_readable

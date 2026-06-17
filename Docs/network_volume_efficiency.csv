@@ -1,0 +1,6 @@
+﻿tier_id,min_energy_sent,max_energy_sent,max_after_supergrid,volume_efficiency
+v0,0,50,62,1.0
+v1,51,100,125,0.9
+v2,101,200,250,0.75
+v3,201,400,500,0.55
+v4,401,,,0.35

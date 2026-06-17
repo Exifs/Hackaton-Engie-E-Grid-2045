@@ -1,0 +1,6 @@
+﻿score_component,weight_pct,positive_direction,notes
+lead_vs_usa,30,higher,Récompense la course AGI
+cumulative_co2,25,lower,Met le thème énergie au centre
+grid_stability_blackouts,20,higher,Pénalise les expansions non maîtrisées
+decarbonized_energy_share,15,higher,Valorise le mix long terme
+energy_efficiency,10,higher,Récompense les stratégies sobres

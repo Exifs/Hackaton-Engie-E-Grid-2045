@@ -1,0 +1,7 @@
+﻿distance,meaning,distance_efficiency,distance_efficiency_after_supergrid
+0,same_region,1.0,1.0
+1,direct_neighbor,0.92,1.0
+2,near,0.84,0.97
+3,medium_distance,0.72,0.83
+4,far,0.58,0.67
+5,very_far_or_capped,0.4,0.46

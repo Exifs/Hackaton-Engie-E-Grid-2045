@@ -1,0 +1,901 @@
+﻿region_a_id,region_a_name,region_b_id,region_b_name,distance
+fr_nord,France Nord,fr_nord,France Nord,0
+fr_nord,France Nord,fr_sud,France Sud,1
+fr_nord,France Nord,de_west,Allemagne Ouest,1
+fr_nord,France Nord,de_east,Allemagne Est,2
+fr_nord,France Nord,benelux,Benelux,1
+fr_nord,France Nord,dk,Danemark,2
+fr_nord,France Nord,se_south,Suède Sud,3
+fr_nord,France Nord,se_north,Suède Nord,4
+fr_nord,France Nord,fi,Finlande,4
+fr_nord,France Nord,ie,Irlande,1
+fr_nord,France Nord,es_north,Espagne Nord,2
+fr_nord,France Nord,es_south,Espagne Sud,3
+fr_nord,France Nord,pt,Portugal,3
+fr_nord,France Nord,it_north,Italie Nord,2
+fr_nord,France Nord,it_south_islands,Italie Sud & îles,3
+fr_nord,France Nord,at,Autriche,2
+fr_nord,France Nord,pl,Pologne,3
+fr_nord,France Nord,cz,Tchéquie,2
+fr_nord,France Nord,sk,Slovaquie,3
+fr_nord,France Nord,hu,Hongrie,3
+fr_nord,France Nord,ro,Roumanie,4
+fr_nord,France Nord,bg,Bulgarie,4
+fr_nord,France Nord,gr,Grèce,3
+fr_nord,France Nord,eu_north_balkans,Balkans Nord UE,4
+fr_nord,France Nord,baltic_north,Baltique Nord,4
+fr_nord,France Nord,baltic_south,Baltique Sud,3
+fr_nord,France Nord,si_hr,Slovénie-Croatie,3
+fr_nord,France Nord,lux_saarlorlux,Luxembourg & SaarLorLux,1
+fr_nord,France Nord,med_islands,Méditerranée insulaire,2
+fr_nord,France Nord,de_north,Allemagne Nord,2
+fr_sud,France Sud,fr_nord,France Nord,1
+fr_sud,France Sud,fr_sud,France Sud,0
+fr_sud,France Sud,de_west,Allemagne Ouest,2
+fr_sud,France Sud,de_east,Allemagne Est,3
+fr_sud,France Sud,benelux,Benelux,2
+fr_sud,France Sud,dk,Danemark,3
+fr_sud,France Sud,se_south,Suède Sud,4
+fr_sud,France Sud,se_north,Suède Nord,5
+fr_sud,France Sud,fi,Finlande,5
+fr_sud,France Sud,ie,Irlande,2
+fr_sud,France Sud,es_north,Espagne Nord,1
+fr_sud,France Sud,es_south,Espagne Sud,2
+fr_sud,France Sud,pt,Portugal,2
+fr_sud,France Sud,it_north,Italie Nord,1
+fr_sud,France Sud,it_south_islands,Italie Sud & îles,2
+fr_sud,France Sud,at,Autriche,2
+fr_sud,France Sud,pl,Pologne,4
+fr_sud,France Sud,cz,Tchéquie,3
+fr_sud,France Sud,sk,Slovaquie,3
+fr_sud,France Sud,hu,Hongrie,3
+fr_sud,France Sud,ro,Roumanie,4
+fr_sud,France Sud,bg,Bulgarie,3
+fr_sud,France Sud,gr,Grèce,2
+fr_sud,France Sud,eu_north_balkans,Balkans Nord UE,3
+fr_sud,France Sud,baltic_north,Baltique Nord,5
+fr_sud,France Sud,baltic_south,Baltique Sud,4
+fr_sud,France Sud,si_hr,Slovénie-Croatie,2
+fr_sud,France Sud,lux_saarlorlux,Luxembourg & SaarLorLux,1
+fr_sud,France Sud,med_islands,Méditerranée insulaire,1
+fr_sud,France Sud,de_north,Allemagne Nord,3
+de_west,Allemagne Ouest,fr_nord,France Nord,1
+de_west,Allemagne Ouest,fr_sud,France Sud,2
+de_west,Allemagne Ouest,de_west,Allemagne Ouest,0
+de_west,Allemagne Ouest,de_east,Allemagne Est,1
+de_west,Allemagne Ouest,benelux,Benelux,1
+de_west,Allemagne Ouest,dk,Danemark,2
+de_west,Allemagne Ouest,se_south,Suède Sud,3
+de_west,Allemagne Ouest,se_north,Suède Nord,4
+de_west,Allemagne Ouest,fi,Finlande,4
+de_west,Allemagne Ouest,ie,Irlande,2
+de_west,Allemagne Ouest,es_north,Espagne Nord,3
+de_west,Allemagne Ouest,es_south,Espagne Sud,4
+de_west,Allemagne Ouest,pt,Portugal,4
+de_west,Allemagne Ouest,it_north,Italie Nord,2
+de_west,Allemagne Ouest,it_south_islands,Italie Sud & îles,3
+de_west,Allemagne Ouest,at,Autriche,1
+de_west,Allemagne Ouest,pl,Pologne,2
+de_west,Allemagne Ouest,cz,Tchéquie,1
+de_west,Allemagne Ouest,sk,Slovaquie,2
+de_west,Allemagne Ouest,hu,Hongrie,2
+de_west,Allemagne Ouest,ro,Roumanie,3
+de_west,Allemagne Ouest,bg,Bulgarie,4
+de_west,Allemagne Ouest,gr,Grèce,4
+de_west,Allemagne Ouest,eu_north_balkans,Balkans Nord UE,3
+de_west,Allemagne Ouest,baltic_north,Baltique Nord,3
+de_west,Allemagne Ouest,baltic_south,Baltique Sud,2
+de_west,Allemagne Ouest,si_hr,Slovénie-Croatie,2
+de_west,Allemagne Ouest,lux_saarlorlux,Luxembourg & SaarLorLux,1
+de_west,Allemagne Ouest,med_islands,Méditerranée insulaire,3
+de_west,Allemagne Ouest,de_north,Allemagne Nord,1
+de_east,Allemagne Est,fr_nord,France Nord,2
+de_east,Allemagne Est,fr_sud,France Sud,3
+de_east,Allemagne Est,de_west,Allemagne Ouest,1
+de_east,Allemagne Est,de_east,Allemagne Est,0
+de_east,Allemagne Est,benelux,Benelux,2
+de_east,Allemagne Est,dk,Danemark,2
+de_east,Allemagne Est,se_south,Suède Sud,3
+de_east,Allemagne Est,se_north,Suède Nord,4
+de_east,Allemagne Est,fi,Finlande,4
+de_east,Allemagne Est,ie,Irlande,3
+de_east,Allemagne Est,es_north,Espagne Nord,4
+de_east,Allemagne Est,es_south,Espagne Sud,5
+de_east,Allemagne Est,pt,Portugal,5
+de_east,Allemagne Est,it_north,Italie Nord,3
+de_east,Allemagne Est,it_south_islands,Italie Sud & îles,4
+de_east,Allemagne Est,at,Autriche,2
+de_east,Allemagne Est,pl,Pologne,1
+de_east,Allemagne Est,cz,Tchéquie,1
+de_east,Allemagne Est,sk,Slovaquie,2
+de_east,Allemagne Est,hu,Hongrie,3
+de_east,Allemagne Est,ro,Roumanie,4
+de_east,Allemagne Est,bg,Bulgarie,5
+de_east,Allemagne Est,gr,Grèce,5
+de_east,Allemagne Est,eu_north_balkans,Balkans Nord UE,4
+de_east,Allemagne Est,baltic_north,Baltique Nord,3
+de_east,Allemagne Est,baltic_south,Baltique Sud,2
+de_east,Allemagne Est,si_hr,Slovénie-Croatie,3
+de_east,Allemagne Est,lux_saarlorlux,Luxembourg & SaarLorLux,2
+de_east,Allemagne Est,med_islands,Méditerranée insulaire,4
+de_east,Allemagne Est,de_north,Allemagne Nord,1
+benelux,Benelux,fr_nord,France Nord,1
+benelux,Benelux,fr_sud,France Sud,2
+benelux,Benelux,de_west,Allemagne Ouest,1
+benelux,Benelux,de_east,Allemagne Est,2
+benelux,Benelux,benelux,Benelux,0
+benelux,Benelux,dk,Danemark,1
+benelux,Benelux,se_south,Suède Sud,2
+benelux,Benelux,se_north,Suède Nord,3
+benelux,Benelux,fi,Finlande,3
+benelux,Benelux,ie,Irlande,1
+benelux,Benelux,es_north,Espagne Nord,3
+benelux,Benelux,es_south,Espagne Sud,4
+benelux,Benelux,pt,Portugal,4
+benelux,Benelux,it_north,Italie Nord,3
+benelux,Benelux,it_south_islands,Italie Sud & îles,4
+benelux,Benelux,at,Autriche,2
+benelux,Benelux,pl,Pologne,2
+benelux,Benelux,cz,Tchéquie,2
+benelux,Benelux,sk,Slovaquie,3
+benelux,Benelux,hu,Hongrie,3
+benelux,Benelux,ro,Roumanie,4
+benelux,Benelux,bg,Bulgarie,5
+benelux,Benelux,gr,Grèce,4
+benelux,Benelux,eu_north_balkans,Balkans Nord UE,4
+benelux,Benelux,baltic_north,Baltique Nord,3
+benelux,Benelux,baltic_south,Baltique Sud,2
+benelux,Benelux,si_hr,Slovénie-Croatie,3
+benelux,Benelux,lux_saarlorlux,Luxembourg & SaarLorLux,1
+benelux,Benelux,med_islands,Méditerranée insulaire,3
+benelux,Benelux,de_north,Allemagne Nord,1
+dk,Danemark,fr_nord,France Nord,2
+dk,Danemark,fr_sud,France Sud,3
+dk,Danemark,de_west,Allemagne Ouest,2
+dk,Danemark,de_east,Allemagne Est,2
+dk,Danemark,benelux,Benelux,1
+dk,Danemark,dk,Danemark,0
+dk,Danemark,se_south,Suède Sud,1
+dk,Danemark,se_north,Suède Nord,2
+dk,Danemark,fi,Finlande,2
+dk,Danemark,ie,Irlande,2
+dk,Danemark,es_north,Espagne Nord,4
+dk,Danemark,es_south,Espagne Sud,5
+dk,Danemark,pt,Portugal,5
+dk,Danemark,it_north,Italie Nord,4
+dk,Danemark,it_south_islands,Italie Sud & îles,5
+dk,Danemark,at,Autriche,3
+dk,Danemark,pl,Pologne,2
+dk,Danemark,cz,Tchéquie,3
+dk,Danemark,sk,Slovaquie,3
+dk,Danemark,hu,Hongrie,4
+dk,Danemark,ro,Roumanie,5
+dk,Danemark,bg,Bulgarie,5
+dk,Danemark,gr,Grèce,5
+dk,Danemark,eu_north_balkans,Balkans Nord UE,5
+dk,Danemark,baltic_north,Baltique Nord,2
+dk,Danemark,baltic_south,Baltique Sud,1
+dk,Danemark,si_hr,Slovénie-Croatie,4
+dk,Danemark,lux_saarlorlux,Luxembourg & SaarLorLux,2
+dk,Danemark,med_islands,Méditerranée insulaire,4
+dk,Danemark,de_north,Allemagne Nord,1
+se_south,Suède Sud,fr_nord,France Nord,3
+se_south,Suède Sud,fr_sud,France Sud,4
+se_south,Suède Sud,de_west,Allemagne Ouest,3
+se_south,Suède Sud,de_east,Allemagne Est,3
+se_south,Suède Sud,benelux,Benelux,2
+se_south,Suède Sud,dk,Danemark,1
+se_south,Suède Sud,se_south,Suède Sud,0
+se_south,Suède Sud,se_north,Suède Nord,1
+se_south,Suède Sud,fi,Finlande,1
+se_south,Suède Sud,ie,Irlande,3
+se_south,Suède Sud,es_north,Espagne Nord,5
+se_south,Suède Sud,es_south,Espagne Sud,5
+se_south,Suède Sud,pt,Portugal,5
+se_south,Suède Sud,it_north,Italie Nord,5
+se_south,Suède Sud,it_south_islands,Italie Sud & îles,5
+se_south,Suède Sud,at,Autriche,4
+se_south,Suède Sud,pl,Pologne,2
+se_south,Suède Sud,cz,Tchéquie,3
+se_south,Suède Sud,sk,Slovaquie,3
+se_south,Suède Sud,hu,Hongrie,4
+se_south,Suède Sud,ro,Roumanie,5
+se_south,Suède Sud,bg,Bulgarie,5
+se_south,Suède Sud,gr,Grèce,5
+se_south,Suède Sud,eu_north_balkans,Balkans Nord UE,5
+se_south,Suède Sud,baltic_north,Baltique Nord,1
+se_south,Suède Sud,baltic_south,Baltique Sud,1
+se_south,Suède Sud,si_hr,Slovénie-Croatie,5
+se_south,Suède Sud,lux_saarlorlux,Luxembourg & SaarLorLux,3
+se_south,Suède Sud,med_islands,Méditerranée insulaire,5
+se_south,Suède Sud,de_north,Allemagne Nord,2
+se_north,Suède Nord,fr_nord,France Nord,4
+se_north,Suède Nord,fr_sud,France Sud,5
+se_north,Suède Nord,de_west,Allemagne Ouest,4
+se_north,Suède Nord,de_east,Allemagne Est,4
+se_north,Suède Nord,benelux,Benelux,3
+se_north,Suède Nord,dk,Danemark,2
+se_north,Suède Nord,se_south,Suède Sud,1
+se_north,Suède Nord,se_north,Suède Nord,0
+se_north,Suède Nord,fi,Finlande,1
+se_north,Suède Nord,ie,Irlande,4
+se_north,Suède Nord,es_north,Espagne Nord,5
+se_north,Suède Nord,es_south,Espagne Sud,5
+se_north,Suède Nord,pt,Portugal,5
+se_north,Suède Nord,it_north,Italie Nord,5
+se_north,Suède Nord,it_south_islands,Italie Sud & îles,5
+se_north,Suède Nord,at,Autriche,5
+se_north,Suède Nord,pl,Pologne,3
+se_north,Suède Nord,cz,Tchéquie,4
+se_north,Suède Nord,sk,Slovaquie,4
+se_north,Suède Nord,hu,Hongrie,5
+se_north,Suède Nord,ro,Roumanie,5
+se_north,Suède Nord,bg,Bulgarie,5
+se_north,Suède Nord,gr,Grèce,5
+se_north,Suède Nord,eu_north_balkans,Balkans Nord UE,5
+se_north,Suède Nord,baltic_north,Baltique Nord,2
+se_north,Suède Nord,baltic_south,Baltique Sud,2
+se_north,Suède Nord,si_hr,Slovénie-Croatie,5
+se_north,Suède Nord,lux_saarlorlux,Luxembourg & SaarLorLux,4
+se_north,Suède Nord,med_islands,Méditerranée insulaire,5
+se_north,Suède Nord,de_north,Allemagne Nord,3
+fi,Finlande,fr_nord,France Nord,4
+fi,Finlande,fr_sud,France Sud,5
+fi,Finlande,de_west,Allemagne Ouest,4
+fi,Finlande,de_east,Allemagne Est,4
+fi,Finlande,benelux,Benelux,3
+fi,Finlande,dk,Danemark,2
+fi,Finlande,se_south,Suède Sud,1
+fi,Finlande,se_north,Suède Nord,1
+fi,Finlande,fi,Finlande,0
+fi,Finlande,ie,Irlande,4
+fi,Finlande,es_north,Espagne Nord,5
+fi,Finlande,es_south,Espagne Sud,5
+fi,Finlande,pt,Portugal,5
+fi,Finlande,it_north,Italie Nord,5
+fi,Finlande,it_south_islands,Italie Sud & îles,5
+fi,Finlande,at,Autriche,5
+fi,Finlande,pl,Pologne,3
+fi,Finlande,cz,Tchéquie,4
+fi,Finlande,sk,Slovaquie,4
+fi,Finlande,hu,Hongrie,5
+fi,Finlande,ro,Roumanie,5
+fi,Finlande,bg,Bulgarie,5
+fi,Finlande,gr,Grèce,5
+fi,Finlande,eu_north_balkans,Balkans Nord UE,5
+fi,Finlande,baltic_north,Baltique Nord,1
+fi,Finlande,baltic_south,Baltique Sud,2
+fi,Finlande,si_hr,Slovénie-Croatie,5
+fi,Finlande,lux_saarlorlux,Luxembourg & SaarLorLux,4
+fi,Finlande,med_islands,Méditerranée insulaire,5
+fi,Finlande,de_north,Allemagne Nord,3
+ie,Irlande,fr_nord,France Nord,1
+ie,Irlande,fr_sud,France Sud,2
+ie,Irlande,de_west,Allemagne Ouest,2
+ie,Irlande,de_east,Allemagne Est,3
+ie,Irlande,benelux,Benelux,1
+ie,Irlande,dk,Danemark,2
+ie,Irlande,se_south,Suède Sud,3
+ie,Irlande,se_north,Suède Nord,4
+ie,Irlande,fi,Finlande,4
+ie,Irlande,ie,Irlande,0
+ie,Irlande,es_north,Espagne Nord,3
+ie,Irlande,es_south,Espagne Sud,4
+ie,Irlande,pt,Portugal,4
+ie,Irlande,it_north,Italie Nord,3
+ie,Irlande,it_south_islands,Italie Sud & îles,4
+ie,Irlande,at,Autriche,3
+ie,Irlande,pl,Pologne,3
+ie,Irlande,cz,Tchéquie,3
+ie,Irlande,sk,Slovaquie,4
+ie,Irlande,hu,Hongrie,4
+ie,Irlande,ro,Roumanie,5
+ie,Irlande,bg,Bulgarie,5
+ie,Irlande,gr,Grèce,4
+ie,Irlande,eu_north_balkans,Balkans Nord UE,5
+ie,Irlande,baltic_north,Baltique Nord,4
+ie,Irlande,baltic_south,Baltique Sud,3
+ie,Irlande,si_hr,Slovénie-Croatie,4
+ie,Irlande,lux_saarlorlux,Luxembourg & SaarLorLux,2
+ie,Irlande,med_islands,Méditerranée insulaire,3
+ie,Irlande,de_north,Allemagne Nord,2
+es_north,Espagne Nord,fr_nord,France Nord,2
+es_north,Espagne Nord,fr_sud,France Sud,1
+es_north,Espagne Nord,de_west,Allemagne Ouest,3
+es_north,Espagne Nord,de_east,Allemagne Est,4
+es_north,Espagne Nord,benelux,Benelux,3
+es_north,Espagne Nord,dk,Danemark,4
+es_north,Espagne Nord,se_south,Suède Sud,5
+es_north,Espagne Nord,se_north,Suède Nord,5
+es_north,Espagne Nord,fi,Finlande,5
+es_north,Espagne Nord,ie,Irlande,3
+es_north,Espagne Nord,es_north,Espagne Nord,0
+es_north,Espagne Nord,es_south,Espagne Sud,1
+es_north,Espagne Nord,pt,Portugal,1
+es_north,Espagne Nord,it_north,Italie Nord,2
+es_north,Espagne Nord,it_south_islands,Italie Sud & îles,3
+es_north,Espagne Nord,at,Autriche,3
+es_north,Espagne Nord,pl,Pologne,5
+es_north,Espagne Nord,cz,Tchéquie,4
+es_north,Espagne Nord,sk,Slovaquie,4
+es_north,Espagne Nord,hu,Hongrie,4
+es_north,Espagne Nord,ro,Roumanie,5
+es_north,Espagne Nord,bg,Bulgarie,4
+es_north,Espagne Nord,gr,Grèce,3
+es_north,Espagne Nord,eu_north_balkans,Balkans Nord UE,4
+es_north,Espagne Nord,baltic_north,Baltique Nord,5
+es_north,Espagne Nord,baltic_south,Baltique Sud,5
+es_north,Espagne Nord,si_hr,Slovénie-Croatie,3
+es_north,Espagne Nord,lux_saarlorlux,Luxembourg & SaarLorLux,2
+es_north,Espagne Nord,med_islands,Méditerranée insulaire,2
+es_north,Espagne Nord,de_north,Allemagne Nord,4
+es_south,Espagne Sud,fr_nord,France Nord,3
+es_south,Espagne Sud,fr_sud,France Sud,2
+es_south,Espagne Sud,de_west,Allemagne Ouest,4
+es_south,Espagne Sud,de_east,Allemagne Est,5
+es_south,Espagne Sud,benelux,Benelux,4
+es_south,Espagne Sud,dk,Danemark,5
+es_south,Espagne Sud,se_south,Suède Sud,5
+es_south,Espagne Sud,se_north,Suède Nord,5
+es_south,Espagne Sud,fi,Finlande,5
+es_south,Espagne Sud,ie,Irlande,4
+es_south,Espagne Sud,es_north,Espagne Nord,1
+es_south,Espagne Sud,es_south,Espagne Sud,0
+es_south,Espagne Sud,pt,Portugal,1
+es_south,Espagne Sud,it_north,Italie Nord,3
+es_south,Espagne Sud,it_south_islands,Italie Sud & îles,2
+es_south,Espagne Sud,at,Autriche,4
+es_south,Espagne Sud,pl,Pologne,5
+es_south,Espagne Sud,cz,Tchéquie,5
+es_south,Espagne Sud,sk,Slovaquie,5
+es_south,Espagne Sud,hu,Hongrie,4
+es_south,Espagne Sud,ro,Roumanie,4
+es_south,Espagne Sud,bg,Bulgarie,3
+es_south,Espagne Sud,gr,Grèce,2
+es_south,Espagne Sud,eu_north_balkans,Balkans Nord UE,3
+es_south,Espagne Sud,baltic_north,Baltique Nord,5
+es_south,Espagne Sud,baltic_south,Baltique Sud,5
+es_south,Espagne Sud,si_hr,Slovénie-Croatie,3
+es_south,Espagne Sud,lux_saarlorlux,Luxembourg & SaarLorLux,3
+es_south,Espagne Sud,med_islands,Méditerranée insulaire,1
+es_south,Espagne Sud,de_north,Allemagne Nord,5
+pt,Portugal,fr_nord,France Nord,3
+pt,Portugal,fr_sud,France Sud,2
+pt,Portugal,de_west,Allemagne Ouest,4
+pt,Portugal,de_east,Allemagne Est,5
+pt,Portugal,benelux,Benelux,4
+pt,Portugal,dk,Danemark,5
+pt,Portugal,se_south,Suède Sud,5
+pt,Portugal,se_north,Suède Nord,5
+pt,Portugal,fi,Finlande,5
+pt,Portugal,ie,Irlande,4
+pt,Portugal,es_north,Espagne Nord,1
+pt,Portugal,es_south,Espagne Sud,1
+pt,Portugal,pt,Portugal,0
+pt,Portugal,it_north,Italie Nord,3
+pt,Portugal,it_south_islands,Italie Sud & îles,3
+pt,Portugal,at,Autriche,4
+pt,Portugal,pl,Pologne,5
+pt,Portugal,cz,Tchéquie,5
+pt,Portugal,sk,Slovaquie,5
+pt,Portugal,hu,Hongrie,5
+pt,Portugal,ro,Roumanie,5
+pt,Portugal,bg,Bulgarie,4
+pt,Portugal,gr,Grèce,3
+pt,Portugal,eu_north_balkans,Balkans Nord UE,4
+pt,Portugal,baltic_north,Baltique Nord,5
+pt,Portugal,baltic_south,Baltique Sud,5
+pt,Portugal,si_hr,Slovénie-Croatie,4
+pt,Portugal,lux_saarlorlux,Luxembourg & SaarLorLux,3
+pt,Portugal,med_islands,Méditerranée insulaire,2
+pt,Portugal,de_north,Allemagne Nord,5
+it_north,Italie Nord,fr_nord,France Nord,2
+it_north,Italie Nord,fr_sud,France Sud,1
+it_north,Italie Nord,de_west,Allemagne Ouest,2
+it_north,Italie Nord,de_east,Allemagne Est,3
+it_north,Italie Nord,benelux,Benelux,3
+it_north,Italie Nord,dk,Danemark,4
+it_north,Italie Nord,se_south,Suède Sud,5
+it_north,Italie Nord,se_north,Suède Nord,5
+it_north,Italie Nord,fi,Finlande,5
+it_north,Italie Nord,ie,Irlande,3
+it_north,Italie Nord,es_north,Espagne Nord,2
+it_north,Italie Nord,es_south,Espagne Sud,3
+it_north,Italie Nord,pt,Portugal,3
+it_north,Italie Nord,it_north,Italie Nord,0
+it_north,Italie Nord,it_south_islands,Italie Sud & îles,1
+it_north,Italie Nord,at,Autriche,1
+it_north,Italie Nord,pl,Pologne,3
+it_north,Italie Nord,cz,Tchéquie,2
+it_north,Italie Nord,sk,Slovaquie,2
+it_north,Italie Nord,hu,Hongrie,2
+it_north,Italie Nord,ro,Roumanie,3
+it_north,Italie Nord,bg,Bulgarie,3
+it_north,Italie Nord,gr,Grèce,2
+it_north,Italie Nord,eu_north_balkans,Balkans Nord UE,2
+it_north,Italie Nord,baltic_north,Baltique Nord,5
+it_north,Italie Nord,baltic_south,Baltique Sud,4
+it_north,Italie Nord,si_hr,Slovénie-Croatie,1
+it_north,Italie Nord,lux_saarlorlux,Luxembourg & SaarLorLux,2
+it_north,Italie Nord,med_islands,Méditerranée insulaire,2
+it_north,Italie Nord,de_north,Allemagne Nord,3
+it_south_islands,Italie Sud & îles,fr_nord,France Nord,3
+it_south_islands,Italie Sud & îles,fr_sud,France Sud,2
+it_south_islands,Italie Sud & îles,de_west,Allemagne Ouest,3
+it_south_islands,Italie Sud & îles,de_east,Allemagne Est,4
+it_south_islands,Italie Sud & îles,benelux,Benelux,4
+it_south_islands,Italie Sud & îles,dk,Danemark,5
+it_south_islands,Italie Sud & îles,se_south,Suède Sud,5
+it_south_islands,Italie Sud & îles,se_north,Suède Nord,5
+it_south_islands,Italie Sud & îles,fi,Finlande,5
+it_south_islands,Italie Sud & îles,ie,Irlande,4
+it_south_islands,Italie Sud & îles,es_north,Espagne Nord,3
+it_south_islands,Italie Sud & îles,es_south,Espagne Sud,2
+it_south_islands,Italie Sud & îles,pt,Portugal,3
+it_south_islands,Italie Sud & îles,it_north,Italie Nord,1
+it_south_islands,Italie Sud & îles,it_south_islands,Italie Sud & îles,0
+it_south_islands,Italie Sud & îles,at,Autriche,2
+it_south_islands,Italie Sud & îles,pl,Pologne,4
+it_south_islands,Italie Sud & îles,cz,Tchéquie,3
+it_south_islands,Italie Sud & îles,sk,Slovaquie,3
+it_south_islands,Italie Sud & îles,hu,Hongrie,2
+it_south_islands,Italie Sud & îles,ro,Roumanie,3
+it_south_islands,Italie Sud & îles,bg,Bulgarie,2
+it_south_islands,Italie Sud & îles,gr,Grèce,1
+it_south_islands,Italie Sud & îles,eu_north_balkans,Balkans Nord UE,2
+it_south_islands,Italie Sud & îles,baltic_north,Baltique Nord,5
+it_south_islands,Italie Sud & îles,baltic_south,Baltique Sud,5
+it_south_islands,Italie Sud & îles,si_hr,Slovénie-Croatie,1
+it_south_islands,Italie Sud & îles,lux_saarlorlux,Luxembourg & SaarLorLux,3
+it_south_islands,Italie Sud & îles,med_islands,Méditerranée insulaire,1
+it_south_islands,Italie Sud & îles,de_north,Allemagne Nord,4
+at,Autriche,fr_nord,France Nord,2
+at,Autriche,fr_sud,France Sud,2
+at,Autriche,de_west,Allemagne Ouest,1
+at,Autriche,de_east,Allemagne Est,2
+at,Autriche,benelux,Benelux,2
+at,Autriche,dk,Danemark,3
+at,Autriche,se_south,Suède Sud,4
+at,Autriche,se_north,Suède Nord,5
+at,Autriche,fi,Finlande,5
+at,Autriche,ie,Irlande,3
+at,Autriche,es_north,Espagne Nord,3
+at,Autriche,es_south,Espagne Sud,4
+at,Autriche,pt,Portugal,4
+at,Autriche,it_north,Italie Nord,1
+at,Autriche,it_south_islands,Italie Sud & îles,2
+at,Autriche,at,Autriche,0
+at,Autriche,pl,Pologne,2
+at,Autriche,cz,Tchéquie,1
+at,Autriche,sk,Slovaquie,1
+at,Autriche,hu,Hongrie,1
+at,Autriche,ro,Roumanie,2
+at,Autriche,bg,Bulgarie,3
+at,Autriche,gr,Grèce,3
+at,Autriche,eu_north_balkans,Balkans Nord UE,2
+at,Autriche,baltic_north,Baltique Nord,4
+at,Autriche,baltic_south,Baltique Sud,3
+at,Autriche,si_hr,Slovénie-Croatie,1
+at,Autriche,lux_saarlorlux,Luxembourg & SaarLorLux,2
+at,Autriche,med_islands,Méditerranée insulaire,3
+at,Autriche,de_north,Allemagne Nord,2
+pl,Pologne,fr_nord,France Nord,3
+pl,Pologne,fr_sud,France Sud,4
+pl,Pologne,de_west,Allemagne Ouest,2
+pl,Pologne,de_east,Allemagne Est,1
+pl,Pologne,benelux,Benelux,2
+pl,Pologne,dk,Danemark,2
+pl,Pologne,se_south,Suède Sud,2
+pl,Pologne,se_north,Suède Nord,3
+pl,Pologne,fi,Finlande,3
+pl,Pologne,ie,Irlande,3
+pl,Pologne,es_north,Espagne Nord,5
+pl,Pologne,es_south,Espagne Sud,5
+pl,Pologne,pt,Portugal,5
+pl,Pologne,it_north,Italie Nord,3
+pl,Pologne,it_south_islands,Italie Sud & îles,4
+pl,Pologne,at,Autriche,2
+pl,Pologne,pl,Pologne,0
+pl,Pologne,cz,Tchéquie,1
+pl,Pologne,sk,Slovaquie,1
+pl,Pologne,hu,Hongrie,2
+pl,Pologne,ro,Roumanie,3
+pl,Pologne,bg,Bulgarie,4
+pl,Pologne,gr,Grèce,4
+pl,Pologne,eu_north_balkans,Balkans Nord UE,3
+pl,Pologne,baltic_north,Baltique Nord,2
+pl,Pologne,baltic_south,Baltique Sud,1
+pl,Pologne,si_hr,Slovénie-Croatie,3
+pl,Pologne,lux_saarlorlux,Luxembourg & SaarLorLux,3
+pl,Pologne,med_islands,Méditerranée insulaire,5
+pl,Pologne,de_north,Allemagne Nord,1
+cz,Tchéquie,fr_nord,France Nord,2
+cz,Tchéquie,fr_sud,France Sud,3
+cz,Tchéquie,de_west,Allemagne Ouest,1
+cz,Tchéquie,de_east,Allemagne Est,1
+cz,Tchéquie,benelux,Benelux,2
+cz,Tchéquie,dk,Danemark,3
+cz,Tchéquie,se_south,Suède Sud,3
+cz,Tchéquie,se_north,Suède Nord,4
+cz,Tchéquie,fi,Finlande,4
+cz,Tchéquie,ie,Irlande,3
+cz,Tchéquie,es_north,Espagne Nord,4
+cz,Tchéquie,es_south,Espagne Sud,5
+cz,Tchéquie,pt,Portugal,5
+cz,Tchéquie,it_north,Italie Nord,2
+cz,Tchéquie,it_south_islands,Italie Sud & îles,3
+cz,Tchéquie,at,Autriche,1
+cz,Tchéquie,pl,Pologne,1
+cz,Tchéquie,cz,Tchéquie,0
+cz,Tchéquie,sk,Slovaquie,1
+cz,Tchéquie,hu,Hongrie,2
+cz,Tchéquie,ro,Roumanie,3
+cz,Tchéquie,bg,Bulgarie,4
+cz,Tchéquie,gr,Grèce,4
+cz,Tchéquie,eu_north_balkans,Balkans Nord UE,3
+cz,Tchéquie,baltic_north,Baltique Nord,3
+cz,Tchéquie,baltic_south,Baltique Sud,2
+cz,Tchéquie,si_hr,Slovénie-Croatie,2
+cz,Tchéquie,lux_saarlorlux,Luxembourg & SaarLorLux,2
+cz,Tchéquie,med_islands,Méditerranée insulaire,4
+cz,Tchéquie,de_north,Allemagne Nord,2
+sk,Slovaquie,fr_nord,France Nord,3
+sk,Slovaquie,fr_sud,France Sud,3
+sk,Slovaquie,de_west,Allemagne Ouest,2
+sk,Slovaquie,de_east,Allemagne Est,2
+sk,Slovaquie,benelux,Benelux,3
+sk,Slovaquie,dk,Danemark,3
+sk,Slovaquie,se_south,Suède Sud,3
+sk,Slovaquie,se_north,Suède Nord,4
+sk,Slovaquie,fi,Finlande,4
+sk,Slovaquie,ie,Irlande,4
+sk,Slovaquie,es_north,Espagne Nord,4
+sk,Slovaquie,es_south,Espagne Sud,5
+sk,Slovaquie,pt,Portugal,5
+sk,Slovaquie,it_north,Italie Nord,2
+sk,Slovaquie,it_south_islands,Italie Sud & îles,3
+sk,Slovaquie,at,Autriche,1
+sk,Slovaquie,pl,Pologne,1
+sk,Slovaquie,cz,Tchéquie,1
+sk,Slovaquie,sk,Slovaquie,0
+sk,Slovaquie,hu,Hongrie,1
+sk,Slovaquie,ro,Roumanie,2
+sk,Slovaquie,bg,Bulgarie,3
+sk,Slovaquie,gr,Grèce,3
+sk,Slovaquie,eu_north_balkans,Balkans Nord UE,2
+sk,Slovaquie,baltic_north,Baltique Nord,3
+sk,Slovaquie,baltic_south,Baltique Sud,2
+sk,Slovaquie,si_hr,Slovénie-Croatie,2
+sk,Slovaquie,lux_saarlorlux,Luxembourg & SaarLorLux,3
+sk,Slovaquie,med_islands,Méditerranée insulaire,4
+sk,Slovaquie,de_north,Allemagne Nord,2
+hu,Hongrie,fr_nord,France Nord,3
+hu,Hongrie,fr_sud,France Sud,3
+hu,Hongrie,de_west,Allemagne Ouest,2
+hu,Hongrie,de_east,Allemagne Est,3
+hu,Hongrie,benelux,Benelux,3
+hu,Hongrie,dk,Danemark,4
+hu,Hongrie,se_south,Suède Sud,4
+hu,Hongrie,se_north,Suède Nord,5
+hu,Hongrie,fi,Finlande,5
+hu,Hongrie,ie,Irlande,4
+hu,Hongrie,es_north,Espagne Nord,4
+hu,Hongrie,es_south,Espagne Sud,4
+hu,Hongrie,pt,Portugal,5
+hu,Hongrie,it_north,Italie Nord,2
+hu,Hongrie,it_south_islands,Italie Sud & îles,2
+hu,Hongrie,at,Autriche,1
+hu,Hongrie,pl,Pologne,2
+hu,Hongrie,cz,Tchéquie,2
+hu,Hongrie,sk,Slovaquie,1
+hu,Hongrie,hu,Hongrie,0
+hu,Hongrie,ro,Roumanie,1
+hu,Hongrie,bg,Bulgarie,2
+hu,Hongrie,gr,Grèce,2
+hu,Hongrie,eu_north_balkans,Balkans Nord UE,1
+hu,Hongrie,baltic_north,Baltique Nord,4
+hu,Hongrie,baltic_south,Baltique Sud,3
+hu,Hongrie,si_hr,Slovénie-Croatie,1
+hu,Hongrie,lux_saarlorlux,Luxembourg & SaarLorLux,3
+hu,Hongrie,med_islands,Méditerranée insulaire,3
+hu,Hongrie,de_north,Allemagne Nord,3
+ro,Roumanie,fr_nord,France Nord,4
+ro,Roumanie,fr_sud,France Sud,4
+ro,Roumanie,de_west,Allemagne Ouest,3
+ro,Roumanie,de_east,Allemagne Est,4
+ro,Roumanie,benelux,Benelux,4
+ro,Roumanie,dk,Danemark,5
+ro,Roumanie,se_south,Suède Sud,5
+ro,Roumanie,se_north,Suède Nord,5
+ro,Roumanie,fi,Finlande,5
+ro,Roumanie,ie,Irlande,5
+ro,Roumanie,es_north,Espagne Nord,5
+ro,Roumanie,es_south,Espagne Sud,4
+ro,Roumanie,pt,Portugal,5
+ro,Roumanie,it_north,Italie Nord,3
+ro,Roumanie,it_south_islands,Italie Sud & îles,3
+ro,Roumanie,at,Autriche,2
+ro,Roumanie,pl,Pologne,3
+ro,Roumanie,cz,Tchéquie,3
+ro,Roumanie,sk,Slovaquie,2
+ro,Roumanie,hu,Hongrie,1
+ro,Roumanie,ro,Roumanie,0
+ro,Roumanie,bg,Bulgarie,1
+ro,Roumanie,gr,Grèce,2
+ro,Roumanie,eu_north_balkans,Balkans Nord UE,1
+ro,Roumanie,baltic_north,Baltique Nord,5
+ro,Roumanie,baltic_south,Baltique Sud,4
+ro,Roumanie,si_hr,Slovénie-Croatie,2
+ro,Roumanie,lux_saarlorlux,Luxembourg & SaarLorLux,4
+ro,Roumanie,med_islands,Méditerranée insulaire,3
+ro,Roumanie,de_north,Allemagne Nord,4
+bg,Bulgarie,fr_nord,France Nord,4
+bg,Bulgarie,fr_sud,France Sud,3
+bg,Bulgarie,de_west,Allemagne Ouest,4
+bg,Bulgarie,de_east,Allemagne Est,5
+bg,Bulgarie,benelux,Benelux,5
+bg,Bulgarie,dk,Danemark,5
+bg,Bulgarie,se_south,Suède Sud,5
+bg,Bulgarie,se_north,Suède Nord,5
+bg,Bulgarie,fi,Finlande,5
+bg,Bulgarie,ie,Irlande,5
+bg,Bulgarie,es_north,Espagne Nord,4
+bg,Bulgarie,es_south,Espagne Sud,3
+bg,Bulgarie,pt,Portugal,4
+bg,Bulgarie,it_north,Italie Nord,3
+bg,Bulgarie,it_south_islands,Italie Sud & îles,2
+bg,Bulgarie,at,Autriche,3
+bg,Bulgarie,pl,Pologne,4
+bg,Bulgarie,cz,Tchéquie,4
+bg,Bulgarie,sk,Slovaquie,3
+bg,Bulgarie,hu,Hongrie,2
+bg,Bulgarie,ro,Roumanie,1
+bg,Bulgarie,bg,Bulgarie,0
+bg,Bulgarie,gr,Grèce,1
+bg,Bulgarie,eu_north_balkans,Balkans Nord UE,1
+bg,Bulgarie,baltic_north,Baltique Nord,5
+bg,Bulgarie,baltic_south,Baltique Sud,5
+bg,Bulgarie,si_hr,Slovénie-Croatie,2
+bg,Bulgarie,lux_saarlorlux,Luxembourg & SaarLorLux,4
+bg,Bulgarie,med_islands,Méditerranée insulaire,2
+bg,Bulgarie,de_north,Allemagne Nord,5
+gr,Grèce,fr_nord,France Nord,3
+gr,Grèce,fr_sud,France Sud,2
+gr,Grèce,de_west,Allemagne Ouest,4
+gr,Grèce,de_east,Allemagne Est,5
+gr,Grèce,benelux,Benelux,4
+gr,Grèce,dk,Danemark,5
+gr,Grèce,se_south,Suède Sud,5
+gr,Grèce,se_north,Suède Nord,5
+gr,Grèce,fi,Finlande,5
+gr,Grèce,ie,Irlande,4
+gr,Grèce,es_north,Espagne Nord,3
+gr,Grèce,es_south,Espagne Sud,2
+gr,Grèce,pt,Portugal,3
+gr,Grèce,it_north,Italie Nord,2
+gr,Grèce,it_south_islands,Italie Sud & îles,1
+gr,Grèce,at,Autriche,3
+gr,Grèce,pl,Pologne,4
+gr,Grèce,cz,Tchéquie,4
+gr,Grèce,sk,Slovaquie,3
+gr,Grèce,hu,Hongrie,2
+gr,Grèce,ro,Roumanie,2
+gr,Grèce,bg,Bulgarie,1
+gr,Grèce,gr,Grèce,0
+gr,Grèce,eu_north_balkans,Balkans Nord UE,1
+gr,Grèce,baltic_north,Baltique Nord,5
+gr,Grèce,baltic_south,Baltique Sud,5
+gr,Grèce,si_hr,Slovénie-Croatie,2
+gr,Grèce,lux_saarlorlux,Luxembourg & SaarLorLux,3
+gr,Grèce,med_islands,Méditerranée insulaire,1
+gr,Grèce,de_north,Allemagne Nord,5
+eu_north_balkans,Balkans Nord UE,fr_nord,France Nord,4
+eu_north_balkans,Balkans Nord UE,fr_sud,France Sud,3
+eu_north_balkans,Balkans Nord UE,de_west,Allemagne Ouest,3
+eu_north_balkans,Balkans Nord UE,de_east,Allemagne Est,4
+eu_north_balkans,Balkans Nord UE,benelux,Benelux,4
+eu_north_balkans,Balkans Nord UE,dk,Danemark,5
+eu_north_balkans,Balkans Nord UE,se_south,Suède Sud,5
+eu_north_balkans,Balkans Nord UE,se_north,Suède Nord,5
+eu_north_balkans,Balkans Nord UE,fi,Finlande,5
+eu_north_balkans,Balkans Nord UE,ie,Irlande,5
+eu_north_balkans,Balkans Nord UE,es_north,Espagne Nord,4
+eu_north_balkans,Balkans Nord UE,es_south,Espagne Sud,3
+eu_north_balkans,Balkans Nord UE,pt,Portugal,4
+eu_north_balkans,Balkans Nord UE,it_north,Italie Nord,2
+eu_north_balkans,Balkans Nord UE,it_south_islands,Italie Sud & îles,2
+eu_north_balkans,Balkans Nord UE,at,Autriche,2
+eu_north_balkans,Balkans Nord UE,pl,Pologne,3
+eu_north_balkans,Balkans Nord UE,cz,Tchéquie,3
+eu_north_balkans,Balkans Nord UE,sk,Slovaquie,2
+eu_north_balkans,Balkans Nord UE,hu,Hongrie,1
+eu_north_balkans,Balkans Nord UE,ro,Roumanie,1
+eu_north_balkans,Balkans Nord UE,bg,Bulgarie,1
+eu_north_balkans,Balkans Nord UE,gr,Grèce,1
+eu_north_balkans,Balkans Nord UE,eu_north_balkans,Balkans Nord UE,0
+eu_north_balkans,Balkans Nord UE,baltic_north,Baltique Nord,5
+eu_north_balkans,Balkans Nord UE,baltic_south,Baltique Sud,4
+eu_north_balkans,Balkans Nord UE,si_hr,Slovénie-Croatie,1
+eu_north_balkans,Balkans Nord UE,lux_saarlorlux,Luxembourg & SaarLorLux,4
+eu_north_balkans,Balkans Nord UE,med_islands,Méditerranée insulaire,2
+eu_north_balkans,Balkans Nord UE,de_north,Allemagne Nord,4
+baltic_north,Baltique Nord,fr_nord,France Nord,4
+baltic_north,Baltique Nord,fr_sud,France Sud,5
+baltic_north,Baltique Nord,de_west,Allemagne Ouest,3
+baltic_north,Baltique Nord,de_east,Allemagne Est,3
+baltic_north,Baltique Nord,benelux,Benelux,3
+baltic_north,Baltique Nord,dk,Danemark,2
+baltic_north,Baltique Nord,se_south,Suède Sud,1
+baltic_north,Baltique Nord,se_north,Suède Nord,2
+baltic_north,Baltique Nord,fi,Finlande,1
+baltic_north,Baltique Nord,ie,Irlande,4
+baltic_north,Baltique Nord,es_north,Espagne Nord,5
+baltic_north,Baltique Nord,es_south,Espagne Sud,5
+baltic_north,Baltique Nord,pt,Portugal,5
+baltic_north,Baltique Nord,it_north,Italie Nord,5
+baltic_north,Baltique Nord,it_south_islands,Italie Sud & îles,5
+baltic_north,Baltique Nord,at,Autriche,4
+baltic_north,Baltique Nord,pl,Pologne,2
+baltic_north,Baltique Nord,cz,Tchéquie,3
+baltic_north,Baltique Nord,sk,Slovaquie,3
+baltic_north,Baltique Nord,hu,Hongrie,4
+baltic_north,Baltique Nord,ro,Roumanie,5
+baltic_north,Baltique Nord,bg,Bulgarie,5
+baltic_north,Baltique Nord,gr,Grèce,5
+baltic_north,Baltique Nord,eu_north_balkans,Balkans Nord UE,5
+baltic_north,Baltique Nord,baltic_north,Baltique Nord,0
+baltic_north,Baltique Nord,baltic_south,Baltique Sud,1
+baltic_north,Baltique Nord,si_hr,Slovénie-Croatie,5
+baltic_north,Baltique Nord,lux_saarlorlux,Luxembourg & SaarLorLux,4
+baltic_north,Baltique Nord,med_islands,Méditerranée insulaire,5
+baltic_north,Baltique Nord,de_north,Allemagne Nord,2
+baltic_south,Baltique Sud,fr_nord,France Nord,3
+baltic_south,Baltique Sud,fr_sud,France Sud,4
+baltic_south,Baltique Sud,de_west,Allemagne Ouest,2
+baltic_south,Baltique Sud,de_east,Allemagne Est,2
+baltic_south,Baltique Sud,benelux,Benelux,2
+baltic_south,Baltique Sud,dk,Danemark,1
+baltic_south,Baltique Sud,se_south,Suède Sud,1
+baltic_south,Baltique Sud,se_north,Suède Nord,2
+baltic_south,Baltique Sud,fi,Finlande,2
+baltic_south,Baltique Sud,ie,Irlande,3
+baltic_south,Baltique Sud,es_north,Espagne Nord,5
+baltic_south,Baltique Sud,es_south,Espagne Sud,5
+baltic_south,Baltique Sud,pt,Portugal,5
+baltic_south,Baltique Sud,it_north,Italie Nord,4
+baltic_south,Baltique Sud,it_south_islands,Italie Sud & îles,5
+baltic_south,Baltique Sud,at,Autriche,3
+baltic_south,Baltique Sud,pl,Pologne,1
+baltic_south,Baltique Sud,cz,Tchéquie,2
+baltic_south,Baltique Sud,sk,Slovaquie,2
+baltic_south,Baltique Sud,hu,Hongrie,3
+baltic_south,Baltique Sud,ro,Roumanie,4
+baltic_south,Baltique Sud,bg,Bulgarie,5
+baltic_south,Baltique Sud,gr,Grèce,5
+baltic_south,Baltique Sud,eu_north_balkans,Balkans Nord UE,4
+baltic_south,Baltique Sud,baltic_north,Baltique Nord,1
+baltic_south,Baltique Sud,baltic_south,Baltique Sud,0
+baltic_south,Baltique Sud,si_hr,Slovénie-Croatie,4
+baltic_south,Baltique Sud,lux_saarlorlux,Luxembourg & SaarLorLux,3
+baltic_south,Baltique Sud,med_islands,Méditerranée insulaire,5
+baltic_south,Baltique Sud,de_north,Allemagne Nord,1
+si_hr,Slovénie-Croatie,fr_nord,France Nord,3
+si_hr,Slovénie-Croatie,fr_sud,France Sud,2
+si_hr,Slovénie-Croatie,de_west,Allemagne Ouest,2
+si_hr,Slovénie-Croatie,de_east,Allemagne Est,3
+si_hr,Slovénie-Croatie,benelux,Benelux,3
+si_hr,Slovénie-Croatie,dk,Danemark,4
+si_hr,Slovénie-Croatie,se_south,Suède Sud,5
+si_hr,Slovénie-Croatie,se_north,Suède Nord,5
+si_hr,Slovénie-Croatie,fi,Finlande,5
+si_hr,Slovénie-Croatie,ie,Irlande,4
+si_hr,Slovénie-Croatie,es_north,Espagne Nord,3
+si_hr,Slovénie-Croatie,es_south,Espagne Sud,3
+si_hr,Slovénie-Croatie,pt,Portugal,4
+si_hr,Slovénie-Croatie,it_north,Italie Nord,1
+si_hr,Slovénie-Croatie,it_south_islands,Italie Sud & îles,1
+si_hr,Slovénie-Croatie,at,Autriche,1
+si_hr,Slovénie-Croatie,pl,Pologne,3
+si_hr,Slovénie-Croatie,cz,Tchéquie,2
+si_hr,Slovénie-Croatie,sk,Slovaquie,2
+si_hr,Slovénie-Croatie,hu,Hongrie,1
+si_hr,Slovénie-Croatie,ro,Roumanie,2
+si_hr,Slovénie-Croatie,bg,Bulgarie,2
+si_hr,Slovénie-Croatie,gr,Grèce,2
+si_hr,Slovénie-Croatie,eu_north_balkans,Balkans Nord UE,1
+si_hr,Slovénie-Croatie,baltic_north,Baltique Nord,5
+si_hr,Slovénie-Croatie,baltic_south,Baltique Sud,4
+si_hr,Slovénie-Croatie,si_hr,Slovénie-Croatie,0
+si_hr,Slovénie-Croatie,lux_saarlorlux,Luxembourg & SaarLorLux,3
+si_hr,Slovénie-Croatie,med_islands,Méditerranée insulaire,2
+si_hr,Slovénie-Croatie,de_north,Allemagne Nord,3
+lux_saarlorlux,Luxembourg & SaarLorLux,fr_nord,France Nord,1
+lux_saarlorlux,Luxembourg & SaarLorLux,fr_sud,France Sud,1
+lux_saarlorlux,Luxembourg & SaarLorLux,de_west,Allemagne Ouest,1
+lux_saarlorlux,Luxembourg & SaarLorLux,de_east,Allemagne Est,2
+lux_saarlorlux,Luxembourg & SaarLorLux,benelux,Benelux,1
+lux_saarlorlux,Luxembourg & SaarLorLux,dk,Danemark,2
+lux_saarlorlux,Luxembourg & SaarLorLux,se_south,Suède Sud,3
+lux_saarlorlux,Luxembourg & SaarLorLux,se_north,Suède Nord,4
+lux_saarlorlux,Luxembourg & SaarLorLux,fi,Finlande,4
+lux_saarlorlux,Luxembourg & SaarLorLux,ie,Irlande,2
+lux_saarlorlux,Luxembourg & SaarLorLux,es_north,Espagne Nord,2
+lux_saarlorlux,Luxembourg & SaarLorLux,es_south,Espagne Sud,3
+lux_saarlorlux,Luxembourg & SaarLorLux,pt,Portugal,3
+lux_saarlorlux,Luxembourg & SaarLorLux,it_north,Italie Nord,2
+lux_saarlorlux,Luxembourg & SaarLorLux,it_south_islands,Italie Sud & îles,3
+lux_saarlorlux,Luxembourg & SaarLorLux,at,Autriche,2
+lux_saarlorlux,Luxembourg & SaarLorLux,pl,Pologne,3
+lux_saarlorlux,Luxembourg & SaarLorLux,cz,Tchéquie,2
+lux_saarlorlux,Luxembourg & SaarLorLux,sk,Slovaquie,3
+lux_saarlorlux,Luxembourg & SaarLorLux,hu,Hongrie,3
+lux_saarlorlux,Luxembourg & SaarLorLux,ro,Roumanie,4
+lux_saarlorlux,Luxembourg & SaarLorLux,bg,Bulgarie,4
+lux_saarlorlux,Luxembourg & SaarLorLux,gr,Grèce,3
+lux_saarlorlux,Luxembourg & SaarLorLux,eu_north_balkans,Balkans Nord UE,4
+lux_saarlorlux,Luxembourg & SaarLorLux,baltic_north,Baltique Nord,4
+lux_saarlorlux,Luxembourg & SaarLorLux,baltic_south,Baltique Sud,3
+lux_saarlorlux,Luxembourg & SaarLorLux,si_hr,Slovénie-Croatie,3
+lux_saarlorlux,Luxembourg & SaarLorLux,lux_saarlorlux,Luxembourg & SaarLorLux,0
+lux_saarlorlux,Luxembourg & SaarLorLux,med_islands,Méditerranée insulaire,2
+lux_saarlorlux,Luxembourg & SaarLorLux,de_north,Allemagne Nord,2
+med_islands,Méditerranée insulaire,fr_nord,France Nord,2
+med_islands,Méditerranée insulaire,fr_sud,France Sud,1
+med_islands,Méditerranée insulaire,de_west,Allemagne Ouest,3
+med_islands,Méditerranée insulaire,de_east,Allemagne Est,4
+med_islands,Méditerranée insulaire,benelux,Benelux,3
+med_islands,Méditerranée insulaire,dk,Danemark,4
+med_islands,Méditerranée insulaire,se_south,Suède Sud,5
+med_islands,Méditerranée insulaire,se_north,Suède Nord,5
+med_islands,Méditerranée insulaire,fi,Finlande,5
+med_islands,Méditerranée insulaire,ie,Irlande,3
+med_islands,Méditerranée insulaire,es_north,Espagne Nord,2
+med_islands,Méditerranée insulaire,es_south,Espagne Sud,1
+med_islands,Méditerranée insulaire,pt,Portugal,2
+med_islands,Méditerranée insulaire,it_north,Italie Nord,2
+med_islands,Méditerranée insulaire,it_south_islands,Italie Sud & îles,1
+med_islands,Méditerranée insulaire,at,Autriche,3
+med_islands,Méditerranée insulaire,pl,Pologne,5
+med_islands,Méditerranée insulaire,cz,Tchéquie,4
+med_islands,Méditerranée insulaire,sk,Slovaquie,4
+med_islands,Méditerranée insulaire,hu,Hongrie,3
+med_islands,Méditerranée insulaire,ro,Roumanie,3
+med_islands,Méditerranée insulaire,bg,Bulgarie,2
+med_islands,Méditerranée insulaire,gr,Grèce,1
+med_islands,Méditerranée insulaire,eu_north_balkans,Balkans Nord UE,2
+med_islands,Méditerranée insulaire,baltic_north,Baltique Nord,5
+med_islands,Méditerranée insulaire,baltic_south,Baltique Sud,5
+med_islands,Méditerranée insulaire,si_hr,Slovénie-Croatie,2
+med_islands,Méditerranée insulaire,lux_saarlorlux,Luxembourg & SaarLorLux,2
+med_islands,Méditerranée insulaire,med_islands,Méditerranée insulaire,0
+med_islands,Méditerranée insulaire,de_north,Allemagne Nord,4
+de_north,Allemagne Nord,fr_nord,France Nord,2
+de_north,Allemagne Nord,fr_sud,France Sud,3
+de_north,Allemagne Nord,de_west,Allemagne Ouest,1
+de_north,Allemagne Nord,de_east,Allemagne Est,1
+de_north,Allemagne Nord,benelux,Benelux,1
+de_north,Allemagne Nord,dk,Danemark,1
+de_north,Allemagne Nord,se_south,Suède Sud,2
+de_north,Allemagne Nord,se_north,Suède Nord,3
+de_north,Allemagne Nord,fi,Finlande,3
+de_north,Allemagne Nord,ie,Irlande,2
+de_north,Allemagne Nord,es_north,Espagne Nord,4
+de_north,Allemagne Nord,es_south,Espagne Sud,5
+de_north,Allemagne Nord,pt,Portugal,5
+de_north,Allemagne Nord,it_north,Italie Nord,3
+de_north,Allemagne Nord,it_south_islands,Italie Sud & îles,4
+de_north,Allemagne Nord,at,Autriche,2
+de_north,Allemagne Nord,pl,Pologne,1
+de_north,Allemagne Nord,cz,Tchéquie,2
+de_north,Allemagne Nord,sk,Slovaquie,2
+de_north,Allemagne Nord,hu,Hongrie,3
+de_north,Allemagne Nord,ro,Roumanie,4
+de_north,Allemagne Nord,bg,Bulgarie,5
+de_north,Allemagne Nord,gr,Grèce,5
+de_north,Allemagne Nord,eu_north_balkans,Balkans Nord UE,4
+de_north,Allemagne Nord,baltic_north,Baltique Nord,2
+de_north,Allemagne Nord,baltic_south,Baltique Sud,1
+de_north,Allemagne Nord,si_hr,Slovénie-Croatie,3
+de_north,Allemagne Nord,lux_saarlorlux,Luxembourg & SaarLorLux,2
+de_north,Allemagne Nord,med_islands,Méditerranée insulaire,4
+de_north,Allemagne Nord,de_north,Allemagne Nord,0

@@ -1,0 +1,31 @@
+﻿region_id,display_name,x,y,hitbox_radius,slot_anchor_dx,slot_anchor_dy,slot_grid_cols,slot_grid_rows,slot_spacing,notes
+fr_nord,France Nord,0.37,0.47,0.0544,0.0,0.045,6,5,0.014,P0 approximate layout; not geospatial; replace with polygon/SVG layout later if time allows.
+fr_sud,France Sud,0.37,0.6,0.056,0.0,0.045,6,5,0.014,P0 approximate layout; not geospatial; replace with polygon/SVG layout later if time allows.
+de_west,Allemagne Ouest,0.5,0.44,0.0528,0.0,0.045,6,5,0.014,P0 approximate layout; not geospatial; replace with polygon/SVG layout later if time allows.
+de_east,Allemagne Est,0.58,0.43,0.0512,0.0,0.045,5,5,0.014,P0 approximate layout; not geospatial; replace with polygon/SVG layout later if time allows.
+benelux,Benelux,0.45,0.38,0.0464,0.0,0.045,5,4,0.014,P0 approximate layout; not geospatial; replace with polygon/SVG layout later if time allows.
+dk,Danemark,0.56,0.27,0.0448,0.0,0.045,4,4,0.014,P0 approximate layout; not geospatial; replace with polygon/SVG layout later if time allows.
+se_south,Suède Sud,0.64,0.22,0.0496,0.0,0.045,5,5,0.014,P0 approximate layout; not geospatial; replace with polygon/SVG layout later if time allows.
+se_north,Suède Nord,0.65,0.11,0.0512,0.0,0.045,5,5,0.014,P0 approximate layout; not geospatial; replace with polygon/SVG layout later if time allows.
+fi,Finlande,0.74,0.15,0.0512,0.0,0.045,5,5,0.014,P0 approximate layout; not geospatial; replace with polygon/SVG layout later if time allows.
+ie,Irlande,0.22,0.39,0.0448,0.0,0.045,4,4,0.014,P0 approximate layout; not geospatial; replace with polygon/SVG layout later if time allows.
+es_north,Espagne Nord,0.26,0.62,0.0512,0.0,0.045,5,5,0.014,P0 approximate layout; not geospatial; replace with polygon/SVG layout later if time allows.
+es_south,Espagne Sud,0.25,0.74,0.056,0.0,0.045,6,5,0.014,P0 approximate layout; not geospatial; replace with polygon/SVG layout later if time allows.
+pt,Portugal,0.16,0.7,0.0464,0.0,0.045,5,4,0.014,P0 approximate layout; not geospatial; replace with polygon/SVG layout later if time allows.
+it_north,Italie Nord,0.49,0.63,0.0496,0.0,0.045,5,5,0.014,P0 approximate layout; not geospatial; replace with polygon/SVG layout later if time allows.
+it_south_islands,Italie Sud & îles,0.56,0.78,0.0528,0.0,0.045,6,5,0.014,P0 approximate layout; not geospatial; replace with polygon/SVG layout later if time allows.
+at,Autriche,0.54,0.58,0.0448,0.0,0.045,4,4,0.014,P0 approximate layout; not geospatial; replace with polygon/SVG layout later if time allows.
+pl,Pologne,0.65,0.45,0.0544,0.0,0.045,6,5,0.014,P0 approximate layout; not geospatial; replace with polygon/SVG layout later if time allows.
+cz,Tchéquie,0.57,0.52,0.0448,0.0,0.045,4,4,0.014,P0 approximate layout; not geospatial; replace with polygon/SVG layout later if time allows.
+sk,Slovaquie,0.63,0.56,0.0432,0.0,0.045,4,4,0.014,P0 approximate layout; not geospatial; replace with polygon/SVG layout later if time allows.
+hu,Hongrie,0.63,0.64,0.0448,0.0,0.045,4,4,0.014,P0 approximate layout; not geospatial; replace with polygon/SVG layout later if time allows.
+ro,Roumanie,0.73,0.66,0.0512,0.0,0.045,5,5,0.014,P0 approximate layout; not geospatial; replace with polygon/SVG layout later if time allows.
+bg,Bulgarie,0.74,0.75,0.0464,0.0,0.045,5,4,0.014,P0 approximate layout; not geospatial; replace with polygon/SVG layout later if time allows.
+gr,Grèce,0.71,0.86,0.048,0.0,0.045,5,4,0.014,P0 approximate layout; not geospatial; replace with polygon/SVG layout later if time allows.
+eu_north_balkans,Balkans Nord UE,0.66,0.73,0.048,0.0,0.045,5,4,0.014,P0 approximate layout; not geospatial; replace with polygon/SVG layout later if time allows.
+baltic_north,Baltique Nord,0.75,0.27,0.0464,0.0,0.045,5,4,0.014,P0 approximate layout; not geospatial; replace with polygon/SVG layout later if time allows.
+baltic_south,Baltique Sud,0.7,0.36,0.0464,0.0,0.045,5,4,0.014,P0 approximate layout; not geospatial; replace with polygon/SVG layout later if time allows.
+si_hr,Slovénie-Croatie,0.58,0.68,0.0464,0.0,0.045,5,4,0.014,P0 approximate layout; not geospatial; replace with polygon/SVG layout later if time allows.
+lux_saarlorlux,Luxembourg & SaarLorLux,0.43,0.47,0.04,0.0,0.045,4,3,0.014,P0 approximate layout; not geospatial; replace with polygon/SVG layout later if time allows.
+med_islands,Méditerranée insulaire,0.46,0.81,0.0432,0.0,0.045,4,4,0.014,P0 approximate layout; not geospatial; replace with polygon/SVG layout later if time allows.
+de_north,Allemagne Nord,0.52,0.34,0.0512,0.0,0.045,5,5,0.014,P0 approximate layout; not geospatial; replace with polygon/SVG layout later if time allows.

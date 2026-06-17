@@ -1,0 +1,30 @@
+﻿parameter,value,unit,description
+start_year,2025,year,Année de début simulation
+end_year,2045,year,Année de fin si les USA ne sont pas devancés
+tick_duration_months,1,month,1 tick = 1 mois simulé
+real_minutes_for_full_run,60,minutes,1 minute réelle = 4 mois simulés
+starting_money,1000,money,Budget initial joueur
+base_monthly_income,80,money/month,Revenu de base avant population/AGI/pénalités
+population_units_total,45,population_unit,45 unités abstraites en 2025
+starting_eu_compute,6,compute,Compute infrastructure initial UE
+starting_eu_agi_progress,0,percent,Progression AGI Europe initiale
+starting_usa_agi_progress,0,percent,Progression AGI USA initiale
+energy_unit_real_world_hint,10,GW_equivalent,1 énergie ≈ 10 GW équivalent système
+compute_unit_real_world_hint,100,MW_datacenter,1 compute infrastructure ≈ 100 MW datacenter
+base_agi_gain_monthly_pct,0.35,percent/month,Base recherche AGI Europe
+compute_optimal_start,100,compute,Compute optimal début
+compute_optimal_end,400,compute,Compute optimal fin
+major_blackout_agi_penalty_pct,-20,percent,Pénalité progression AGI globale
+income_per_population_unit,2,money/month,Revenu population abstraite
+income_per_agi_percent,3,money/month,Bonus revenu par point AGI Europe
+income_energy_efficiency_tech_bonus,30,money/month,Bonus technologie efficacité énergétique
+blackout_light_income_penalty,-20,money/month,Pénalité revenu blackout léger
+blackout_severe_income_penalty,-60,money/month,Pénalité revenu blackout sévère
+co2_moderate_income_penalty,-10,money/month,Pénalité CO2 modéré
+co2_elevated_income_penalty,-30,money/month,Pénalité CO2 élevé
+co2_critical_income_penalty,-80,money/month,Pénalité CO2 critique
+construction_cancel_refund_min_pct,50,percent,Remboursement minimal annulation
+construction_cancel_refund_max_pct,75,percent,Remboursement maximal annulation
+renewable_storage_roundtrip_efficiency,88,percent,Rendement batterie par défaut
+regional_distance_cap,5,hops,Distance réseau plafonnée
+potential_scaling_default_formula,output*(0.7+0.1*potential),formula,Formule simple pour output renouvelable par potentiel

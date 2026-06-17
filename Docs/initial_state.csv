@@ -1,0 +1,12 @@
+﻿key,value,unit,notes
+money,1000,money,Budget initial
+monthly_income_base,80,money/month,Avant population/progression/pénalités
+population_units_total,45.0,population_unit,Somme regions.csv
+base_energy_demand_total,124.4,energy,Demande héritée 2025
+starting_energy_generation_total,143.3,energy,Production héritée 2025
+starting_energy_balance_total,18.9,energy,"Marge initiale: suffisante pour tester une première boucle, pas pour tout construire"
+starting_compute_total,6.0,compute,Conforme intention: peu de compute UE
+starting_researchers_total,75.1,researchers,Suffisant pour démarrer mais goulot rapide
+starting_co2_pressure_per_month_total,31.5,co2_pressure/month,Pression héritée du mix
+eu_agi_progress_start,0,percent,Début
+usa_agi_progress_start,0,percent,Début
