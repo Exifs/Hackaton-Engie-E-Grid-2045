@@ -1,18 +1,55 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/game/e_grid_build_category.gd" id="1_build_category"]
+[ext_resource type="PackedScene" path="res://scenes/ui/components/e_grid_icon_button.tscn" id="2_icon_button"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_title"]
+font_size = 12
+font_color = Color(0.878431, 0.909804, 0.909804, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_rule"]
+font_size = 9
+font_color = Color(0.121569, 0.815686, 0.886275, 0.78)
 
 [node name="EGridBuildCategory" type="VBoxContainer"]
-custom_minimum_size = Vector2(0, 96)
-theme_override_constants/separation = 6
+custom_minimum_size = Vector2(0, 102)
+theme_override_constants/separation = 4
 script = ExtResource("1_build_category")
+tool_icon_states = PackedStringArray("energy", "battery", "compute", "grid")
 
-[node name="TitleLabel" type="Label" parent="."]
+[node name="Header" type="HBoxContainer" parent="."]
 layout_mode = 2
+
+[node name="TitleLabel" type="Label" parent="Header"]
+layout_mode = 2
+size_flags_horizontal = 3
 text = "CATEGORY"
+label_settings = SubResource("LabelSettings_title")
+clip_text = true
+
+[node name="RuleLabel" type="Label" parent="Header"]
+layout_mode = 2
+text = "////"
+label_settings = SubResource("LabelSettings_rule")
 
 [node name="SlotsGrid" type="GridContainer" parent="."]
 layout_mode = 2
 theme_override_constants/h_separation = 6
 theme_override_constants/v_separation = 6
 columns = 4
+
+[node name="Slot1" parent="SlotsGrid" instance=ExtResource("2_icon_button")]
+layout_mode = 2
+utility_icon_state = "energy"
+
+[node name="Slot2" parent="SlotsGrid" instance=ExtResource("2_icon_button")]
+layout_mode = 2
+utility_icon_state = "battery"
+
+[node name="Slot3" parent="SlotsGrid" instance=ExtResource("2_icon_button")]
+layout_mode = 2
+utility_icon_state = "compute"
+
+[node name="Slot4" parent="SlotsGrid" instance=ExtResource("2_icon_button")]
+layout_mode = 2
+utility_icon_state = "grid"

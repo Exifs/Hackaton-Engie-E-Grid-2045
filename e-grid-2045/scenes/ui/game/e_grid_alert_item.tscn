@@ -1,39 +1,34 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/game/e_grid_alert_item.gd" id="1_alert_item"]
+[ext_resource type="PackedScene" path="res://scenes/ui/components/e_grid_alert_toast.tscn" id="2_alert_toast"]
+[ext_resource type="PackedScene" path="res://scenes/ui/components/e_grid_mini_button.tscn" id="3_mini_button"]
 
-[node name="EGridAlertItem" type="PanelContainer"]
-custom_minimum_size = Vector2(280, 62)
+[node name="EGridAlertItem" type="Control"]
+custom_minimum_size = Vector2(340, 68)
 size_flags_horizontal = 3
 script = ExtResource("1_alert_item")
 
-[node name="ContentMargin" type="MarginContainer" parent="."]
-layout_mode = 2
-theme_override_constants/margin_left = 8
-theme_override_constants/margin_top = 6
-theme_override_constants/margin_right = 8
-theme_override_constants/margin_bottom = 6
+[node name="ToastButton" parent="." instance=ExtResource("2_alert_toast")]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+label_text = "ALERT / Alert details"
 
-[node name="AlertContent" type="HBoxContainer" parent="ContentMargin"]
-layout_mode = 2
-theme_override_constants/separation = 8
-
-[node name="TextStack" type="VBoxContainer" parent="ContentMargin/AlertContent"]
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_constants/separation = 2
-
-[node name="TitleLabel" type="Label" parent="ContentMargin/AlertContent/TextStack"]
-layout_mode = 2
-text = "ALERT"
-clip_text = true
-
-[node name="BodyLabel" type="Label" parent="ContentMargin/AlertContent/TextStack"]
-layout_mode = 2
-text = "Alert details"
-clip_text = true
-
-[node name="ActionButton" type="Button" parent="ContentMargin/AlertContent"]
-custom_minimum_size = Vector2(70, 0)
-layout_mode = 2
-text = "VIEW"
+[node name="ActionButton" parent="." instance=ExtResource("3_mini_button")]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 1.0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = -68.0
+offset_top = -16.0
+offset_right = -10.0
+offset_bottom = 16.0
+grow_horizontal = 0
+grow_vertical = 2
+label_text = "VIEW"
