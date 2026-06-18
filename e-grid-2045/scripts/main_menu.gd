@@ -2,15 +2,24 @@ extends Control
 
 @export_node_path("Control") var button_container_path: NodePath = ^"MenuArtboardAspect/MenuArtboard/MenuButtons"
 @export_node_path("Control") var version_label_path: NodePath = ^"MenuArtboardAspect/MenuArtboard/VersionLabel"
+@export_node_path("Control") var settings_menu_path: NodePath = ^"MenuArtboardAspect/MenuArtboard/SettingsMenu"
 
 var _button_layer: Control
 var _version_label: Control
+var _settings_menu: Control
 var _buttons: Array[EGridMenuButton] = []
 
 
 func _ready() -> void:
 	_button_layer = get_node_or_null(button_container_path) as Control
 	_version_label = get_node_or_null(version_label_path) as Control
+	_settings_menu = get_node_or_null(settings_menu_path) as Control
+
+	if _settings_menu != null:
+		_call_settings_menu_method("hide_menu", [])
+
+		if _settings_menu.has_signal("close_requested"):
+			_settings_menu.connect("close_requested", Callable(self, "_close_settings_menu"))
 
 	_collect_buttons()
 	_wire_focus_navigation()
@@ -72,6 +81,9 @@ func _get_menu_version_text() -> String:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if _is_settings_menu_open():
+		return
+
 	if _buttons.is_empty() or get_viewport().gui_get_focus_owner() != null:
 		return
 
@@ -85,7 +97,59 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func _on_menu_button_pressed(button: EGridMenuButton) -> void:
 	match button.action_name:
+		"settings":
+			_open_settings_menu()
 		"quit":
 			get_tree().quit()
 		_:
 			print("%s: action non connectee pour le prototype de menu." % button.get_display_label())
+
+
+func _open_settings_menu() -> void:
+	if _settings_menu == null:
+		push_warning("Le menu principal ne trouve pas la scene de parametres.")
+		return
+
+	if _button_layer != null:
+		_button_layer.hide()
+
+	_call_settings_menu_method("show_menu", [])
+
+
+func _close_settings_menu() -> void:
+	if _settings_menu != null:
+		_call_settings_menu_method("hide_menu", [])
+
+	if _button_layer != null:
+		_button_layer.show()
+
+	var settings_button := _find_button_by_action("settings")
+	if settings_button != null:
+		settings_button.grab_focus()
+
+
+func _is_settings_menu_open() -> bool:
+	return _settings_menu != null and _settings_menu.visible
+
+
+func _call_settings_menu_method(method_name: StringName, arguments: Array) -> void:
+	if _settings_menu == null:
+		return
+
+	if _settings_menu.has_method(method_name):
+		_settings_menu.callv(method_name, arguments)
+		return
+
+	match method_name:
+		&"show_menu":
+			_settings_menu.show()
+		&"hide_menu":
+			_settings_menu.hide()
+
+
+func _find_button_by_action(action_name: String) -> EGridMenuButton:
+	for button in _buttons:
+		if button.action_name == action_name:
+			return button
+
+	return null
