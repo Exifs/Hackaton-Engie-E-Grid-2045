@@ -5,6 +5,7 @@
 [ext_resource type="PackedScene" uid="uid://b7xwxq7s44sxk" path="res://scenes/ui/e_grid_menu_button.tscn" id="3_menu_button"]
 [ext_resource type="PackedScene" uid="uid://dwxbgecgihb3c" path="res://scenes/ui/e_grid_menu_version_label.tscn" id="4_version_label"]
 [ext_resource type="PackedScene" path="res://scenes/input/e_grid_input_controller.tscn" id="5_input_controller"]
+[ext_resource type="PackedScene" uid="uid://bmgci422xnl4h" path="res://scenes/ui/settings/settings_menu.tscn" id="6_settings_menu"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_wu84c"]
 
@@ -143,6 +144,17 @@ flat = true
 button_text = "QUITTER"
 action_name = "quit"
 fallback_label = "QUITTER"
+
+[node name="SettingsMenu" parent="MenuArtboardAspect/MenuArtboard" instance=ExtResource("6_settings_menu")]
+visible = false
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.205
+anchor_top = 0.17
+anchor_right = 0.795
+anchor_bottom = 0.865
+offset_right = 0.0
+offset_bottom = 0.0
 
 [node name="VersionLabel" parent="MenuArtboardAspect/MenuArtboard" unique_id=999740965 instance=ExtResource("4_version_label")]
 layout_mode = 1

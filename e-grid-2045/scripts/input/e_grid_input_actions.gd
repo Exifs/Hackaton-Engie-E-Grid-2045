@@ -16,6 +16,9 @@ const MENU_DOWN := "menu_down"
 const MENU_ACCEPT := "menu_accept"
 const MENU_BACK := "menu_back"
 
+const SETTINGS_TAB_PREVIOUS := "settings_tab_previous"
+const SETTINGS_TAB_NEXT := "settings_tab_next"
+
 const ACTION_NAME := "name"
 const ACTION_LABEL := "label"
 const ACTION_CATEGORY := "category"
@@ -45,6 +48,8 @@ static func get_definitions() -> Array[Dictionary]:
 		_action(MENU_DOWN, "Menu bas", CATEGORY_MENU, [KEY_DOWN]),
 		_action(MENU_ACCEPT, "Menu valider", CATEGORY_MENU, [KEY_ENTER, KEY_SPACE]),
 		_action(MENU_BACK, "Menu retour", CATEGORY_MENU, [KEY_ESCAPE]),
+		_action(SETTINGS_TAB_PREVIOUS, "Onglet precedent", CATEGORY_MENU, [KEY_Q]),
+		_action(SETTINGS_TAB_NEXT, "Onglet suivant", CATEGORY_MENU, [KEY_E]),
 	]
 
 
@@ -67,12 +72,28 @@ static func get_menu_actions() -> PackedStringArray:
 	])
 
 
+static func get_settings_menu_actions() -> PackedStringArray:
+	return PackedStringArray([
+		MENU_BACK,
+		SETTINGS_TAB_PREVIOUS,
+		SETTINGS_TAB_NEXT,
+	])
+
+
 static func get_menu_navigation_actions() -> Dictionary:
 	return {
 		"up": MENU_UP,
 		"down": MENU_DOWN,
 		"accept": MENU_ACCEPT,
 		"back": MENU_BACK,
+	}
+
+
+static func get_settings_navigation_actions() -> Dictionary:
+	return {
+		"back": MENU_BACK,
+		"tab_previous": SETTINGS_TAB_PREVIOUS,
+		"tab_next": SETTINGS_TAB_NEXT,
 	}
 
 

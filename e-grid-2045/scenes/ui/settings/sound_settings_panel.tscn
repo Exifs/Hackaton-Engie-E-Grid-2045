@@ -1,0 +1,28 @@
+[gd_scene format=3 uid="uid://coybhy5b88ixg"]
+
+[ext_resource type="Script" uid="uid://ctjkb438q4r8e" path="res://scripts/ui/settings/sound_settings_panel.gd" id="1_sound_script"]
+[ext_resource type="PackedScene" uid="uid://bxejftsj2ogkq" path="res://scenes/ui/settings/settings_slider_row.tscn" id="2_slider_row"]
+
+[node name="SoundSettingsPanel" type="VBoxContainer"]
+offset_right = 720.0
+offset_bottom = 360.0
+theme_override_constants/separation = 10
+script = ExtResource("1_sound_script")
+
+[node name="GeneralVolumeSlider" parent="." instance=ExtResource("2_slider_row")]
+layout_mode = 2
+label_text = "Son general"
+slider_value = 100.0
+value_suffix = "%"
+
+[node name="MusicVolumeSlider" parent="." instance=ExtResource("2_slider_row")]
+layout_mode = 2
+label_text = "Son musique"
+slider_value = 100.0
+value_suffix = "%"
+
+[node name="FxVolumeSlider" parent="." instance=ExtResource("2_slider_row")]
+layout_mode = 2
+label_text = "Son FX"
+slider_value = 100.0
+value_suffix = "%"
