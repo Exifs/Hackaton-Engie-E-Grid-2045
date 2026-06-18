@@ -197,6 +197,7 @@ func _sync_collapsed_state() -> void:
 	var button := get_node_or_null(collapse_button_path) as BaseButton
 	if button != null:
 		_set_property_if_available(button, "label_text", "<" if collapsed else ">")
+		_set_property_if_available(button, "text", "")
 		button.tooltip_text = "Expand region inspector" if collapsed else "Collapse region inspector"
 
 

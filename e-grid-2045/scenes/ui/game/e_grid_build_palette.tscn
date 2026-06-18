@@ -61,7 +61,7 @@ label_settings = SubResource("LabelSettings_title")
 
 [node name="CollapseButton" parent="ContentMargin/PaletteStack/HeaderRow" instance=ExtResource("3_mini_button")]
 layout_mode = 2
-label_text = "<<"
+label_text = "<"
 
 [node name="CategoriesScroll" type="ScrollContainer" parent="ContentMargin/PaletteStack"]
 layout_mode = 2
