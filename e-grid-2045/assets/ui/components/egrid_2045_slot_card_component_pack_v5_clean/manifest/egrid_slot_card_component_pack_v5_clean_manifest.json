@@ -1,0 +1,269 @@
+{
+  "name": "EGrid2045_SlotCard_Component_Pack_v5_Clean",
+  "version": "5.0.0",
+  "runtime_textures_no_text": true,
+  "slot_card_cell_size_px": [
+    80,
+    80
+  ],
+  "radial_cell_size_px": [
+    64,
+    64
+  ],
+  "badge_cell_size_px": [
+    24,
+    24
+  ],
+  "layer_order": [
+    "base",
+    "building_icon_external",
+    "bottom_pips",
+    "bottom_tier_bars",
+    "top_microbars",
+    "status_overlay",
+    "lock_overlay"
+  ],
+  "anchors": {
+    "building_icon_safe_rect_px": [
+      7,
+      6,
+      66,
+      58
+    ],
+    "bottom_pip_positions_px": [
+      [
+        16,
+        72
+      ],
+      [
+        25,
+        72
+      ],
+      [
+        34,
+        72
+      ],
+      [
+        43,
+        72
+      ],
+      [
+        52,
+        72
+      ]
+    ],
+    "bottom_pip_size_px": [
+      5,
+      5
+    ],
+    "bottom_tier_bar_positions_px": [
+      [
+        67,
+        68
+      ],
+      [
+        71,
+        68
+      ],
+      [
+        75,
+        68
+      ]
+    ],
+    "top_microbar_positions_px": [
+      [
+        68,
+        8
+      ],
+      [
+        73,
+        8
+      ],
+      [
+        77,
+        8
+      ]
+    ],
+    "lock_overlay_cell_px": [
+      0,
+      0,
+      80,
+      80
+    ]
+  },
+  "spritesheets": {
+    "runtime_textures/slot_card/slot_card_base_states_80.png": {
+      "cell_size": [
+        80,
+        80
+      ],
+      "columns": 8,
+      "rows": 1,
+      "frames": [
+        "base_empty",
+        "base_hover",
+        "base_selected",
+        "base_drop_target",
+        "base_disabled",
+        "base_locked",
+        "base_warning",
+        "base_error"
+      ]
+    },
+    "runtime_textures/slot_card/slot_card_state_overlays_80.png": {
+      "cell_size": [
+        80,
+        80
+      ],
+      "columns": 10,
+      "rows": 1,
+      "frames": [
+        "none",
+        "hover",
+        "selected",
+        "drop_target",
+        "warning",
+        "warning_pulse",
+        "error",
+        "error_pulse",
+        "disabled_scrim",
+        "drag_ghost"
+      ]
+    },
+    "runtime_textures/slot_card/slot_card_bottom_pips_states_80.png": {
+      "cell_size": [
+        80,
+        80
+      ],
+      "columns": 6,
+      "rows": 1,
+      "frames": [
+        "0_of_5",
+        "1_of_5",
+        "2_of_5",
+        "3_of_5",
+        "4_of_5",
+        "5_of_5"
+      ]
+    },
+    "runtime_textures/slot_card/slot_card_bottom_pips_active_masks_80.png": {
+      "cell_size": [
+        80,
+        80
+      ],
+      "columns": 6,
+      "rows": 1,
+      "frames": [
+        "0_of_5_mask",
+        "1_of_5_mask",
+        "2_of_5_mask",
+        "3_of_5_mask",
+        "4_of_5_mask",
+        "5_of_5_mask"
+      ]
+    },
+    "runtime_textures/slot_card/slot_card_bottom_tier_bars_80.png": {
+      "cell_size": [
+        80,
+        80
+      ],
+      "columns": 4,
+      "rows": 1,
+      "frames": [
+        "0_of_3",
+        "1_of_3",
+        "2_of_3",
+        "3_of_3"
+      ]
+    },
+    "runtime_textures/slot_card/slot_card_top_microbars_80.png": {
+      "cell_size": [
+        80,
+        80
+      ],
+      "columns": 4,
+      "rows": 1,
+      "frames": [
+        "0_of_3",
+        "1_of_3",
+        "2_of_3",
+        "3_of_3"
+      ]
+    },
+    "runtime_textures/slot_card/slot_card_warning_error_status_overlays_80.png": {
+      "cell_size": [
+        80,
+        80
+      ],
+      "columns": 7,
+      "rows": 1,
+      "frames": [
+        "none",
+        "warning_inactive",
+        "warning_active",
+        "warning_pulse",
+        "error_inactive",
+        "error_active",
+        "error_pulse"
+      ]
+    },
+    "runtime_textures/slot_card/warning_error_badges_24.png": {
+      "cell_size": [
+        24,
+        24
+      ],
+      "columns": 3,
+      "rows": 2,
+      "rows_meaning": [
+        "warning",
+        "error"
+      ],
+      "columns_meaning": [
+        "inactive",
+        "active",
+        "pulse"
+      ]
+    },
+    "runtime_textures/radial_progress/radial_progress_texture_layers_64.png": {
+      "cell_size": [
+        64,
+        64
+      ],
+      "columns": 7,
+      "rows": 1,
+      "frames": [
+        "under",
+        "fill_cyan",
+        "fill_green",
+        "fill_warning",
+        "fill_error",
+        "over_bezel",
+        "center_plate"
+      ]
+    }
+  },
+  "godot": {
+    "slot_card_recommended_nodes": [
+      "Control",
+      "TextureRect(Base)",
+      "TextureRect(BuildingIcon)",
+      "TextureRect(Pips)",
+      "TextureRect(BottomTier)",
+      "TextureRect(TopBars)",
+      "TextureRect(Status)",
+      "TextureRect(Lock)"
+    ],
+    "radial_progress": {
+      "node": "TextureProgressBar",
+      "fill_mode": "FILL_CLOCKWISE",
+      "min_value": 0.0,
+      "max_value": 1.0,
+      "step": 0.001,
+      "textures": {
+        "under": "runtime_textures/radial_progress/radial_under_64.png",
+        "progress": "runtime_textures/radial_progress/radial_fill_cyan_64.png",
+        "over": "runtime_textures/radial_progress/radial_over_bezel_64.png"
+      }
+    }
+  }
+}

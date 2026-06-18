@@ -24,6 +24,41 @@ const CHARSET := " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\
 		font_color = value
 		queue_redraw()
 
+@export_range(1, 4, 1) var opacity_passes := 1:
+	set(value):
+		opacity_passes = maxi(1, int(value))
+		queue_redraw()
+
+@export var shadow_enabled := false:
+	set(value):
+		shadow_enabled = value
+		queue_redraw()
+
+@export var shadow_color := Color("#020608cc"):
+	set(value):
+		shadow_color = value
+		queue_redraw()
+
+@export var shadow_offset := Vector2(1.0, 1.0):
+	set(value):
+		shadow_offset = value
+		queue_redraw()
+
+@export var outline_enabled := false:
+	set(value):
+		outline_enabled = value
+		queue_redraw()
+
+@export var outline_color := Color("#020608dd"):
+	set(value):
+		outline_color = value
+		queue_redraw()
+
+@export_range(0.5, 3.0, 0.5) var outline_size := 1.0:
+	set(value):
+		outline_size = value
+		queue_redraw()
+
 @export var scale_px := 0.14:
 	set(value):
 		scale_px = value
@@ -81,11 +116,40 @@ func _draw() -> void:
 	var text_scale := _resolved_scale(lines)
 	var glyph_height := CELL_H * text_scale
 	var total_height := float(lines.size()) * glyph_height + maxf(0.0, float(lines.size() - 1)) * line_spacing
-	var y := _aligned_y(total_height)
 
+	if shadow_enabled and shadow_color.a > 0.0:
+		_draw_text_pass(lines, text_scale, glyph_height, total_height, shadow_offset, shadow_color)
+
+	if outline_enabled and outline_color.a > 0.0 and outline_size > 0.0:
+		var offsets := [
+			Vector2(-outline_size, 0.0),
+			Vector2(outline_size, 0.0),
+			Vector2(0.0, -outline_size),
+			Vector2(0.0, outline_size),
+			Vector2(-outline_size, -outline_size),
+			Vector2(outline_size, -outline_size),
+			Vector2(-outline_size, outline_size),
+			Vector2(outline_size, outline_size),
+		]
+		for offset in offsets:
+			_draw_text_pass(lines, text_scale, glyph_height, total_height, offset, outline_color)
+
+	for _pass_index in range(opacity_passes):
+		_draw_text_pass(lines, text_scale, glyph_height, total_height, Vector2.ZERO, font_color)
+
+
+func _draw_text_pass(
+	lines: PackedStringArray,
+	text_scale: float,
+	glyph_height: float,
+	total_height: float,
+	pass_offset: Vector2,
+	color: Color
+) -> void:
+	var y := _aligned_y(total_height) + pass_offset.y
 	for line in lines:
 		var line_width := _line_width(line, text_scale)
-		var x := _aligned_x(line_width)
+		var x := _aligned_x(line_width) + pass_offset.x
 
 		for i in line.length():
 			var c := _normalize_char(line.substr(i, 1))
@@ -99,7 +163,7 @@ func _draw() -> void:
 				source_rect.size.x * text_scale,
 				source_rect.size.y * text_scale
 			)
-			draw_texture_rect_region(atlas_texture, target_rect, source_rect, font_color)
+			draw_texture_rect_region(atlas_texture, target_rect, source_rect, color)
 			x += _glyph_advance(c, text_scale) + letter_spacing
 
 		y += glyph_height + line_spacing

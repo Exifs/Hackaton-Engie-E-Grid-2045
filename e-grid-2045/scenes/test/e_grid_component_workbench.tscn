@@ -1,10 +1,10 @@
-[gd_scene load_steps=23 format=3]
+[gd_scene format=3 uid="uid://cywftrhss0vts"]
 
-[ext_resource type="Script" path="res://scripts/test/e_grid_component_workbench.gd" id="1_workbench"]
+[ext_resource type="Script" uid="uid://b20r046iqxtfb" path="res://scripts/test/e_grid_component_workbench.gd" id="1_workbench"]
 [ext_resource type="PackedScene" path="res://scenes/ui/components/e_grid_panel.tscn" id="2_panel"]
 [ext_resource type="PackedScene" path="res://scenes/ui/components/e_grid_horizontal_slider.tscn" id="3_hslider"]
 [ext_resource type="PackedScene" path="res://scenes/ui/components/e_grid_vertical_slider.tscn" id="4_vslider"]
-[ext_resource type="PackedScene" path="res://scenes/ui/components/e_grid_dropdown.tscn" id="5_dropdown"]
+[ext_resource type="PackedScene" uid="uid://mxue0bvhen5h" path="res://scenes/ui/components/e_grid_dropdown.tscn" id="5_dropdown"]
 [ext_resource type="PackedScene" path="res://scenes/ui/components/e_grid_progress_bar.tscn" id="6_progress_bar"]
 [ext_resource type="PackedScene" path="res://scenes/ui/components/e_grid_progress_ring.tscn" id="7_progress_ring"]
 [ext_resource type="PackedScene" path="res://scenes/ui/components/e_grid_mini_button.tscn" id="8_mini_button"]
@@ -16,14 +16,178 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/components/e_grid_slot_card.tscn" id="14_slot"]
 [ext_resource type="PackedScene" path="res://scenes/ui/components/e_grid_resource_chip.tscn" id="15_chip"]
 [ext_resource type="PackedScene" path="res://scenes/ui/components/e_grid_alert_toast.tscn" id="16_alert"]
+[ext_resource type="Texture2D" uid="uid://cnl6h3fuul305" path="res://assets/ui/components/egrid_2045_ui_component_pack_concept_v3/spritesheets/tooltip_states.png" id="16_yfrfu"]
 [ext_resource type="PackedScene" path="res://scenes/ui/components/e_grid_tooltip.tscn" id="17_tooltip"]
 [ext_resource type="PackedScene" path="res://scenes/ui/components/e_grid_list_item.tscn" id="18_list_item"]
+[ext_resource type="Texture2D" uid="uid://dws3bjfg8gk6p" path="res://assets/ui/components/egrid_2045_ui_component_pack_concept_v3/spritesheets/input_field_states.png" id="19_5w4pr"]
 [ext_resource type="PackedScene" path="res://scenes/ui/components/e_grid_input_field.tscn" id="19_input"]
 [ext_resource type="PackedScene" path="res://scenes/ui/components/e_grid_scrollbar_horizontal.tscn" id="20_scroll_h"]
 [ext_resource type="PackedScene" path="res://scenes/ui/components/e_grid_scrollbar_vertical.tscn" id="21_scroll_v"]
-[ext_resource type="PackedScene" path="res://scenes/ui/resolution/e_grid_resolution_policy.tscn" id="22_resolution_policy"]
+[ext_resource type="Texture2D" uid="uid://deaw64p7bk7k" path="res://assets/ui/components/egrid_2045_ui_component_pack_concept_v3/spritesheets/panel_states.png" id="21_x454u"]
+[ext_resource type="Texture2D" uid="uid://lkrhfgxv5p16" path="res://assets/ui/components/egrid_2045_ui_component_pack_concept_v3/spritesheets/scrollbar_vertical_states.png" id="24_t052x"]
+[ext_resource type="Texture2D" uid="uid://d0774eqoa3874" path="res://assets/ui/components/egrid_2045_ui_component_pack_concept_v3/spritesheets/scrollbar_horizontal_states.png" id="26_bwke4"]
 
-[node name="EGridComponentWorkbench" type="Control"]
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_yfrfu"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_5w4pr"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_x454u"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_t052x"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_bwke4"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_3hqij"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_wg5lh"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_l5ncd"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_o6m43"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_dlob6"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_yefmk"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_17qpr"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_mfp3c"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_gfx2m"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_iunsj"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_vdlji"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_08by6"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_t26yd"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_bakd3"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_pyohq"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_hcc6p"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_aeh82"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_dv54m"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_ttiok"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_03od1"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_8ae3y"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_tltxs"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_mr1io"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_rfytw"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_6egn1"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_wgos6"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_msst7"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_xrph0"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_63evl"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_rv7c0"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_uhxg6"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_tucbv"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_sgvnx"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_152vp"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_1yjw7"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_uetfa"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_qc0qn"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_885f5"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_d2qyv"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_d4a40"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_bxpuv"]
+atlas = ExtResource("16_yfrfu")
+region = Rect2(0, 0, 220, 74)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_5dgi6"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_6wcsi"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_axd3w"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_par1b"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_6571t"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_8twcr"]
+atlas = ExtResource("19_5w4pr")
+region = Rect2(0, 0, 340, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_mdkto"]
+atlas = ExtResource("21_x454u")
+region = Rect2(0, 0, 400, 260)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_2ks71"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_1at66"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_hjyvc"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_ghfgp"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_xk224"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_6bi75"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_8sv2x"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_ylulj"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_wm4xv"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_x8vu0"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_7fpl1"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_3ny8v"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_2kld7"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_a8i0d"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_yrcrh"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_n2n2m"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_u1vcc"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_23enq"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_iyeju"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_ykd0f"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_q05b3"]
+atlas = ExtResource("24_t052x")
+region = Rect2(56, 0, 28, 180)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_5ouls"]
+atlas = ExtResource("26_bwke4")
+region = Rect2(520, 0, 260, 28)
+
+[node name="EGridComponentWorkbench" type="Control" unique_id=701063059]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -34,9 +198,7 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_workbench")
 
-[node name="ResolutionPolicy" parent="." instance=ExtResource("22_resolution_policy")]
-
-[node name="Background" type="ColorRect" parent="."]
+[node name="Background" type="ColorRect" parent="." unique_id=1764840053]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -45,7 +207,7 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.0196078, 0.0470588, 0.0588235, 1)
 
-[node name="Margin" type="MarginContainer" parent="."]
+[node name="Margin" type="MarginContainer" parent="." unique_id=1749316462]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -57,174 +219,325 @@ offset_bottom = -28.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="Workbench" type="VBoxContainer" parent="Margin"]
+[node name="Workbench" type="VBoxContainer" parent="Margin" unique_id=1125962617]
 layout_mode = 2
 theme_override_constants/separation = 18
 
-[node name="Header" type="HBoxContainer" parent="Margin/Workbench"]
+[node name="Header" type="HBoxContainer" parent="Margin/Workbench" unique_id=833473541]
 layout_mode = 2
 theme_override_constants/separation = 18
 
-[node name="Title" type="Label" parent="Margin/Workbench/Header"]
+[node name="Title" type="Label" parent="Margin/Workbench/Header" unique_id=2072682023]
 layout_mode = 2
 size_flags_horizontal = 3
-text = "E-Grid UI Components"
 theme_override_font_sizes/font_size = 28
+text = "E-Grid UI Components"
 
-[node name="StatusLabel" type="Label" parent="Margin/Workbench/Header"]
+[node name="StatusLabel" type="Label" parent="Margin/Workbench/Header" unique_id=988877741]
 custom_minimum_size = Vector2(260, 0)
 layout_mode = 2
 text = "Workbench ready"
 horizontal_alignment = 2
 vertical_alignment = 1
 
-[node name="MainRows" type="HBoxContainer" parent="Margin/Workbench"]
+[node name="MainRows" type="HBoxContainer" parent="Margin/Workbench" unique_id=1666711057]
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_constants/separation = 24
 
-[node name="InteractiveColumn" type="VBoxContainer" parent="Margin/Workbench/MainRows"]
+[node name="InteractiveColumn" type="VBoxContainer" parent="Margin/Workbench/MainRows" unique_id=380019]
 custom_minimum_size = Vector2(390, 0)
 layout_mode = 2
 theme_override_constants/separation = 14
 
-[node name="InteractiveLabel" type="Label" parent="Margin/Workbench/MainRows/InteractiveColumn"]
+[node name="InteractiveLabel" type="Label" parent="Margin/Workbench/MainRows/InteractiveColumn" unique_id=1495565083]
 layout_mode = 2
-text = "Interactive"
 theme_override_font_sizes/font_size = 20
+text = "Interactive"
 
-[node name="HorizontalSlider" parent="Margin/Workbench/MainRows/InteractiveColumn" instance=ExtResource("3_hslider")]
+[node name="HorizontalSlider" parent="Margin/Workbench/MainRows/InteractiveColumn" unique_id=348487566 instance=ExtResource("3_hslider")]
 layout_mode = 2
+focus_mode = 2
+mouse_default_cursor_shape = 2
 slider_value = 66.0
 
-[node name="ChoiceRow" type="HBoxContainer" parent="Margin/Workbench/MainRows/InteractiveColumn"]
+[node name="ChoiceRow" type="HBoxContainer" parent="Margin/Workbench/MainRows/InteractiveColumn" unique_id=1880260138]
 layout_mode = 2
 theme_override_constants/separation = 16
 
-[node name="VerticalSlider" parent="Margin/Workbench/MainRows/InteractiveColumn/ChoiceRow" instance=ExtResource("4_vslider")]
+[node name="VerticalSlider" parent="Margin/Workbench/MainRows/InteractiveColumn/ChoiceRow" unique_id=2138547367 instance=ExtResource("4_vslider")]
 layout_mode = 2
+focus_mode = 2
+mouse_default_cursor_shape = 2
 slider_value = 38.0
 
-[node name="Dropdown" parent="Margin/Workbench/MainRows/InteractiveColumn/ChoiceRow" instance=ExtResource("5_dropdown")]
+[node name="Dropdown" parent="Margin/Workbench/MainRows/InteractiveColumn/ChoiceRow" unique_id=704686747 instance=ExtResource("5_dropdown")]
 layout_mode = 2
 selected_index = 1
 disabled_item_indices = PackedInt32Array(3)
 warning_item_indices = PackedInt32Array(0)
 success_item_indices = PackedInt32Array(2)
 
-[node name="LongDropdown" parent="Margin/Workbench/MainRows/InteractiveColumn" instance=ExtResource("5_dropdown")]
+[node name="LongDropdown" parent="Margin/Workbench/MainRows/InteractiveColumn" unique_id=1231620539 instance=ExtResource("5_dropdown")]
 layout_mode = 2
 options = PackedStringArray("Energy", "Cooling", "Compute", "Storage", "Transmission", "Grid upgrade", "Research", "Budget", "CO2 capture", "Datacenter", "Battery", "Gas reserve")
 selected_index = 4
-visible_item_count = 4
 disabled_item_indices = PackedInt32Array(5, 10)
 warning_item_indices = PackedInt32Array(1, 7)
 critical_item_indices = PackedInt32Array(2)
 success_item_indices = PackedInt32Array(3, 8)
 
-[node name="DisabledDropdown" parent="Margin/Workbench/MainRows/InteractiveColumn" instance=ExtResource("5_dropdown")]
+[node name="DisabledDropdown" parent="Margin/Workbench/MainRows/InteractiveColumn" unique_id=956820739 instance=ExtResource("5_dropdown")]
 layout_mode = 2
 options = PackedStringArray("Grid locked", "Maintenance", "Emergency")
-selected_index = 0
 disabled = true
 
-[node name="ButtonRow" type="HBoxContainer" parent="Margin/Workbench/MainRows/InteractiveColumn"]
+[node name="ButtonRow" type="HBoxContainer" parent="Margin/Workbench/MainRows/InteractiveColumn" unique_id=1765680387]
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="MiniButton" parent="Margin/Workbench/MainRows/InteractiveColumn/ButtonRow" instance=ExtResource("8_mini_button")]
+[node name="MiniButton" parent="Margin/Workbench/MainRows/InteractiveColumn/ButtonRow" unique_id=115110911 instance=ExtResource("8_mini_button")]
 layout_mode = 2
+mouse_default_cursor_shape = 2
+theme_override_styles/normal = SubResource("StyleBoxEmpty_yfrfu")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_5w4pr")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_x454u")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_t052x")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_bwke4")
+flat = true
 label_text = "GO"
 
-[node name="IconButton" parent="Margin/Workbench/MainRows/InteractiveColumn/ButtonRow" instance=ExtResource("9_icon_button")]
+[node name="IconButton" parent="Margin/Workbench/MainRows/InteractiveColumn/ButtonRow" unique_id=2038572014 instance=ExtResource("9_icon_button")]
 layout_mode = 2
+mouse_default_cursor_shape = 2
+theme_override_styles/normal = SubResource("StyleBoxEmpty_3hqij")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_wg5lh")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_l5ncd")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_o6m43")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_dlob6")
 button_pressed = true
+flat = true
 
-[node name="Checkbox" parent="Margin/Workbench/MainRows/InteractiveColumn/ButtonRow" instance=ExtResource("10_checkbox")]
+[node name="Checkbox" parent="Margin/Workbench/MainRows/InteractiveColumn/ButtonRow" unique_id=800558130 instance=ExtResource("10_checkbox")]
 layout_mode = 2
+mouse_default_cursor_shape = 2
+theme_override_styles/normal = SubResource("StyleBoxEmpty_yefmk")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_17qpr")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_mfp3c")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_gfx2m")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_iunsj")
 button_pressed = true
+flat = true
 
-[node name="Radio" parent="Margin/Workbench/MainRows/InteractiveColumn/ButtonRow" instance=ExtResource("11_radio")]
+[node name="Radio" parent="Margin/Workbench/MainRows/InteractiveColumn/ButtonRow" unique_id=77131142 instance=ExtResource("11_radio")]
 layout_mode = 2
+mouse_default_cursor_shape = 2
+theme_override_styles/normal = SubResource("StyleBoxEmpty_vdlji")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_08by6")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_t26yd")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_bakd3")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_pyohq")
+flat = true
 
-[node name="Toggle" parent="Margin/Workbench/MainRows/InteractiveColumn/ButtonRow" instance=ExtResource("12_toggle")]
+[node name="Toggle" parent="Margin/Workbench/MainRows/InteractiveColumn/ButtonRow" unique_id=993096781 instance=ExtResource("12_toggle")]
 layout_mode = 2
+mouse_default_cursor_shape = 2
+theme_override_styles/normal = SubResource("StyleBoxEmpty_hcc6p")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_aeh82")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_dv54m")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_ttiok")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_03od1")
 button_pressed = true
+flat = true
 
-[node name="TabRow" type="HBoxContainer" parent="Margin/Workbench/MainRows/InteractiveColumn"]
+[node name="TabRow" type="HBoxContainer" parent="Margin/Workbench/MainRows/InteractiveColumn" unique_id=1981002241]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="GridTab" parent="Margin/Workbench/MainRows/InteractiveColumn/TabRow" instance=ExtResource("13_tab")]
+[node name="GridTab" parent="Margin/Workbench/MainRows/InteractiveColumn/TabRow" unique_id=390342429 instance=ExtResource("13_tab")]
 layout_mode = 2
+mouse_default_cursor_shape = 2
+theme_override_styles/normal = SubResource("StyleBoxEmpty_8ae3y")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_tltxs")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_mr1io")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_rfytw")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_6egn1")
 button_pressed = true
+flat = true
 
-[node name="BuildTab" parent="Margin/Workbench/MainRows/InteractiveColumn/TabRow" instance=ExtResource("13_tab")]
+[node name="BuildTab" parent="Margin/Workbench/MainRows/InteractiveColumn/TabRow" unique_id=1794447460 instance=ExtResource("13_tab")]
 layout_mode = 2
+mouse_default_cursor_shape = 2
+theme_override_styles/normal = SubResource("StyleBoxEmpty_wgos6")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_msst7")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_xrph0")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_63evl")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_rv7c0")
+flat = true
 label_text = "BUILD"
 
-[node name="StatusColumn" type="VBoxContainer" parent="Margin/Workbench/MainRows"]
+[node name="StatusColumn" type="VBoxContainer" parent="Margin/Workbench/MainRows" unique_id=1371187324]
 custom_minimum_size = Vector2(370, 0)
 layout_mode = 2
 theme_override_constants/separation = 14
 
-[node name="StatusLabelTitle" type="Label" parent="Margin/Workbench/MainRows/StatusColumn"]
+[node name="StatusLabelTitle" type="Label" parent="Margin/Workbench/MainRows/StatusColumn" unique_id=409059277]
 layout_mode = 2
-text = "Status"
 theme_override_font_sizes/font_size = 20
+text = "Status"
 
-[node name="ProgressBar" parent="Margin/Workbench/MainRows/StatusColumn" instance=ExtResource("6_progress_bar")]
+[node name="ProgressBar" parent="Margin/Workbench/MainRows/StatusColumn" unique_id=1196942936 instance=ExtResource("6_progress_bar")]
 layout_mode = 2
 value = 77.0
 
-[node name="ProgressRing" parent="Margin/Workbench/MainRows/StatusColumn" instance=ExtResource("7_progress_ring")]
+[node name="RadialRow" type="HBoxContainer" parent="Margin/Workbench/MainRows/StatusColumn" unique_id=1383294631]
 layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="ProgressRing" parent="Margin/Workbench/MainRows/StatusColumn/RadialRow" unique_id=479976071 instance=ExtResource("7_progress_ring")]
+layout_mode = 2
+mouse_filter = 2
 value = 44.0
 
-[node name="ResourceChip" parent="Margin/Workbench/MainRows/StatusColumn" instance=ExtResource("15_chip")]
+[node name="WarningProgressRing" parent="Margin/Workbench/MainRows/StatusColumn/RadialRow" unique_id=10597942 instance=ExtResource("7_progress_ring")]
 layout_mode = 2
+mouse_filter = 2
+value = 68.0
+semantic_state = "warning"
+
+[node name="SuccessProgressRing" parent="Margin/Workbench/MainRows/StatusColumn/RadialRow" unique_id=241009494 instance=ExtResource("7_progress_ring")]
+layout_mode = 2
+mouse_filter = 2
+value = 100.0
+semantic_state = "success"
+
+[node name="ResourceChip" parent="Margin/Workbench/MainRows/StatusColumn" unique_id=1217344439 instance=ExtResource("15_chip")]
+layout_mode = 2
+mouse_default_cursor_shape = 2
+theme_override_styles/normal = SubResource("StyleBoxEmpty_uhxg6")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_tucbv")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_sgvnx")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_152vp")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_1yjw7")
+flat = true
 label_text = "Power"
 
-[node name="AlertToast" parent="Margin/Workbench/MainRows/StatusColumn" instance=ExtResource("16_alert")]
+[node name="AlertToast" parent="Margin/Workbench/MainRows/StatusColumn" unique_id=557790727 instance=ExtResource("16_alert")]
 layout_mode = 2
+mouse_default_cursor_shape = 2
+theme_override_styles/normal = SubResource("StyleBoxEmpty_uetfa")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_qc0qn")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_885f5")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_d2qyv")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_d4a40")
+flat = true
 label_text = "Cooling demand rising"
 semantic_state = "warning"
 
-[node name="Tooltip" parent="Margin/Workbench/MainRows/StatusColumn" instance=ExtResource("17_tooltip")]
+[node name="Tooltip" parent="Margin/Workbench/MainRows/StatusColumn" unique_id=1415913333 instance=ExtResource("17_tooltip")]
 layout_mode = 2
+mouse_filter = 2
+texture = SubResource("AtlasTexture_bxpuv")
+expand_mode = 1
+stretch_mode = 5
 
-[node name="ListItem" parent="Margin/Workbench/MainRows/StatusColumn" instance=ExtResource("18_list_item")]
+[node name="ListItem" parent="Margin/Workbench/MainRows/StatusColumn" unique_id=935997528 instance=ExtResource("18_list_item")]
 layout_mode = 2
+mouse_default_cursor_shape = 2
+theme_override_styles/normal = SubResource("StyleBoxEmpty_5dgi6")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_6wcsi")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_axd3w")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_par1b")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_6571t")
 button_pressed = true
+flat = true
 
-[node name="InputField" parent="Margin/Workbench/MainRows/StatusColumn" instance=ExtResource("19_input")]
+[node name="InputField" parent="Margin/Workbench/MainRows/StatusColumn" unique_id=1542958191 instance=ExtResource("19_input")]
 layout_mode = 2
+mouse_filter = 2
+texture = SubResource("AtlasTexture_8twcr")
+expand_mode = 1
+stretch_mode = 5
 
-[node name="FrameColumn" type="VBoxContainer" parent="Margin/Workbench/MainRows"]
+[node name="FrameColumn" type="VBoxContainer" parent="Margin/Workbench/MainRows" unique_id=871178321]
 custom_minimum_size = Vector2(430, 0)
 layout_mode = 2
 theme_override_constants/separation = 14
 
-[node name="FramesLabel" type="Label" parent="Margin/Workbench/MainRows/FrameColumn"]
+[node name="FramesLabel" type="Label" parent="Margin/Workbench/MainRows/FrameColumn" unique_id=507345626]
 layout_mode = 2
-text = "Frames"
 theme_override_font_sizes/font_size = 20
+text = "Frames"
 
-[node name="Panel" parent="Margin/Workbench/MainRows/FrameColumn" instance=ExtResource("2_panel")]
+[node name="Panel" parent="Margin/Workbench/MainRows/FrameColumn" unique_id=201992859 instance=ExtResource("2_panel")]
 layout_mode = 2
+mouse_filter = 2
+texture = SubResource("AtlasTexture_mdkto")
+expand_mode = 1
+stretch_mode = 5
 
-[node name="FrameRow" type="HBoxContainer" parent="Margin/Workbench/MainRows/FrameColumn"]
+[node name="FrameRow" type="HBoxContainer" parent="Margin/Workbench/MainRows/FrameColumn" unique_id=1002178940]
 layout_mode = 2
-theme_override_constants/separation = 16
+theme_override_constants/separation = 8
 
-[node name="SlotCard" parent="Margin/Workbench/MainRows/FrameColumn/FrameRow" instance=ExtResource("14_slot")]
+[node name="SlotCard" parent="Margin/Workbench/MainRows/FrameColumn/FrameRow" unique_id=172483290 instance=ExtResource("14_slot")]
 layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxEmpty_2ks71")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_1at66")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_hjyvc")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_ghfgp")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_xk224")
 button_pressed = true
+pips_active = 5
+bottom_tier = 3
+top_bars = 3
 
-[node name="ScrollbarVertical" parent="Margin/Workbench/MainRows/FrameColumn/FrameRow" instance=ExtResource("21_scroll_v")]
+[node name="WarningSlotCard" parent="Margin/Workbench/MainRows/FrameColumn/FrameRow" unique_id=177814587 instance=ExtResource("14_slot")]
 layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxEmpty_6bi75")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_8sv2x")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_ylulj")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_wm4xv")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_x8vu0")
+semantic_state = "warning"
+pips_active = 4
+bottom_tier = 2
+top_bars = 1
+
+[node name="ErrorSlotCard" parent="Margin/Workbench/MainRows/FrameColumn/FrameRow" unique_id=1553167498 instance=ExtResource("14_slot")]
+layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxEmpty_7fpl1")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_3ny8v")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_2kld7")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_a8i0d")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_yrcrh")
+semantic_state = "critical"
+pips_active = 2
+bottom_tier = 1
+top_bars = 1
+
+[node name="LockedSlotCard" parent="Margin/Workbench/MainRows/FrameColumn/FrameRow" unique_id=1420962826 instance=ExtResource("14_slot")]
+layout_mode = 2
+mouse_default_cursor_shape = 0
+theme_override_styles/normal = SubResource("StyleBoxEmpty_n2n2m")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_u1vcc")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_23enq")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_iyeju")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_ykd0f")
+locked = true
+
+[node name="ScrollbarVertical" parent="Margin/Workbench/MainRows/FrameColumn/FrameRow" unique_id=1476739578 instance=ExtResource("21_scroll_v")]
+layout_mode = 2
+mouse_filter = 2
+texture = SubResource("AtlasTexture_q05b3")
+expand_mode = 1
+stretch_mode = 5
 state_name = "active"
 
-[node name="ScrollbarHorizontal" parent="Margin/Workbench/MainRows/FrameColumn" instance=ExtResource("20_scroll_h")]
+[node name="ScrollbarHorizontal" parent="Margin/Workbench/MainRows/FrameColumn" unique_id=1455165093 instance=ExtResource("20_scroll_h")]
 layout_mode = 2
+mouse_filter = 2
+texture = SubResource("AtlasTexture_5ouls")
+expand_mode = 1
+stretch_mode = 5
 state_name = "active"
