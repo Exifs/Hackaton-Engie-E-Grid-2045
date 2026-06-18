@@ -1,6 +1,8 @@
 class_name SettingsMenu
 extends Control
 
+const INPUT_ACTIONS := preload("res://scripts/input/e_grid_input_actions.gd")
+
 signal close_requested
 
 const CONFIG_PATH := "user://settings.cfg"
@@ -10,6 +12,7 @@ const CONFIG_PATH := "user://settings.cfg"
 @export_node_path("Control") var display_panel_path: NodePath = ^"Panel/Margin/VBox/Tabs/Affichage"
 @export_node_path("Button") var apply_button_path: NodePath = ^"Panel/Margin/VBox/Footer/ApplyButton"
 @export_node_path("Button") var back_button_path: NodePath = ^"Panel/Margin/VBox/Footer/BackButton"
+@export_node_path("Node") var input_controller_path: NodePath = ^"InputController"
 
 var _tab_container: TabContainer
 var _sound_panel: Control
@@ -19,14 +22,18 @@ var _back_button: Button
 var _applied_sound_settings := {}
 var _applied_display_settings := {}
 var _is_loading_settings := false
+var _input_controller: Node
+var _settings_actions := {}
 
 
 func _ready() -> void:
+	_settings_actions = INPUT_ACTIONS.get_settings_navigation_actions()
 	_tab_container = get_node_or_null(tab_container_path) as TabContainer
 	_sound_panel = get_node_or_null(sound_panel_path) as Control
 	_display_panel = get_node_or_null(display_panel_path) as Control
 	_apply_button = get_node_or_null(apply_button_path) as Button
 	_back_button = get_node_or_null(back_button_path) as Button
+	_input_controller = get_node_or_null(input_controller_path)
 
 	if _apply_button != null:
 		_apply_button.pressed.connect(_on_apply_button_pressed)
@@ -38,40 +45,45 @@ func _ready() -> void:
 	_connect_panel_signal(_display_panel)
 	_load_and_apply_saved_settings()
 	_update_apply_button()
+	_wire_input_controller()
 
 	visibility_changed.connect(_on_visibility_changed)
+	_set_input_enabled(visible)
 
 
 func show_menu() -> void:
 	show()
 	_update_apply_button()
+	_set_input_enabled(true)
 	_focus_menu()
 
 
 func hide_menu() -> void:
 	hide()
+	_set_input_enabled(false)
 
 
-func _unhandled_input(event: InputEvent) -> void:
+func _wire_input_controller() -> void:
+	if _input_controller == null:
+		push_warning("Le menu de parametres ne trouve pas son controleur d'input.")
+		return
+
+	var callback := Callable(self, "_on_input_action_pressed")
+
+	if _input_controller.has_signal("action_pressed") and not _input_controller.is_connected("action_pressed", callback):
+		_input_controller.connect("action_pressed", callback)
+
+
+func _on_input_action_pressed(action_name: String) -> void:
 	if not visible:
 		return
 
-	if event.is_action_pressed("ui_cancel"):
+	if action_name == str(_settings_actions.get("back", INPUT_ACTIONS.MENU_BACK)):
 		_emit_close_request()
-		return
-
-	if not (event is InputEventKey):
-		return
-
-	var key_event := event as InputEventKey
-	if not key_event.pressed or key_event.echo:
-		return
-
-	match key_event.keycode:
-		KEY_Q:
-			_switch_tab(-1)
-		KEY_E:
-			_switch_tab(1)
+	elif action_name == str(_settings_actions.get("tab_previous", INPUT_ACTIONS.SETTINGS_TAB_PREVIOUS)):
+		_switch_tab(-1)
+	elif action_name == str(_settings_actions.get("tab_next", INPUT_ACTIONS.SETTINGS_TAB_NEXT)):
+		_switch_tab(1)
 
 
 func _switch_tab(offset: int) -> void:
@@ -80,7 +92,6 @@ func _switch_tab(offset: int) -> void:
 
 	_tab_container.current_tab = posmod(_tab_container.current_tab + offset, _tab_container.get_tab_count())
 	_focus_menu()
-	get_viewport().set_input_as_handled()
 
 
 func _focus_menu() -> void:
@@ -88,7 +99,14 @@ func _focus_menu() -> void:
 		_tab_container.grab_focus()
 
 
+func _set_input_enabled(enabled: bool) -> void:
+	if _input_controller != null:
+		_input_controller.set("enabled", enabled)
+
+
 func _on_visibility_changed() -> void:
+	_set_input_enabled(visible)
+
 	if visible:
 		_update_apply_button()
 		_focus_menu()
@@ -231,4 +249,3 @@ func _on_back_button_pressed() -> void:
 
 func _emit_close_request() -> void:
 	close_requested.emit()
-	get_viewport().set_input_as_handled()

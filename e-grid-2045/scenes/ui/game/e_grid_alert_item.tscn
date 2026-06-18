@@ -1,0 +1,39 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/game/e_grid_alert_item.gd" id="1_alert_item"]
+
+[node name="EGridAlertItem" type="PanelContainer"]
+custom_minimum_size = Vector2(280, 62)
+size_flags_horizontal = 3
+script = ExtResource("1_alert_item")
+
+[node name="ContentMargin" type="MarginContainer" parent="."]
+layout_mode = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 6
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 6
+
+[node name="AlertContent" type="HBoxContainer" parent="ContentMargin"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="TextStack" type="VBoxContainer" parent="ContentMargin/AlertContent"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 2
+
+[node name="TitleLabel" type="Label" parent="ContentMargin/AlertContent/TextStack"]
+layout_mode = 2
+text = "ALERT"
+clip_text = true
+
+[node name="BodyLabel" type="Label" parent="ContentMargin/AlertContent/TextStack"]
+layout_mode = 2
+text = "Alert details"
+clip_text = true
+
+[node name="ActionButton" type="Button" parent="ContentMargin/AlertContent"]
+custom_minimum_size = Vector2(70, 0)
+layout_mode = 2
+text = "VIEW"

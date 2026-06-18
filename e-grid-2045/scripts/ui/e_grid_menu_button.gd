@@ -26,7 +26,7 @@ var _normal_texture: Texture2D
 var _active_texture: Texture2D
 var _normal_font_atlas: Texture2D
 var _active_font_atlas: Texture2D
-var _text_layer: EGridMenuBitmapText
+var _text_layer: Control
 
 
 func _ready() -> void:
@@ -53,7 +53,7 @@ func set_button_text(value: String) -> void:
 	button_text = value
 	tooltip_text = get_display_label()
 	if _text_layer != null:
-		_text_layer.text = button_text
+		_text_layer.set("text", button_text)
 	queue_redraw()
 
 
@@ -111,18 +111,18 @@ func _create_frame_texture(sheet: Texture2D, frame_index: int, frame_height: int
 
 
 func _setup_text_layer() -> void:
-	_text_layer = get_node_or_null("BitmapText") as EGridMenuBitmapText
+	_text_layer = get_node_or_null("BitmapText") as Control
 
 	if _text_layer == null:
-		_text_layer = E_GRID_MENU_BITMAP_TEXT_SCRIPT.new()
+		_text_layer = E_GRID_MENU_BITMAP_TEXT_SCRIPT.new() as Control
 		_text_layer.name = "BitmapText"
 		add_child(_text_layer)
 
 	_text_layer.set_anchors_preset(Control.PRESET_TOP_LEFT)
 	_text_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_text_layer.text = button_text
-	_text_layer.center = true
-	_text_layer.letter_spacing = letter_spacing
+	_text_layer.set("text", button_text)
+	_text_layer.set("center", true)
+	_text_layer.set("letter_spacing", letter_spacing)
 	_update_text_layer()
 
 
@@ -160,9 +160,9 @@ func _update_text_layer() -> void:
 
 	_text_layer.position = Vector2(0.0, y)
 	_text_layer.size = Vector2(size.x, text_height)
-	_text_layer.scale_px = text_scale
-	_text_layer.letter_spacing = letter_spacing
-	_text_layer.atlas_texture = _active_font_atlas if _uses_active_state() else _normal_font_atlas
+	_text_layer.set("scale_px", text_scale)
+	_text_layer.set("letter_spacing", letter_spacing)
+	_text_layer.set("atlas_texture", _active_font_atlas if _uses_active_state() else _normal_font_atlas)
 	_text_layer.queue_redraw()
 
 

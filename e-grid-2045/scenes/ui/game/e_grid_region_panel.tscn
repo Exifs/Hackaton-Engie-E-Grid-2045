@@ -1,0 +1,184 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/game/e_grid_region_panel.gd" id="1_region_panel"]
+[ext_resource type="PackedScene" path="res://scenes/ui/game/e_grid_stat_bar.tscn" id="2_stat_bar"]
+
+[node name="EGridRegionPanel" type="PanelContainer"]
+custom_minimum_size = Vector2(360, 0)
+script = ExtResource("1_region_panel")
+region_name = "NETHERLANDS"
+level_text = "LEVEL 4"
+xp_text = "1,250 / 2,000 XP"
+xp_progress = 62.5
+
+[node name="ContentMargin" type="MarginContainer" parent="."]
+layout_mode = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="PanelStack" type="VBoxContainer" parent="ContentMargin"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="HeaderRow" type="HBoxContainer" parent="ContentMargin/PanelStack"]
+layout_mode = 2
+
+[node name="RegionNameLabel" type="Label" parent="ContentMargin/PanelStack/HeaderRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "NETHERLANDS"
+clip_text = true
+
+[node name="CloseButton" type="Button" parent="ContentMargin/PanelStack/HeaderRow"]
+custom_minimum_size = Vector2(34, 0)
+layout_mode = 2
+text = "X"
+
+[node name="LevelRow" type="HBoxContainer" parent="ContentMargin/PanelStack"]
+layout_mode = 2
+
+[node name="LevelLabel" type="Label" parent="ContentMargin/PanelStack/LevelRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "LEVEL 4"
+
+[node name="XpLabel" type="Label" parent="ContentMargin/PanelStack/LevelRow"]
+layout_mode = 2
+text = "1,250 / 2,000 XP"
+horizontal_alignment = 2
+
+[node name="XpBar" type="ProgressBar" parent="ContentMargin/PanelStack"]
+custom_minimum_size = Vector2(0, 8)
+layout_mode = 2
+max_value = 100.0
+value = 62.5
+show_percentage = false
+
+[node name="Tabs" type="TabContainer" parent="ContentMargin/PanelStack"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="Overview" type="VBoxContainer" parent="ContentMargin/PanelStack/Tabs"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="EnergyStatus" parent="ContentMargin/PanelStack/Tabs/Overview" instance=ExtResource("2_stat_bar")]
+layout_mode = 2
+title_text = "ENERGY STATUS"
+value_text = "92%"
+progress_value = 92.0
+detail_text = "Production 18.6 GW / Demand 16.2 GW"
+
+[node name="CoolingStatus" parent="ContentMargin/PanelStack/Tabs/Overview" instance=ExtResource("2_stat_bar")]
+layout_mode = 2
+title_text = "COOLING STATUS"
+value_text = "78%"
+progress_value = 78.0
+detail_text = "Capacity 2.8 GWh / Usage 2.2 GWh"
+
+[node name="ComputeStatus" parent="ContentMargin/PanelStack/Tabs/Overview" instance=ExtResource("2_stat_bar")]
+layout_mode = 2
+title_text = "COMPUTE DEMAND"
+value_text = "81%"
+progress_value = 81.0
+detail_text = "Demand 24.1 EFLOPS / Supply 19.5 EFLOPS"
+
+[node name="BuildingSlotsTitle" type="Label" parent="ContentMargin/PanelStack/Tabs/Overview"]
+layout_mode = 2
+text = "BUILDING SLOTS 6 / 8"
+
+[node name="BuildingSlotsGrid" type="GridContainer" parent="ContentMargin/PanelStack/Tabs/Overview"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/h_separation = 8
+theme_override_constants/v_separation = 8
+columns = 3
+
+[node name="Slot1" type="Button" parent="ContentMargin/PanelStack/Tabs/Overview/BuildingSlotsGrid"]
+custom_minimum_size = Vector2(96, 64)
+layout_mode = 2
+text = "Power"
+
+[node name="Slot2" type="Button" parent="ContentMargin/PanelStack/Tabs/Overview/BuildingSlotsGrid"]
+custom_minimum_size = Vector2(96, 64)
+layout_mode = 2
+text = "Sub"
+
+[node name="Slot3" type="Button" parent="ContentMargin/PanelStack/Tabs/Overview/BuildingSlotsGrid"]
+custom_minimum_size = Vector2(96, 64)
+layout_mode = 2
+text = "Compute"
+
+[node name="Slot4" type="Button" parent="ContentMargin/PanelStack/Tabs/Overview/BuildingSlotsGrid"]
+custom_minimum_size = Vector2(96, 64)
+layout_mode = 2
+text = "Cooling"
+
+[node name="Slot5" type="Button" parent="ContentMargin/PanelStack/Tabs/Overview/BuildingSlotsGrid"]
+custom_minimum_size = Vector2(96, 64)
+layout_mode = 2
+text = "Locked"
+disabled = true
+
+[node name="Slot6" type="Button" parent="ContentMargin/PanelStack/Tabs/Overview/BuildingSlotsGrid"]
+custom_minimum_size = Vector2(96, 64)
+layout_mode = 2
+text = "Locked"
+disabled = true
+
+[node name="Buildings" type="VBoxContainer" parent="ContentMargin/PanelStack/Tabs"]
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="ModulesTitle" type="Label" parent="ContentMargin/PanelStack/Tabs/Buildings"]
+layout_mode = 2
+text = "MODULE SLOTS"
+
+[node name="ModulesGrid" type="GridContainer" parent="ContentMargin/PanelStack/Tabs/Buildings"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/h_separation = 8
+theme_override_constants/v_separation = 8
+columns = 3
+
+[node name="Module1" type="Button" parent="ContentMargin/PanelStack/Tabs/Buildings/ModulesGrid"]
+custom_minimum_size = Vector2(96, 64)
+layout_mode = 2
+text = "Module"
+
+[node name="Module2" type="Button" parent="ContentMargin/PanelStack/Tabs/Buildings/ModulesGrid"]
+custom_minimum_size = Vector2(96, 64)
+layout_mode = 2
+text = "Module"
+
+[node name="Module3" type="Button" parent="ContentMargin/PanelStack/Tabs/Buildings/ModulesGrid"]
+custom_minimum_size = Vector2(96, 64)
+layout_mode = 2
+text = "Add"
+
+[node name="Stats" type="VBoxContainer" parent="ContentMargin/PanelStack/Tabs"]
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="GridLoad" parent="ContentMargin/PanelStack/Tabs/Stats" instance=ExtResource("2_stat_bar")]
+layout_mode = 2
+title_text = "GRID LOAD"
+value_text = "76%"
+progress_value = 76.0
+detail_text = "Reserve time 4.2 h"
+
+[node name="ImportExport" parent="ContentMargin/PanelStack/Tabs/Stats" instance=ExtResource("2_stat_bar")]
+layout_mode = 2
+title_text = "IMPORT / EXPORT"
+value_text = "+1.3 GW"
+progress_value = 58.0
+detail_text = "Current regional exchange"
+
+[node name="ManageRegionButton" type="Button" parent="ContentMargin/PanelStack"]
+custom_minimum_size = Vector2(0, 42)
+layout_mode = 2
+text = "MANAGE REGION"
