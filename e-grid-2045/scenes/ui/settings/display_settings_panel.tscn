@@ -1,7 +1,9 @@
-[gd_scene format=3 uid="uid://c51mvrxemivg6"]
+[gd_scene load_steps=5 format=3 uid="uid://c51mvrxemivg6"]
 
 [ext_resource type="Script" uid="uid://dvt476y6ivkxu" path="res://scripts/ui/settings/display_settings_panel.gd" id="1_display_script"]
 [ext_resource type="PackedScene" uid="uid://bxejftsj2ogkq" path="res://scenes/ui/settings/settings_slider_row.tscn" id="2_slider_row"]
+[ext_resource type="PackedScene" path="res://scenes/ui/components/e_grid_dropdown.tscn" id="3_dropdown"]
+[ext_resource type="PackedScene" path="res://scenes/ui/components/e_grid_checkbox.tscn" id="4_checkbox"]
 
 [node name="DisplaySettingsPanel" type="VBoxContainer"]
 offset_right = 720.0
@@ -22,9 +24,9 @@ layout_mode = 2
 text = "Ecran"
 vertical_alignment = 1
 
-[node name="ScreenOptionButton" type="OptionButton" parent="OptionsGrid"]
+[node name="ScreenOptionButton" parent="OptionsGrid" instance=ExtResource("3_dropdown")]
 layout_mode = 2
-size_flags_horizontal = 3
+size_flags_horizontal = 0
 
 [node name="ResolutionLabel" type="Label" parent="OptionsGrid"]
 custom_minimum_size = Vector2(160, 0)
@@ -32,9 +34,9 @@ layout_mode = 2
 text = "Resolution"
 vertical_alignment = 1
 
-[node name="ResolutionOptionButton" type="OptionButton" parent="OptionsGrid"]
+[node name="ResolutionOptionButton" parent="OptionsGrid" instance=ExtResource("3_dropdown")]
 layout_mode = 2
-size_flags_horizontal = 3
+size_flags_horizontal = 0
 
 [node name="FullscreenLabel" type="Label" parent="OptionsGrid"]
 custom_minimum_size = Vector2(160, 0)
@@ -42,7 +44,7 @@ layout_mode = 2
 text = "Fullscreen"
 vertical_alignment = 1
 
-[node name="FullscreenCheckBox" type="CheckBox" parent="OptionsGrid"]
+[node name="FullscreenCheckBox" parent="OptionsGrid" instance=ExtResource("4_checkbox")]
 layout_mode = 2
 
 [node name="VsyncLabel" type="Label" parent="OptionsGrid"]
@@ -51,7 +53,7 @@ layout_mode = 2
 text = "VSync"
 vertical_alignment = 1
 
-[node name="VsyncCheckBox" type="CheckBox" parent="OptionsGrid"]
+[node name="VsyncCheckBox" parent="OptionsGrid" instance=ExtResource("4_checkbox")]
 layout_mode = 2
 
 [node name="FpsSlider" parent="." instance=ExtResource("2_slider_row")]

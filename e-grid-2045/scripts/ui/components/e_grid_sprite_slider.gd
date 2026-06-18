@@ -186,6 +186,14 @@ func get_value() -> float:
 	return slider_value
 
 
+func set_slider_value(value: float) -> void:
+	set_value(value, false)
+
+
+func get_slider_value() -> float:
+	return get_value()
+
+
 func _cache_nodes() -> void:
 	_value_label = get_node_or_null("ValueLabel") as Label
 

@@ -1,9 +1,10 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/settings/keybinding_row.gd" id="1_keybinding_row"]
+[ext_resource type="PackedScene" path="res://scenes/ui/components/e_grid_tab.tscn" id="2_tab"]
 
 [node name="KeybindingRow" type="HBoxContainer"]
-custom_minimum_size = Vector2(0, 36)
+custom_minimum_size = Vector2(0, 40)
 theme_override_constants/separation = 10
 script = ExtResource("1_keybinding_row")
 
@@ -28,12 +29,12 @@ text = "-"
 vertical_alignment = 1
 clip_text = true
 
-[node name="RemapButton" type="Button" parent="."]
-custom_minimum_size = Vector2(104, 0)
+[node name="RemapButton" parent="." instance=ExtResource("2_tab")]
 layout_mode = 2
-text = "Changer"
+toggle_mode = false
+label_text = "Changer"
 
-[node name="ResetButton" type="Button" parent="."]
-custom_minimum_size = Vector2(104, 0)
+[node name="ResetButton" parent="." instance=ExtResource("2_tab")]
 layout_mode = 2
-text = "Defaut"
+toggle_mode = false
+label_text = "Defaut"

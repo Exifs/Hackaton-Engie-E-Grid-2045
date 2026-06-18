@@ -1,6 +1,8 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/settings/keybinding_settings_panel.gd" id="1_keybinding_panel"]
+[ext_resource type="Script" path="res://scripts/ui/components/e_grid_sprite_button.gd" id="2_button"]
+[ext_resource type="PackedScene" path="res://scenes/ui/components/e_grid_tab.tscn" id="3_tab"]
 
 [node name="KeybindingSettingsPanel" type="VBoxContainer"]
 offset_right = 720.0
@@ -28,7 +30,7 @@ size_flags_horizontal = 3
 text = "Touche"
 
 [node name="ActionsHeaderSpacer" type="Control" parent="Header"]
-custom_minimum_size = Vector2(218, 0)
+custom_minimum_size = Vector2(262, 0)
 layout_mode = 2
 
 [node name="BindingsScroll" type="ScrollContainer" parent="."]
@@ -42,7 +44,7 @@ size_flags_horizontal = 3
 theme_override_constants/separation = 6
 
 [node name="StatusRow" type="HBoxContainer" parent="."]
-custom_minimum_size = Vector2(0, 36)
+custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
 theme_override_constants/separation = 10
 
@@ -53,16 +55,20 @@ text = "Selectionnez une action a modifier."
 vertical_alignment = 1
 clip_text = true
 
-[node name="CancelButton" type="Button" parent="StatusRow"]
+[node name="CancelButton" parent="StatusRow" instance=ExtResource("3_tab")]
 visible = false
-custom_minimum_size = Vector2(104, 0)
 layout_mode = 2
-text = "Annuler"
+toggle_mode = false
+label_text = "Annuler"
 
 [node name="Footer" type="HBoxContainer" parent="."]
 layout_mode = 2
 alignment = 2
 
 [node name="ResetAllButton" type="Button" parent="Footer"]
+custom_minimum_size = Vector2(300, 36)
 layout_mode = 2
-text = "Restaurer les touches par defaut"
+script = ExtResource("2_button")
+component_name = "list_item_states"
+label_text = "Restaurer les touches par defaut"
+selected_state_overrides_semantic = false

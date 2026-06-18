@@ -45,6 +45,11 @@ const E_GRID_COMPONENT_BITMAP_TEXT_SCRIPT := preload("res://scripts/ui/component
 		disabled_state = value
 		queue_redraw()
 
+@export var focus_uses_hover_state := true:
+	set(value):
+		focus_uses_hover_state = value
+		queue_redraw()
+
 @export_enum("normal", "warning", "critical", "success") var semantic_state := "normal":
 	set(value):
 		semantic_state = value
@@ -270,7 +275,7 @@ func _get_state_name() -> String:
 	if button_pressed and not pressed_state.is_empty():
 		return E_GRID_UI_ATLAS.get_first_available_state(component_name, [pressed_state, hover_state, normal_state])
 
-	if (is_hovered() or has_focus()) and not hover_state.is_empty():
+	if _uses_hover_state() and not hover_state.is_empty():
 		return E_GRID_UI_ATLAS.get_first_available_state(component_name, [hover_state, normal_state])
 
 	return E_GRID_UI_ATLAS.get_first_available_state(component_name, [normal_state])
@@ -293,10 +298,14 @@ func _selected_visual_state() -> String:
 	if not toggle_mode or not button_pressed:
 		return ""
 
-	if is_hovered() and not selected_hover_state.is_empty():
+	if _uses_hover_state() and not selected_hover_state.is_empty():
 		return E_GRID_UI_ATLAS.get_first_available_state(component_name, [selected_hover_state, selected_state, normal_state])
 
 	return E_GRID_UI_ATLAS.get_first_available_state(component_name, [selected_state, pressed_state, normal_state])
+
+
+func _uses_hover_state() -> bool:
+	return is_hovered() or (focus_uses_hover_state and has_focus())
 
 
 func _draw_utility_icon(fitted_rect: Rect2) -> void:
@@ -361,6 +370,11 @@ func _vertical_alignment_to_string(source_alignment: VerticalAlignment) -> Strin
 
 
 func _request_redraw() -> void:
+	queue_redraw()
+
+
+func sync_visual_state() -> void:
+	_sync_label()
 	queue_redraw()
 
 

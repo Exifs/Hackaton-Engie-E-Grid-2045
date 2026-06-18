@@ -40,7 +40,7 @@ signal value_changed(value: float)
 		_sync_nodes()
 
 var _name_label: Label
-var _slider: HSlider
+var _slider: Control
 var _value_label: Label
 
 
@@ -61,7 +61,7 @@ func get_slider_value() -> float:
 
 func _cache_nodes() -> void:
 	_name_label = get_node_or_null("NameLabel") as Label
-	_slider = get_node_or_null("Slider") as HSlider
+	_slider = get_node_or_null("Slider") as Control
 	_value_label = get_node_or_null("ValueLabel") as Label
 
 
@@ -88,10 +88,12 @@ func _sync_nodes() -> void:
 		_name_label.text = label_text
 
 	if _slider != null:
-		_slider.min_value = safe_min
-		_slider.max_value = safe_max
-		_slider.step = step
-		_slider.set_value_no_signal(safe_value)
+		_slider.set("min_value", safe_min)
+		_slider.set("max_value", safe_max)
+		_slider.set("step", step)
+		_slider.set("value_suffix", value_suffix)
+		_slider.set("show_value_label", false)
+		_set_slider_control_value(safe_value)
 
 	_update_value_label(safe_value)
 
@@ -119,3 +121,17 @@ func _on_slider_value_changed(value: float) -> void:
 	slider_value = value
 	_update_value_label(value)
 	value_changed.emit(value)
+
+
+func _set_slider_control_value(value: float) -> void:
+	if _slider == null:
+		return
+
+	if _slider.has_method("set_slider_value"):
+		_slider.call("set_slider_value", value)
+	elif _slider.has_method("set_value"):
+		_slider.call("set_value", value, false)
+	elif _slider is Range:
+		(_slider as Range).set_value_no_signal(value)
+	else:
+		_slider.set("slider_value", value)

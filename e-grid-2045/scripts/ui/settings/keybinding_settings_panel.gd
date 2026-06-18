@@ -12,8 +12,8 @@ const ROW_SCENE := preload("res://scenes/ui/settings/keybinding_row.tscn")
 
 var _rows_container: VBoxContainer
 var _status_label: Label
-var _cancel_button: Button
-var _reset_all_button: Button
+var _cancel_button: BaseButton
+var _reset_all_button: BaseButton
 var _rows_by_action := {}
 var _pending_action := ""
 
@@ -58,8 +58,8 @@ func _input(event: InputEvent) -> void:
 func _cache_nodes() -> void:
 	_rows_container = get_node_or_null(rows_container_path) as VBoxContainer
 	_status_label = get_node_or_null(status_label_path) as Label
-	_cancel_button = get_node_or_null(cancel_button_path) as Button
-	_reset_all_button = get_node_or_null(reset_all_button_path) as Button
+	_cancel_button = get_node_or_null(cancel_button_path) as BaseButton
+	_reset_all_button = get_node_or_null(reset_all_button_path) as BaseButton
 
 
 func _wire_buttons() -> void:

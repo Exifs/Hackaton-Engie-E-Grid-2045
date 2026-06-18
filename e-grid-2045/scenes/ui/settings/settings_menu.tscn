@@ -1,10 +1,12 @@
-[gd_scene format=3 uid="uid://bmgci422xnl4h"]
+[gd_scene load_steps=8 format=3 uid="uid://bmgci422xnl4h"]
 
 [ext_resource type="Script" uid="uid://bl7a7rxg4fpbb" path="res://scripts/ui/settings/settings_menu.gd" id="1_settings_script"]
 [ext_resource type="PackedScene" uid="uid://coybhy5b88ixg" path="res://scenes/ui/settings/sound_settings_panel.tscn" id="2_sound_panel"]
 [ext_resource type="PackedScene" uid="uid://c51mvrxemivg6" path="res://scenes/ui/settings/display_settings_panel.tscn" id="3_display_panel"]
 [ext_resource type="PackedScene" path="res://scenes/input/e_grid_input_controller.tscn" id="4_input_controller"]
 [ext_resource type="PackedScene" path="res://scenes/ui/settings/keybinding_settings_panel.tscn" id="5_keybinding_panel"]
+[ext_resource type="PackedScene" path="res://scenes/ui/components/e_grid_panel.tscn" id="6_panel"]
+[ext_resource type="PackedScene" path="res://scenes/ui/components/e_grid_tab.tscn" id="7_tab"]
 
 [node name="SettingsMenu" type="Control"]
 layout_mode = 3
@@ -19,7 +21,7 @@ script = ExtResource("1_settings_script")
 enabled = false
 active_actions = PackedStringArray("menu_back", "settings_tab_previous", "settings_tab_next")
 
-[node name="Panel" type="PanelContainer" parent="."]
+[node name="Panel" parent="." instance=ExtResource("6_panel")]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -28,11 +30,16 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="Margin" type="MarginContainer" parent="Panel"]
-layout_mode = 2
-theme_override_constants/margin_left = 24
-theme_override_constants/margin_top = 20
-theme_override_constants/margin_right = 24
-theme_override_constants/margin_bottom = 20
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 56
+theme_override_constants/margin_top = 36
+theme_override_constants/margin_right = 56
+theme_override_constants/margin_bottom = 36
 
 [node name="VBox" type="VBoxContainer" parent="Panel/Margin"]
 layout_mode = 2
@@ -43,32 +50,64 @@ layout_mode = 2
 text = "PARAMETRES"
 horizontal_alignment = 1
 
-[node name="Tabs" type="TabContainer" parent="Panel/Margin/VBox"]
+[node name="TabButtons" type="HBoxContainer" parent="Panel/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="SoundTab" parent="Panel/Margin/VBox/TabButtons" instance=ExtResource("7_tab")]
+layout_mode = 2
+label_text = "SON"
+
+[node name="DisplayTab" parent="Panel/Margin/VBox/TabButtons" instance=ExtResource("7_tab")]
+layout_mode = 2
+label_text = "AFFICHAGE"
+
+[node name="KeyboardTab" parent="Panel/Margin/VBox/TabButtons" instance=ExtResource("7_tab")]
+layout_mode = 2
+label_text = "CLAVIER"
+
+[node name="Content" type="Control" parent="Panel/Margin/VBox"]
 layout_mode = 2
 size_flags_vertical = 3
-focus_mode = 2
 
-[node name="Son" parent="Panel/Margin/VBox/Tabs" instance=ExtResource("2_sound_panel")]
-layout_mode = 2
+[node name="Son" parent="Panel/Margin/VBox/Content" instance=ExtResource("2_sound_panel")]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 
-[node name="Affichage" parent="Panel/Margin/VBox/Tabs" instance=ExtResource("3_display_panel")]
+[node name="Affichage" parent="Panel/Margin/VBox/Content" instance=ExtResource("3_display_panel")]
 visible = false
-layout_mode = 2
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 
-[node name="Clavier" parent="Panel/Margin/VBox/Tabs" instance=ExtResource("5_keybinding_panel")]
+[node name="Clavier" parent="Panel/Margin/VBox/Content" instance=ExtResource("5_keybinding_panel")]
 visible = false
-layout_mode = 2
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 
 [node name="Footer" type="HBoxContainer" parent="Panel/Margin/VBox"]
 layout_mode = 2
 theme_override_constants/separation = 8
 alignment = 2
 
-[node name="ApplyButton" type="Button" parent="Panel/Margin/VBox/Footer"]
+[node name="ApplyButton" parent="Panel/Margin/VBox/Footer" instance=ExtResource("7_tab")]
 layout_mode = 2
 disabled = true
-text = "APPLIQUER"
+toggle_mode = false
+label_text = "APPLIQUER"
 
-[node name="BackButton" type="Button" parent="Panel/Margin/VBox/Footer"]
+[node name="BackButton" parent="Panel/Margin/VBox/Footer" instance=ExtResource("7_tab")]
 layout_mode = 2
-text = "RETOUR"
+toggle_mode = false
+label_text = "RETOUR"

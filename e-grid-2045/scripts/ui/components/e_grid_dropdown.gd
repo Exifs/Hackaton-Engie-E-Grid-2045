@@ -10,6 +10,9 @@ const E_GRID_COMPONENT_BITMAP_TEXT_SCRIPT := preload("res://scripts/ui/component
 const E_GRID_DROPDOWN_ITEM_SCENE := preload("res://scenes/ui/components/e_grid_dropdown_item.tscn")
 const SELECTED_LABEL_FONT_ATLAS := preload("res://assets/ui/menu/font/egrid_2045_menu_font_atlas_normal.png")
 const SELECTED_LABEL_ACTIVE_FONT_ATLAS := preload("res://assets/ui/menu/font/egrid_2045_menu_font_atlas_hover.png")
+const POPUP_Z_INDEX := 4096
+
+static var _active_dropdown: EGridDropdown
 
 @export_group("Content")
 @export var options := PackedStringArray(["Energy", "Cooling", "Compute"]):
@@ -182,14 +185,22 @@ var _items: VBoxContainer
 var _is_open := false
 var _tween: Tween
 var _item_button_group := ButtonGroup.new()
+var _option_ids := PackedInt32Array()
 
 
 func _ready() -> void:
 	focus_mode = Control.FOCUS_ALL
+	set_process(false)
+	_sync_option_ids()
 	_cache_nodes()
 	_prepare_hotspot()
 	_rebuild_items()
 	_sync_state()
+
+
+func _process(_delta: float) -> void:
+	if _is_open:
+		_sync_popup_canvas_position()
 
 
 func _notification(what: int) -> void:
@@ -215,6 +226,11 @@ func _input(event: InputEvent) -> void:
 			close()
 
 
+func _exit_tree() -> void:
+	if _active_dropdown == self:
+		_active_dropdown = null
+
+
 func open() -> void:
 	_set_open(true)
 
@@ -225,6 +241,52 @@ func close() -> void:
 
 func toggle() -> void:
 	_set_open(not _is_open)
+
+
+func clear() -> void:
+	options = PackedStringArray()
+	_option_ids = PackedInt32Array()
+	selected_index = 0
+	_rebuild_items()
+	_sync_state()
+
+
+func add_item(label: String, id := -1) -> void:
+	var next_options := options.duplicate()
+	next_options.append(label)
+	options = next_options
+	_sync_option_ids()
+	_option_ids[_option_ids.size() - 1] = id if id >= 0 else _option_ids.size() - 1
+	selected_index = clampi(selected_index, 0, maxi(options.size() - 1, 0))
+	_rebuild_items()
+	_sync_state()
+
+
+func select(index: int) -> void:
+	select_index(index, false, false)
+
+
+func get_item_count() -> int:
+	return options.size()
+
+
+func get_item_id(index: int) -> int:
+	if index < 0 or index >= options.size():
+		return -1
+
+	_sync_option_ids()
+	return _option_ids[index]
+
+
+func get_item_text(index: int) -> String:
+	if index < 0 or index >= options.size():
+		return ""
+
+	return options[index]
+
+
+func get_selected_id() -> int:
+	return get_item_id(selected_index)
 
 
 func _cache_nodes() -> void:
@@ -259,12 +321,18 @@ func _cache_nodes() -> void:
 		var panel_input_call := Callable(self, "_on_popup_panel_gui_input")
 		if not _open_panel.gui_input.is_connected(panel_input_call):
 			_open_panel.gui_input.connect(panel_input_call)
-		_open_panel.z_index = 4096
+		_open_panel.z_index = POPUP_Z_INDEX
 		_set_property_if_available(_open_panel, "z_as_relative", false)
 		_open_texture = _open_panel.get_node_or_null("OpenTexture") as TextureRect
 		_scroll_container = _open_panel.get_node_or_null("Scroll") as ScrollContainer
 		_popup_scrollbar = _open_panel.get_node_or_null("DropdownScrollbar") as Control
 		_items = _open_panel.find_child("Items", true, false) as VBoxContainer
+		if _scroll_container != null:
+			_scroll_container.mouse_filter = Control.MOUSE_FILTER_STOP
+		if _items != null:
+			_items.mouse_filter = Control.MOUSE_FILTER_STOP
+		if _popup_scrollbar != null:
+			_popup_scrollbar.mouse_filter = Control.MOUSE_FILTER_STOP
 		_style_scroll_container()
 		_refresh_popup_scrollbar()
 
@@ -455,7 +523,14 @@ func _set_open(opened: bool) -> void:
 	if disabled:
 		return
 
+	if opened:
+		_close_active_dropdown()
+		_active_dropdown = self
+	elif _active_dropdown == self:
+		_active_dropdown = null
+
 	_is_open = opened
+	set_process(_is_open)
 	_sync_state()
 
 	if _open_panel == null:
@@ -473,6 +548,7 @@ func _set_open(opened: bool) -> void:
 	if _is_open:
 		_open_panel.scale = Vector2(1.0, maxf(_open_panel.scale.y, 0.01))
 		_sync_popup_canvas_position()
+		_open_panel.mouse_filter = Control.MOUSE_FILTER_STOP
 		_tween.parallel().tween_property(_open_panel, "scale:y", 1.0, animation_duration)
 		_tween.parallel().tween_property(_open_panel, "modulate:a", 1.0, animation_duration)
 		call_deferred("_scroll_selected_item_into_view")
@@ -541,6 +617,7 @@ func _configure_item(item: BaseButton, index: int) -> void:
 	item.text = ""
 	item.toggle_mode = true
 	item.focus_mode = Control.FOCUS_ALL
+	item.mouse_filter = Control.MOUSE_FILTER_STOP
 	item.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	item.custom_minimum_size = item_size
 
@@ -704,6 +781,14 @@ func select_index(index: int, close_popup := true, emit_change := true) -> void:
 		close()
 
 
+func _sync_option_ids() -> void:
+	while _option_ids.size() < options.size():
+		_option_ids.append(_option_ids.size())
+
+	while _option_ids.size() > options.size():
+		_option_ids.remove_at(_option_ids.size() - 1)
+
+
 func _handle_keyboard_event(event: InputEvent) -> bool:
 	var key_event := event as InputEventKey
 	if disabled or key_event == null or not key_event.pressed or key_event.echo:
@@ -816,6 +901,10 @@ func _apply_deferred_scroll(step_size: int) -> void:
 
 func _force_close_popup() -> void:
 	_is_open = false
+	set_process(false)
+	if _active_dropdown == self:
+		_active_dropdown = null
+
 	if _tween != null:
 		_tween.kill()
 		_tween = null
@@ -885,10 +974,22 @@ func _set_popup_top_level(enabled: bool) -> void:
 	if _open_panel == null:
 		return
 
+	_open_panel.z_index = POPUP_Z_INDEX
+	_set_property_if_available(_open_panel, "z_as_relative", false)
 	if _open_panel.has_method("set_as_top_level"):
 		_open_panel.call("set_as_top_level", enabled)
 	else:
 		_set_property_if_available(_open_panel, "top_level", enabled)
+
+
+func _close_active_dropdown() -> void:
+	if _active_dropdown == null or _active_dropdown == self:
+		return
+
+	if is_instance_valid(_active_dropdown):
+		_active_dropdown.close()
+
+	_active_dropdown = null
 
 
 func _popup_scroll_max() -> float:
