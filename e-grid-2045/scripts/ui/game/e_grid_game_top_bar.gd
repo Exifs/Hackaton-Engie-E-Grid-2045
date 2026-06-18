@@ -128,10 +128,12 @@ func _set_text(path: NodePath, value: String) -> void:
 	if node == null:
 		return
 
-	if _object_has_property(node, "text"):
-		node.set("text", value)
-	elif _object_has_property(node, "label_text"):
+	if _object_has_property(node, "label_text"):
 		node.set("label_text", value)
+		if node is BaseButton and _object_has_property(node, "text"):
+			node.set("text", "")
+	elif _object_has_property(node, "text"):
+		node.set("text", value)
 
 
 func _set_chip(path: NodePath, value: String, state_name: String) -> void:
@@ -154,7 +156,7 @@ func _set_button(path: NodePath, value: String, active: bool) -> void:
 
 	_set_property_if_available(button, "label_text", value)
 	if _object_has_property(button, "text"):
-		button.set("text", value)
+		button.set("text", "")
 	if button.toggle_mode:
 		button.button_pressed = active
 

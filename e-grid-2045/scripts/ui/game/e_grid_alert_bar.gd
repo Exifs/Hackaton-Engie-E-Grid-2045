@@ -77,6 +77,7 @@ func _sync_collapsed_state() -> void:
 	var button := get_node_or_null(collapse_button_path) as BaseButton
 	if button != null:
 		_set_property_if_available(button, "label_text", "^" if collapsed else "V")
+		_set_property_if_available(button, "text", "")
 		button.tooltip_text = "Expand alerts" if collapsed else "Collapse alerts"
 
 
