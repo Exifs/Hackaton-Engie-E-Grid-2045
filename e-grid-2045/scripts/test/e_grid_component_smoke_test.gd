@@ -2,6 +2,9 @@ extends Node
 
 @export var quit_after_seconds := 0.0
 
+const BITMAP_FONT_MANIFEST_PATH := "res://assets/ui/menu/font/egrid_2045_menu_font_manifest.json"
+const BITMAP_FONT_CELL_HEIGHT := 112.0
+
 const COMPONENT_SCENES := [
 	"res://scenes/ui/components/e_grid_alert_toast.tscn",
 	"res://scenes/ui/components/e_grid_checkbox.tscn",
@@ -45,6 +48,8 @@ func _run() -> void:
 	_test_slider("EGridHorizontalSlider")
 	_test_slider("EGridVerticalSlider")
 	await _test_dropdown()
+	_test_slot_card()
+	_test_radial_progress()
 	_test_static_textures()
 
 	if _failures.is_empty():
@@ -277,6 +282,143 @@ func _test_static_textures() -> void:
 			_failures.append("Static texture not resolved: %s" % node_name)
 
 
+func _test_slot_card() -> void:
+	var slot_card := find_child("EGridSlotCard", true, false) as BaseButton
+	if slot_card == null:
+		_failures.append("Missing slot card")
+		return
+
+	for layer_name in [
+		"Base",
+		"BuildingIcon",
+		"Pips",
+		"BottomTier",
+		"TopBars",
+		"StateOverlay",
+		"StatusOverlay",
+		"StatusBadge",
+		"LockOverlay",
+	]:
+		var layer := slot_card.get_node_or_null(layer_name) as TextureRect
+		if layer == null:
+			_failures.append("Slot card missing layer: %s" % layer_name)
+			continue
+		if not ["BuildingIcon", "StatusBadge"].has(layer_name) and layer.texture == null:
+			_failures.append("Slot card layer has no texture: %s" % layer_name)
+
+	slot_card.set("semantic_state", "warning")
+	slot_card.set("pips_active", 4)
+	var status_overlay := slot_card.get_node_or_null("StatusOverlay") as TextureRect
+	if status_overlay == null or not status_overlay.visible:
+		_failures.append("Slot card warning status overlay did not become visible")
+
+	var status_badge := slot_card.get_node_or_null("StatusBadge") as TextureRect
+	if status_badge == null or not status_badge.visible:
+		_failures.append("Slot card warning badge did not become visible")
+
+
+func _test_radial_progress() -> void:
+	var radial := find_child("EGridProgressRing", true, false) as Control
+	if radial == null:
+		_failures.append("Missing radial progress")
+		return
+
+	radial.set("value", 73.0)
+	radial.set("semantic_state", "critical")
+
+	var progress := radial.get_node_or_null("ProgressTexture") as TextureProgressBar
+	if progress == null:
+		_failures.append("Radial progress has no TextureProgressBar child")
+		return
+
+	if progress.texture_under == null or progress.texture_progress == null or progress.texture_over == null:
+		_failures.append("Radial progress textures are not resolved")
+
+	var cap := radial.get_node_or_null("EndCap") as TextureRect
+	if cap == null or cap.texture == null:
+		_failures.append("Radial progress cap texture is not resolved")
+	else:
+		if _object_has_property(progress, "radial_initial_angle"):
+			var expected_start_angle := float(radial.get("progress_start_angle_degrees"))
+			var actual_start_angle := float(progress.get("radial_initial_angle"))
+			if absf(actual_start_angle - expected_start_angle) > 0.01:
+				_failures.append("Radial progress cap and TextureProgressBar do not share the same start angle")
+
+		radial.set("value", 25.0)
+		radial.set("_display_value", 25.0)
+		radial.call("_sync_visuals")
+		var fitted_rect := Rect2(Vector2.ZERO, radial.size)
+		var expected_angle := deg_to_rad(float(radial.get("progress_start_angle_degrees")) + 90.0)
+		var expected_cap_center := fitted_rect.position + fitted_rect.size * 0.5 + Vector2(sin(expected_angle), -cos(expected_angle)) * float(radial.get("cap_radius"))
+		var actual_cap_center := cap.position + cap.size * 0.5
+		if actual_cap_center.distance_to(expected_cap_center) > 1.0:
+			_failures.append("Radial progress cap is not aligned with the rendered progress angle")
+
+	var value_label := radial.get_node_or_null("ValueBitmapText") as Control
+	if value_label == null:
+		_failures.append("Radial progress has no bitmap value label")
+	else:
+		if value_label.get("atlas_texture") == null:
+			_failures.append("Radial progress value label has no menu font atlas")
+		if int(value_label.get("opacity_passes")) < 3:
+			_failures.append("Radial progress value label is not reinforced for readability")
+		if not bool(value_label.get("outline_enabled")):
+			_failures.append("Radial progress value label has no outline")
+		if float(value_label.get("scale_px")) < 0.175:
+			_failures.append("Radial progress value label is too small for readability")
+		if value_label.size.x < 58.0 or value_label.size.y < 30.0:
+			_failures.append("Radial progress value label box is too small for the percentage text")
+
+		radial.set("value", 100.0)
+		radial.set("_display_value", 100.0)
+		radial.call("_sync_visuals")
+		var label_text_size := _estimate_bitmap_text_size(str(value_label.get("text")), float(value_label.get("scale_px")))
+		if label_text_size.x + 4.0 > value_label.size.x or label_text_size.y + 4.0 > value_label.size.y:
+			_failures.append("Radial progress 100% label can overflow its render box")
+
+	if cap != null:
+		radial.set("semantic_state", "normal")
+		var normal_cap := cap.texture
+		radial.set("semantic_state", "success")
+		var success_cap := cap.texture
+		if normal_cap == success_cap:
+			_failures.append("Radial progress success state reuses the cyan cap texture")
+
+
 func _set_result(message: String) -> void:
 	if _result_label != null:
 		_result_label.text = message
+
+
+func _object_has_property(target: Object, property_name: String) -> bool:
+	for property in target.get_property_list():
+		if str(property.get("name", "")) == property_name:
+			return true
+
+	return false
+
+
+func _estimate_bitmap_text_size(text: String, text_scale: float) -> Vector2:
+	var fallback_width := 80.0 * float(text.length())
+	var file := FileAccess.open(BITMAP_FONT_MANIFEST_PATH, FileAccess.READ)
+	if file == null:
+		return Vector2(fallback_width * text_scale, BITMAP_FONT_CELL_HEIGHT * text_scale)
+
+	var parsed = JSON.parse_string(file.get_as_text())
+	if typeof(parsed) != TYPE_DICTIONARY:
+		return Vector2(fallback_width * text_scale, BITMAP_FONT_CELL_HEIGHT * text_scale)
+
+	var metrics = parsed.get("metrics", {})
+	if typeof(metrics) != TYPE_DICTIONARY:
+		return Vector2(fallback_width * text_scale, BITMAP_FONT_CELL_HEIGHT * text_scale)
+
+	var width := 0.0
+	for index in range(text.length()):
+		var character := text.substr(index, 1)
+		var metric = metrics.get(character, {})
+		if typeof(metric) == TYPE_DICTIONARY and metric.has("advance"):
+			width += float(metric["advance"])
+		else:
+			width += 80.0
+
+	return Vector2(width * text_scale, BITMAP_FONT_CELL_HEIGHT * text_scale)

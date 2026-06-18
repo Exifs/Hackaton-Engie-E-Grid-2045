@@ -1,21 +1,74 @@
 [gd_scene load_steps=2 format=3]
 
-[ext_resource type="Script" path="res://scripts/ui/components/e_grid_sprite_button.gd" id="1_button"]
+[ext_resource type="Script" path="res://scripts/ui/components/e_grid_slot_card.gd" id="1_slot"]
 
 [node name="EGridSlotCard" type="Button"]
-custom_minimum_size = Vector2(86, 86)
+custom_minimum_size = Vector2(80, 80)
 size_flags_horizontal = 0
 size_flags_vertical = 0
-offset_right = 86.0
-offset_bottom = 86.0
+offset_right = 80.0
+offset_bottom = 80.0
+mouse_default_cursor_shape = 2
 toggle_mode = true
-script = ExtResource("1_button")
-component_name = "slot_card_states"
-normal_state = "empty"
-hover_state = "occupied"
-pressed_state = "selected"
-selected_state = "selected"
-selected_hover_state = "selected"
-disabled_state = "disabled"
-warning_state = "warning"
-critical_state = "critical"
+flat = true
+script = ExtResource("1_slot")
+pips_active = 3
+bottom_tier = 2
+top_bars = 2
+
+[node name="Base" type="TextureRect" parent="."]
+layout_mode = 0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="BuildingIcon" type="TextureRect" parent="."]
+visible = false
+layout_mode = 0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Pips" type="TextureRect" parent="."]
+layout_mode = 0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="BottomTier" type="TextureRect" parent="."]
+layout_mode = 0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="TopBars" type="TextureRect" parent="."]
+layout_mode = 0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="StateOverlay" type="TextureRect" parent="."]
+layout_mode = 0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="StatusOverlay" type="TextureRect" parent="."]
+layout_mode = 0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="StatusBadge" type="TextureRect" parent="."]
+visible = false
+layout_mode = 0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="LockOverlay" type="TextureRect" parent="."]
+visible = false
+layout_mode = 0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
