@@ -10,9 +10,9 @@ const ICON_SAFE_RECT := Rect2(7.0, 6.0, 66.0, 58.0)
 const PIPS_SOURCE_RECT := Rect2(14.0, 70.0, 45.0, 9.0)
 const PIPS_TARGET_RECT := Rect2(17.5, 66.0, 45.0, 9.0)
 const TOP_BARS_SOURCE_RECT := Rect2(69.0, 9.0, 11.0, 9.0)
-const TOP_BARS_TARGET_RECT := Rect2(60.0, 9.0, 11.0, 9.0)
+const TOP_BARS_TARGET_RECT := Rect2(64.0, 8.0, 11.0, 9.0)
 const BOTTOM_TIER_SOURCE_RECT := Rect2(68.0, 69.0, 10.0, 9.0)
-const BOTTOM_TIER_TARGET_RECT := Rect2(60.0, 65.0, 10.0, 9.0)
+const BOTTOM_TIER_TARGET_RECT := Rect2(64.0, 65.0, 10.0, 9.0)
 
 const BASE_STATES_PATH := "res://assets/ui/components/egrid_2045_slot_card_component_pack_v5_clean/runtime_textures/slot_card/slot_card_base_states_80.png"
 const STATE_OVERLAYS_PATH := "res://assets/ui/components/egrid_2045_slot_card_component_pack_v5_clean/runtime_textures/slot_card/slot_card_state_overlays_80.png"
