@@ -67,17 +67,18 @@ func _get_pressed_action(event: InputEvent) -> String:
 func _emit_action(action_name: String) -> void:
 	action_pressed.emit(action_name)
 
-	match action_name:
-		INPUT_ACTIONS.GAME_BACK:
-			back_requested.emit()
-		INPUT_ACTIONS.GAME_PAUSE_TOGGLE:
-			pause_toggle_requested.emit()
-		INPUT_ACTIONS.GAME_SPEED_NORMAL:
-			speed_requested.emit(1.0)
-		INPUT_ACTIONS.GAME_SPEED_FAST:
-			speed_requested.emit(2.0)
-		INPUT_ACTIONS.GAME_SPEED_MAX:
-			speed_requested.emit(4.0)
+	if action_name == INPUT_ACTIONS.GAME_BACK or action_name == INPUT_ACTIONS.MENU_BACK:
+		back_requested.emit()
+	else:
+		match action_name:
+			INPUT_ACTIONS.GAME_PAUSE_TOGGLE:
+				pause_toggle_requested.emit()
+			INPUT_ACTIONS.GAME_SPEED_NORMAL:
+				speed_requested.emit(1.0)
+			INPUT_ACTIONS.GAME_SPEED_FAST:
+				speed_requested.emit(2.0)
+			INPUT_ACTIONS.GAME_SPEED_MAX:
+				speed_requested.emit(4.0)
 
 
 func _mark_input_as_handled() -> void:
