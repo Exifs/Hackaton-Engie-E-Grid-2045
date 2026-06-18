@@ -500,6 +500,8 @@ theme_override_styles/hover = SubResource("StyleBoxEmpty_ylulj")
 theme_override_styles/disabled = SubResource("StyleBoxEmpty_wm4xv")
 theme_override_styles/focus = SubResource("StyleBoxEmpty_x8vu0")
 semantic_state = "warning"
+pips_active = 4
+bottom_tier = 2
 top_bars = 1
 
 [node name="ErrorSlotCard" parent="Margin/Workbench/MainRows/FrameColumn/FrameRow" unique_id=1553167498 instance=ExtResource("14_slot")]
@@ -512,6 +514,7 @@ theme_override_styles/focus = SubResource("StyleBoxEmpty_yrcrh")
 semantic_state = "critical"
 pips_active = 2
 bottom_tier = 1
+top_bars = 1
 
 [node name="LockedSlotCard" parent="Margin/Workbench/MainRows/FrameColumn/FrameRow" unique_id=1420962826 instance=ExtResource("14_slot")]
 layout_mode = 2

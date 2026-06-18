@@ -308,13 +308,51 @@ func _test_slot_card() -> void:
 
 	slot_card.set("semantic_state", "warning")
 	slot_card.set("pips_active", 4)
+	slot_card.set("show_state_overlay", false)
+	slot_card.set("show_status_badge", false)
 	var status_overlay := slot_card.get_node_or_null("StatusOverlay") as TextureRect
 	if status_overlay == null or not status_overlay.visible:
 		_failures.append("Slot card warning status overlay did not become visible")
 
+	var base_layer := slot_card.get_node_or_null("Base") as TextureRect
+	var base_atlas: AtlasTexture = null
+	if base_layer != null:
+		base_atlas = base_layer.texture as AtlasTexture
+	if base_atlas == null or base_atlas.region.position.x != 0.0:
+		_failures.append("Slot card warning state should keep the empty base and use the status overlay")
+
+	var state_overlay := slot_card.get_node_or_null("StateOverlay") as TextureRect
+	if state_overlay != null and state_overlay.visible:
+		_failures.append("Slot card state overlay should be opt-in to avoid doubled borders")
+
 	var status_badge := slot_card.get_node_or_null("StatusBadge") as TextureRect
+	if status_badge == null:
+		_failures.append("Slot card warning badge layer is missing")
+	elif status_badge.visible:
+		_failures.append("Slot card warning badge should be hidden by default because the status overlay already includes the badge")
+
+	slot_card.set("show_status_badge", true)
 	if status_badge == null or not status_badge.visible:
-		_failures.append("Slot card warning badge did not become visible")
+		_failures.append("Slot card explicit warning badge did not become visible")
+
+	var pips := slot_card.get_node_or_null("Pips") as TextureRect
+	var bottom_tier := slot_card.get_node_or_null("BottomTier") as TextureRect
+	var top_bars := slot_card.get_node_or_null("TopBars") as TextureRect
+	for crisp_layer in [pips, bottom_tier, top_bars]:
+		if crisp_layer != null and crisp_layer.texture_filter != CanvasItem.TEXTURE_FILTER_NEAREST:
+			_failures.append("Slot card pips and microbars should use nearest filtering")
+
+	if pips == null or absf((pips.position.x + pips.size.x * 0.5) - 40.0) > 0.5:
+		_failures.append("Slot card pips should be horizontally centered")
+	if pips == null or pips.position.y + pips.size.y > 76.0:
+		_failures.append("Slot card pips should be inset from the bottom edge")
+
+	if top_bars == null or top_bars.position.x < 58.0 or top_bars.position.x + top_bars.size.x > 74.0:
+		_failures.append("Slot card top microbars should be inset from the right edge")
+	if bottom_tier == null or bottom_tier.position.x < 58.0 or bottom_tier.position.x + bottom_tier.size.x > 74.0:
+		_failures.append("Slot card bottom tier bars should be inset from the right edge")
+	if bottom_tier != null and bottom_tier.position.y + bottom_tier.size.y > 77.0:
+		_failures.append("Slot card bottom tier bars should be inset from the bottom edge")
 
 
 func _test_radial_progress() -> void:

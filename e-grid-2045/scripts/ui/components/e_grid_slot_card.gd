@@ -7,6 +7,12 @@ const E_GRID_RUNTIME_TEXTURE_LOADER := preload("res://scripts/ui/components/e_gr
 const CELL_SIZE := Vector2(80.0, 80.0)
 const BADGE_SIZE := Vector2(24.0, 24.0)
 const ICON_SAFE_RECT := Rect2(7.0, 6.0, 66.0, 58.0)
+const PIPS_SOURCE_RECT := Rect2(14.0, 70.0, 45.0, 9.0)
+const PIPS_TARGET_RECT := Rect2(17.5, 66.0, 45.0, 9.0)
+const TOP_BARS_SOURCE_RECT := Rect2(69.0, 9.0, 11.0, 9.0)
+const TOP_BARS_TARGET_RECT := Rect2(60.0, 9.0, 11.0, 9.0)
+const BOTTOM_TIER_SOURCE_RECT := Rect2(68.0, 69.0, 10.0, 9.0)
+const BOTTOM_TIER_TARGET_RECT := Rect2(60.0, 65.0, 10.0, 9.0)
 
 const BASE_STATES_PATH := "res://assets/ui/components/egrid_2045_slot_card_component_pack_v5_clean/runtime_textures/slot_card/slot_card_base_states_80.png"
 const STATE_OVERLAYS_PATH := "res://assets/ui/components/egrid_2045_slot_card_component_pack_v5_clean/runtime_textures/slot_card/slot_card_state_overlays_80.png"
@@ -105,11 +111,11 @@ const FULL_CELL_LAYERS := [
 	set(value):
 		status_state = value
 		_sync_visuals()
-@export var show_state_overlay := true:
+@export var show_state_overlay := false:
 	set(value):
 		show_state_overlay = value
 		_sync_visuals()
-@export var show_status_badge := true:
+@export var show_status_badge := false:
 	set(value):
 		show_status_badge = value
 		_sync_visuals()
@@ -209,7 +215,7 @@ func _ensure_layer(node_name: String) -> TextureRect:
 		return null
 
 	layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	layer.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+	layer.texture_filter = _texture_filter_for_layer(node_name)
 	layer.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	layer.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	return layer
@@ -233,6 +239,21 @@ func _layout_layers() -> void:
 		_building_icon.position = fitted_rect.position + ICON_SAFE_RECT.position * source_scale
 		_building_icon.size = ICON_SAFE_RECT.size * source_scale
 
+	if _pips != null:
+		_pips.set_anchors_preset(Control.PRESET_TOP_LEFT)
+		_pips.position = fitted_rect.position + PIPS_TARGET_RECT.position * source_scale
+		_pips.size = PIPS_TARGET_RECT.size * source_scale
+
+	if _top_bars != null:
+		_top_bars.set_anchors_preset(Control.PRESET_TOP_LEFT)
+		_top_bars.position = fitted_rect.position + TOP_BARS_TARGET_RECT.position * source_scale
+		_top_bars.size = TOP_BARS_TARGET_RECT.size * source_scale
+
+	if _bottom_tier != null:
+		_bottom_tier.set_anchors_preset(Control.PRESET_TOP_LEFT)
+		_bottom_tier.position = fitted_rect.position + BOTTOM_TIER_TARGET_RECT.position * source_scale
+		_bottom_tier.size = BOTTOM_TIER_TARGET_RECT.size * source_scale
+
 	if _status_badge != null:
 		_status_badge.set_anchors_preset(Control.PRESET_TOP_LEFT)
 		_status_badge.position = fitted_rect.position + status_badge_source_rect.position * source_scale
@@ -254,9 +275,9 @@ func _sync_visuals() -> void:
 		_building_icon.texture = building_icon
 		_building_icon.visible = building_icon != null
 
-	_set_texture_frame(_pips, _pips_states_texture, pips_active, CELL_SIZE)
-	_set_texture_frame(_bottom_tier, _bottom_tier_bars_texture, bottom_tier, CELL_SIZE)
-	_set_texture_frame(_top_bars, _top_microbars_texture, top_bars, CELL_SIZE)
+	_set_texture_frame_region(_pips, _pips_states_texture, pips_active, CELL_SIZE, PIPS_SOURCE_RECT)
+	_set_texture_frame_region(_bottom_tier, _bottom_tier_bars_texture, bottom_tier, CELL_SIZE, BOTTOM_TIER_SOURCE_RECT)
+	_set_texture_frame_region(_top_bars, _top_microbars_texture, top_bars, CELL_SIZE, TOP_BARS_SOURCE_RECT)
 
 	var overlay_state := _resolved_state_overlay()
 	_set_texture_frame(_state_overlay, _state_overlays_texture, STATE_OVERLAY_FRAME.get(overlay_state, 0), CELL_SIZE)
@@ -332,6 +353,20 @@ func _set_texture_frame(target: TextureRect, texture: Texture2D, frame_index: in
 	target.texture = _atlas_texture(texture, Rect2(Vector2(float(frame_index) * cell_size.x, 0.0), cell_size))
 
 
+func _set_texture_frame_region(
+	target: TextureRect,
+	texture: Texture2D,
+	frame_index: int,
+	cell_size: Vector2,
+	source_rect: Rect2
+) -> void:
+	if target == null:
+		return
+
+	var frame_origin := Vector2(float(frame_index) * cell_size.x, 0.0)
+	target.texture = _atlas_texture(texture, Rect2(frame_origin + source_rect.position, source_rect.size))
+
+
 func _atlas_texture(texture: Texture2D, region: Rect2) -> Texture2D:
 	if texture == null:
 		return null
@@ -348,12 +383,8 @@ func _resolved_base_state() -> String:
 
 	if _is_visually_disabled():
 		return "disabled"
-	if locked:
-		return "locked"
-	if semantic_state == "critical":
-		return "error"
-	if semantic_state == "warning":
-		return "warning"
+	if locked or semantic_state == "critical" or semantic_state == "warning":
+		return "empty"
 	if drop_target:
 		return "drop_target"
 	if button_pressed:
@@ -367,6 +398,8 @@ func _resolved_base_state() -> String:
 func _resolved_state_overlay() -> String:
 	if drag_ghost:
 		return "drag_ghost"
+	if not show_state_overlay:
+		return "none"
 	if _is_visually_disabled():
 		return "disabled_scrim"
 	if drop_target:
@@ -375,10 +408,6 @@ func _resolved_state_overlay() -> String:
 		return "selected"
 	if is_hovered() or has_focus():
 		return "hover"
-	if semantic_state == "critical":
-		return "error"
-	if semantic_state == "warning":
-		return "warning"
 
 	return "none"
 
@@ -426,3 +455,10 @@ func _card_rect() -> Rect2:
 	var fit_scale := minf(target_size.x / CELL_SIZE.x, target_size.y / CELL_SIZE.y)
 	var fitted_size := CELL_SIZE * fit_scale
 	return Rect2((target_size - fitted_size) * 0.5, fitted_size)
+
+
+func _texture_filter_for_layer(layer_name: String) -> CanvasItem.TextureFilter:
+	if ["Pips", "BottomTier", "TopBars", "StatusBadge"].has(layer_name):
+		return CanvasItem.TEXTURE_FILTER_NEAREST
+
+	return CanvasItem.TEXTURE_FILTER_LINEAR
