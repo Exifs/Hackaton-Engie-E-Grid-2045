@@ -1,0 +1,64 @@
+﻿region_a_id,region_a_name,region_b_id,region_b_name,distance,connection_type
+at,Autriche,cz,Tchéquie,1,abstract_grid_or_geographic
+at,Autriche,de_west,Allemagne Ouest,1,abstract_grid_or_geographic
+at,Autriche,hu,Hongrie,1,abstract_grid_or_geographic
+at,Autriche,it_north,Italie Nord,1,abstract_grid_or_geographic
+at,Autriche,si_hr,Slovénie-Croatie,1,abstract_grid_or_geographic
+at,Autriche,sk,Slovaquie,1,abstract_grid_or_geographic
+baltic_north,Baltique Nord,baltic_south,Baltique Sud,1,abstract_grid_or_geographic
+baltic_north,Baltique Nord,fi,Finlande,1,abstract_grid_or_geographic
+baltic_north,Baltique Nord,se_south,Suède Sud,1,abstract_grid_or_geographic
+baltic_south,Baltique Sud,de_north,Allemagne Nord,1,abstract_grid_or_geographic
+baltic_south,Baltique Sud,dk,Danemark,1,abstract_grid_or_geographic
+baltic_south,Baltique Sud,pl,Pologne,1,abstract_grid_or_geographic
+baltic_south,Baltique Sud,se_south,Suède Sud,1,abstract_grid_or_geographic
+benelux,Benelux,de_north,Allemagne Nord,1,abstract_grid_or_geographic
+benelux,Benelux,de_west,Allemagne Ouest,1,abstract_grid_or_geographic
+benelux,Benelux,dk,Danemark,1,abstract_grid_or_geographic
+benelux,Benelux,fr_nord,France Nord,1,abstract_grid_or_geographic
+benelux,Benelux,ie,Irlande,1,abstract_grid_or_geographic
+benelux,Benelux,lux_saarlorlux,Luxembourg & SaarLorLux,1,abstract_grid_or_geographic
+bg,Bulgarie,eu_north_balkans,Balkans Nord UE,1,abstract_grid_or_geographic
+bg,Bulgarie,gr,Grèce,1,abstract_grid_or_geographic
+bg,Bulgarie,ro,Roumanie,1,abstract_grid_or_geographic
+cz,Tchéquie,de_east,Allemagne Est,1,abstract_grid_or_geographic
+cz,Tchéquie,de_west,Allemagne Ouest,1,abstract_grid_or_geographic
+cz,Tchéquie,pl,Pologne,1,abstract_grid_or_geographic
+cz,Tchéquie,sk,Slovaquie,1,abstract_grid_or_geographic
+de_east,Allemagne Est,de_north,Allemagne Nord,1,abstract_grid_or_geographic
+de_east,Allemagne Est,de_west,Allemagne Ouest,1,abstract_grid_or_geographic
+de_east,Allemagne Est,pl,Pologne,1,abstract_grid_or_geographic
+de_north,Allemagne Nord,de_west,Allemagne Ouest,1,abstract_grid_or_geographic
+de_north,Allemagne Nord,dk,Danemark,1,abstract_grid_or_geographic
+de_north,Allemagne Nord,pl,Pologne,1,abstract_grid_or_geographic
+de_west,Allemagne Ouest,fr_nord,France Nord,1,abstract_grid_or_geographic
+de_west,Allemagne Ouest,lux_saarlorlux,Luxembourg & SaarLorLux,1,abstract_grid_or_geographic
+dk,Danemark,se_south,Suède Sud,1,abstract_grid_or_geographic
+es_north,Espagne Nord,es_south,Espagne Sud,1,abstract_grid_or_geographic
+es_north,Espagne Nord,fr_sud,France Sud,1,abstract_grid_or_geographic
+es_north,Espagne Nord,pt,Portugal,1,abstract_grid_or_geographic
+es_south,Espagne Sud,med_islands,Méditerranée insulaire,1,abstract_grid_or_geographic
+es_south,Espagne Sud,pt,Portugal,1,abstract_grid_or_geographic
+eu_north_balkans,Balkans Nord UE,gr,Grèce,1,abstract_grid_or_geographic
+eu_north_balkans,Balkans Nord UE,hu,Hongrie,1,abstract_grid_or_geographic
+eu_north_balkans,Balkans Nord UE,ro,Roumanie,1,abstract_grid_or_geographic
+eu_north_balkans,Balkans Nord UE,si_hr,Slovénie-Croatie,1,abstract_grid_or_geographic
+fi,Finlande,se_north,Suède Nord,1,abstract_grid_or_geographic
+fi,Finlande,se_south,Suède Sud,1,abstract_grid_or_geographic
+fr_nord,France Nord,fr_sud,France Sud,1,abstract_grid_or_geographic
+fr_nord,France Nord,ie,Irlande,1,abstract_grid_or_geographic
+fr_nord,France Nord,lux_saarlorlux,Luxembourg & SaarLorLux,1,abstract_grid_or_geographic
+fr_sud,France Sud,it_north,Italie Nord,1,abstract_grid_or_geographic
+fr_sud,France Sud,lux_saarlorlux,Luxembourg & SaarLorLux,1,abstract_grid_or_geographic
+fr_sud,France Sud,med_islands,Méditerranée insulaire,1,abstract_grid_or_geographic
+gr,Grèce,it_south_islands,Italie Sud & îles,1,abstract_grid_or_geographic
+gr,Grèce,med_islands,Méditerranée insulaire,1,abstract_grid_or_geographic
+hu,Hongrie,ro,Roumanie,1,abstract_grid_or_geographic
+hu,Hongrie,si_hr,Slovénie-Croatie,1,abstract_grid_or_geographic
+hu,Hongrie,sk,Slovaquie,1,abstract_grid_or_geographic
+it_north,Italie Nord,it_south_islands,Italie Sud & îles,1,abstract_grid_or_geographic
+it_north,Italie Nord,si_hr,Slovénie-Croatie,1,abstract_grid_or_geographic
+it_south_islands,Italie Sud & îles,med_islands,Méditerranée insulaire,1,abstract_grid_or_geographic
+it_south_islands,Italie Sud & îles,si_hr,Slovénie-Croatie,1,abstract_grid_or_geographic
+pl,Pologne,sk,Slovaquie,1,abstract_grid_or_geographic
+se_north,Suède Nord,se_south,Suède Sud,1,abstract_grid_or_geographic

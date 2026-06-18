@@ -6,7 +6,7 @@
 [node name="EGridRegionPanel" type="PanelContainer"]
 custom_minimum_size = Vector2(360, 0)
 script = ExtResource("1_region_panel")
-region_name = "NETHERLANDS"
+region_name = "BENELUX"
 level_text = "LEVEL 4"
 xp_text = "1,250 / 2,000 XP"
 xp_progress = 62.5
@@ -28,7 +28,7 @@ layout_mode = 2
 [node name="RegionNameLabel" type="Label" parent="ContentMargin/PanelStack/HeaderRow"]
 layout_mode = 2
 size_flags_horizontal = 3
-text = "NETHERLANDS"
+text = "BENELUX"
 clip_text = true
 
 [node name="CloseButton" type="Button" parent="ContentMargin/PanelStack/HeaderRow"]

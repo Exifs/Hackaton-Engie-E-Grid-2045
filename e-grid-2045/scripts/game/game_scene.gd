@@ -2,6 +2,12 @@ extends Control
 class_name EGridGameScene
 
 const DEFAULT_MENU_SCENE := "res://scenes/main_menu.tscn"
+const COMPACT_VIEWPORT_WIDTH := 1180.0
+const MEDIUM_VIEWPORT_WIDTH := 1400.0
+const BUILD_PALETTE_WIDTH := 296.0
+const BUILD_PALETTE_MEDIUM_WIDTH := 248.0
+const REGION_PANEL_WIDTH := 360.0
+const REGION_PANEL_MEDIUM_WIDTH := 320.0
 
 @export_file("*.tscn") var menu_scene_path := DEFAULT_MENU_SCENE
 @export_node_path("Control") var top_bar_path: NodePath = ^"SafeArea/Root/TopBar"
@@ -27,7 +33,10 @@ func _ready() -> void:
 	_cache_layout_regions()
 	_wire_input_controller()
 	_wire_navigation()
+	_wire_map_view()
 	_sync_simulation_status()
+	_wire_responsive_layout()
+	_apply_responsive_layout()
 
 
 func get_layout_regions() -> Dictionary:
@@ -70,6 +79,20 @@ func _wire_navigation() -> void:
 		menu_button.pressed.connect(_request_return_to_menu)
 
 
+func _wire_map_view() -> void:
+	if _map_view == null:
+		return
+
+	_connect_signal_once(_map_view, "region_selected", Callable(self, "_on_region_selected"))
+
+
+func _on_region_selected(_region_id: String, display_name: String) -> void:
+	if _region_panel == null or display_name.strip_edges().is_empty():
+		return
+
+	_region_panel.set("region_name", display_name.to_upper())
+
+
 func _request_return_to_menu() -> void:
 	if _is_changing_scene:
 		return
@@ -97,6 +120,61 @@ func _sync_simulation_status() -> void:
 		_top_bar.set("speed_text", "PAUSED")
 	else:
 		_top_bar.set("speed_text", "%.1fx" % _simulation_speed)
+
+
+func _wire_responsive_layout() -> void:
+	var viewport := get_viewport()
+
+	if viewport == null:
+		return
+
+	if not viewport.size_changed.is_connected(_apply_responsive_layout):
+		viewport.size_changed.connect(_apply_responsive_layout)
+
+
+func _apply_responsive_layout() -> void:
+	var viewport_width := get_viewport_rect().size.x
+	var is_compact := viewport_width < COMPACT_VIEWPORT_WIDTH
+	var is_medium := viewport_width < MEDIUM_VIEWPORT_WIDTH
+
+	_set_visible(_build_palette, not is_compact)
+	_set_visible(_region_panel, not is_compact)
+	_set_visible(_alert_bar, not is_compact)
+
+	_set_minimum_width(_build_palette, BUILD_PALETTE_MEDIUM_WIDTH if is_medium else BUILD_PALETTE_WIDTH)
+	_set_minimum_width(_region_panel, REGION_PANEL_MEDIUM_WIDTH if is_medium else REGION_PANEL_WIDTH)
+	_apply_top_bar_responsive_state(is_compact, is_medium)
+
+
+func _apply_top_bar_responsive_state(is_compact: bool, is_medium: bool) -> void:
+	if _top_bar == null:
+		return
+
+	var brand_block := _top_bar.get_node_or_null("ContentMargin/MainRow/BrandBlock") as Control
+	var agi_block := _top_bar.get_node_or_null("ContentMargin/MainRow/AgiBlock") as Control
+	var budget_block := _top_bar.get_node_or_null("ContentMargin/MainRow/BudgetBlock") as Control
+	var speed_block := _top_bar.get_node_or_null("ContentMargin/MainRow/SpeedBlock") as Control
+	var subtitle_label := _top_bar.get_node_or_null("ContentMargin/MainRow/BrandBlock/SubtitleLabel") as Control
+
+	_set_visible(agi_block, not is_compact)
+	_set_visible(budget_block, not is_compact)
+	_set_visible(subtitle_label, not is_compact)
+	_set_minimum_width(brand_block, 170.0 if is_compact else 230.0 if is_medium else 280.0)
+	_set_minimum_width(speed_block, 220.0 if is_compact else 270.0 if is_medium else 310.0)
+
+
+func _set_visible(control: Control, should_show: bool) -> void:
+	if control == null:
+		return
+
+	control.visible = should_show
+
+
+func _set_minimum_width(control: Control, width: float) -> void:
+	if control == null:
+		return
+
+	control.custom_minimum_size.x = width
 
 
 func _change_scene_to_menu() -> void:
