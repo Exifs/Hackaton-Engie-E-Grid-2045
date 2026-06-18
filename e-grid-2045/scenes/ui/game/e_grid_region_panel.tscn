@@ -1,18 +1,60 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=14 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/game/e_grid_region_panel.gd" id="1_region_panel"]
 [ext_resource type="PackedScene" path="res://scenes/ui/game/e_grid_stat_bar.tscn" id="2_stat_bar"]
+[ext_resource type="PackedScene" path="res://scenes/ui/components/e_grid_panel.tscn" id="3_panel"]
+[ext_resource type="PackedScene" path="res://scenes/ui/components/e_grid_mini_button.tscn" id="4_mini_button"]
+[ext_resource type="PackedScene" path="res://scenes/ui/components/e_grid_progress_bar.tscn" id="5_progress_bar"]
+[ext_resource type="PackedScene" path="res://scenes/ui/components/e_grid_tab.tscn" id="6_tab"]
+[ext_resource type="PackedScene" path="res://scenes/ui/components/e_grid_slot_card.tscn" id="7_slot_card"]
 
-[node name="EGridRegionPanel" type="PanelContainer"]
-custom_minimum_size = Vector2(360, 0)
+[sub_resource type="LabelSettings" id="LabelSettings_title"]
+font_size = 16
+font_color = Color(0.878431, 0.909804, 0.909804, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_meta"]
+font_size = 11
+font_color = Color(0.537255, 0.6, 0.611765, 0.95)
+
+[sub_resource type="LabelSettings" id="LabelSettings_value"]
+font_size = 11
+font_color = Color(0.878431, 0.909804, 0.909804, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_section"]
+font_size = 12
+font_color = Color(0.878431, 0.909804, 0.909804, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_rule"]
+font_size = 9
+font_color = Color(0.121569, 0.815686, 0.886275, 0.78)
+
+[node name="EGridRegionPanel" type="Control"]
+custom_minimum_size = Vector2(424, 0)
+clip_contents = true
 script = ExtResource("1_region_panel")
 region_name = "NETHERLANDS"
 level_text = "LEVEL 4"
 xp_text = "1,250 / 2,000 XP"
 xp_progress = 62.5
 
+[node name="BackgroundPanel" parent="." instance=ExtResource("3_panel")]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+fit_to_source_size = false
+stretch_to_bounds = true
+
 [node name="ContentMargin" type="MarginContainer" parent="."]
-layout_mode = 2
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 theme_override_constants/margin_left = 10
 theme_override_constants/margin_top = 10
 theme_override_constants/margin_right = 10
@@ -20,7 +62,7 @@ theme_override_constants/margin_bottom = 10
 
 [node name="PanelStack" type="VBoxContainer" parent="ContentMargin"]
 layout_mode = 2
-theme_override_constants/separation = 8
+theme_override_constants/separation = 7
 
 [node name="HeaderRow" type="HBoxContainer" parent="ContentMargin/PanelStack"]
 layout_mode = 2
@@ -29,12 +71,12 @@ layout_mode = 2
 layout_mode = 2
 size_flags_horizontal = 3
 text = "NETHERLANDS"
+label_settings = SubResource("LabelSettings_title")
 clip_text = true
 
-[node name="CloseButton" type="Button" parent="ContentMargin/PanelStack/HeaderRow"]
-custom_minimum_size = Vector2(34, 0)
+[node name="CloseButton" parent="ContentMargin/PanelStack/HeaderRow" instance=ExtResource("4_mini_button")]
 layout_mode = 2
-text = "X"
+label_text = ">"
 
 [node name="LevelRow" type="HBoxContainer" parent="ContentMargin/PanelStack"]
 layout_mode = 2
@@ -43,142 +85,204 @@ layout_mode = 2
 layout_mode = 2
 size_flags_horizontal = 3
 text = "LEVEL 4"
+label_settings = SubResource("LabelSettings_meta")
 
 [node name="XpLabel" type="Label" parent="ContentMargin/PanelStack/LevelRow"]
 layout_mode = 2
 text = "1,250 / 2,000 XP"
+label_settings = SubResource("LabelSettings_value")
 horizontal_alignment = 2
 
-[node name="XpBar" type="ProgressBar" parent="ContentMargin/PanelStack"]
-custom_minimum_size = Vector2(0, 8)
+[node name="XpBar" parent="ContentMargin/PanelStack" instance=ExtResource("5_progress_bar")]
 layout_mode = 2
-max_value = 100.0
+size_flags_horizontal = 3
 value = 62.5
-show_percentage = false
+semantic_state = "success"
+show_value_label = false
 
-[node name="Tabs" type="TabContainer" parent="ContentMargin/PanelStack"]
+[node name="TabButtons" type="HBoxContainer" parent="ContentMargin/PanelStack"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="OverviewTab" parent="ContentMargin/PanelStack/TabButtons" instance=ExtResource("6_tab")]
+layout_mode = 2
+button_pressed = true
+label_text = "OVERVIEW"
+
+[node name="BuildingsTab" parent="ContentMargin/PanelStack/TabButtons" instance=ExtResource("6_tab")]
+layout_mode = 2
+label_text = "BUILDINGS"
+
+[node name="StatsTab" parent="ContentMargin/PanelStack/TabButtons" instance=ExtResource("6_tab")]
+layout_mode = 2
+label_text = "STATS"
+
+[node name="TabPages" type="Control" parent="ContentMargin/PanelStack"]
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="Overview" type="VBoxContainer" parent="ContentMargin/PanelStack/Tabs"]
-layout_mode = 2
-theme_override_constants/separation = 8
+[node name="Overview" type="VBoxContainer" parent="ContentMargin/PanelStack/TabPages"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 7
 
-[node name="EnergyStatus" parent="ContentMargin/PanelStack/Tabs/Overview" instance=ExtResource("2_stat_bar")]
+[node name="EnergyStatus" parent="ContentMargin/PanelStack/TabPages/Overview" instance=ExtResource("2_stat_bar")]
 layout_mode = 2
 title_text = "ENERGY STATUS"
 value_text = "92%"
 progress_value = 92.0
+semantic_state = "success"
 detail_text = "Production 18.6 GW / Demand 16.2 GW"
 
-[node name="CoolingStatus" parent="ContentMargin/PanelStack/Tabs/Overview" instance=ExtResource("2_stat_bar")]
+[node name="CoolingStatus" parent="ContentMargin/PanelStack/TabPages/Overview" instance=ExtResource("2_stat_bar")]
 layout_mode = 2
 title_text = "COOLING STATUS"
 value_text = "78%"
 progress_value = 78.0
+semantic_state = "normal"
 detail_text = "Capacity 2.8 GWh / Usage 2.2 GWh"
 
-[node name="ComputeStatus" parent="ContentMargin/PanelStack/Tabs/Overview" instance=ExtResource("2_stat_bar")]
+[node name="ComputeStatus" parent="ContentMargin/PanelStack/TabPages/Overview" instance=ExtResource("2_stat_bar")]
 layout_mode = 2
 title_text = "COMPUTE DEMAND"
 value_text = "81%"
 progress_value = 81.0
+semantic_state = "warning"
 detail_text = "Demand 24.1 EFLOPS / Supply 19.5 EFLOPS"
 
-[node name="BuildingSlotsTitle" type="Label" parent="ContentMargin/PanelStack/Tabs/Overview"]
+[node name="BuildingSlotsHeader" type="HBoxContainer" parent="ContentMargin/PanelStack/TabPages/Overview"]
 layout_mode = 2
-text = "BUILDING SLOTS 6 / 8"
 
-[node name="BuildingSlotsGrid" type="GridContainer" parent="ContentMargin/PanelStack/Tabs/Overview"]
+[node name="BuildingSlotsTitle" type="Label" parent="ContentMargin/PanelStack/TabPages/Overview/BuildingSlotsHeader"]
 layout_mode = 2
-size_flags_vertical = 3
+size_flags_horizontal = 3
+text = "BUILDING SLOTS 4 / 6"
+label_settings = SubResource("LabelSettings_section")
+
+[node name="BuildingSlotsRule" type="Label" parent="ContentMargin/PanelStack/TabPages/Overview/BuildingSlotsHeader"]
+layout_mode = 2
+text = "////"
+label_settings = SubResource("LabelSettings_rule")
+
+[node name="BuildingSlotsGrid" type="GridContainer" parent="ContentMargin/PanelStack/TabPages/Overview"]
+layout_mode = 2
 theme_override_constants/h_separation = 8
 theme_override_constants/v_separation = 8
 columns = 3
 
-[node name="Slot1" type="Button" parent="ContentMargin/PanelStack/Tabs/Overview/BuildingSlotsGrid"]
-custom_minimum_size = Vector2(96, 64)
+[node name="Slot1" parent="ContentMargin/PanelStack/TabPages/Overview/BuildingSlotsGrid" instance=ExtResource("7_slot_card")]
 layout_mode = 2
-text = "Power"
+pips_active = 5
+bottom_tier = 1
 
-[node name="Slot2" type="Button" parent="ContentMargin/PanelStack/Tabs/Overview/BuildingSlotsGrid"]
-custom_minimum_size = Vector2(96, 64)
+[node name="Slot2" parent="ContentMargin/PanelStack/TabPages/Overview/BuildingSlotsGrid" instance=ExtResource("7_slot_card")]
 layout_mode = 2
-text = "Sub"
+pips_active = 4
+bottom_tier = 1
 
-[node name="Slot3" type="Button" parent="ContentMargin/PanelStack/Tabs/Overview/BuildingSlotsGrid"]
-custom_minimum_size = Vector2(96, 64)
+[node name="Slot3" parent="ContentMargin/PanelStack/TabPages/Overview/BuildingSlotsGrid" instance=ExtResource("7_slot_card")]
 layout_mode = 2
-text = "Compute"
+semantic_state = "warning"
+pips_active = 3
+bottom_tier = 1
 
-[node name="Slot4" type="Button" parent="ContentMargin/PanelStack/Tabs/Overview/BuildingSlotsGrid"]
-custom_minimum_size = Vector2(96, 64)
+[node name="Slot4" parent="ContentMargin/PanelStack/TabPages/Overview/BuildingSlotsGrid" instance=ExtResource("7_slot_card")]
 layout_mode = 2
-text = "Cooling"
+pips_active = 4
+bottom_tier = 1
 
-[node name="Slot5" type="Button" parent="ContentMargin/PanelStack/Tabs/Overview/BuildingSlotsGrid"]
-custom_minimum_size = Vector2(96, 64)
+[node name="Slot5" parent="ContentMargin/PanelStack/TabPages/Overview/BuildingSlotsGrid" instance=ExtResource("7_slot_card")]
 layout_mode = 2
-text = "Locked"
 disabled = true
+semantic_state = "disabled"
+locked = true
 
-[node name="Slot6" type="Button" parent="ContentMargin/PanelStack/Tabs/Overview/BuildingSlotsGrid"]
-custom_minimum_size = Vector2(96, 64)
+[node name="Slot6" parent="ContentMargin/PanelStack/TabPages/Overview/BuildingSlotsGrid" instance=ExtResource("7_slot_card")]
 layout_mode = 2
-text = "Locked"
 disabled = true
+semantic_state = "disabled"
+locked = true
 
-[node name="Buildings" type="VBoxContainer" parent="ContentMargin/PanelStack/Tabs"]
+[node name="Buildings" type="VBoxContainer" parent="ContentMargin/PanelStack/TabPages"]
 visible = false
-layout_mode = 2
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 theme_override_constants/separation = 8
 
-[node name="ModulesTitle" type="Label" parent="ContentMargin/PanelStack/Tabs/Buildings"]
+[node name="ModulesTitle" type="Label" parent="ContentMargin/PanelStack/TabPages/Buildings"]
 layout_mode = 2
 text = "MODULE SLOTS"
+label_settings = SubResource("LabelSettings_section")
 
-[node name="ModulesGrid" type="GridContainer" parent="ContentMargin/PanelStack/Tabs/Buildings"]
+[node name="ModulesGrid" type="GridContainer" parent="ContentMargin/PanelStack/TabPages/Buildings"]
 layout_mode = 2
-size_flags_vertical = 3
 theme_override_constants/h_separation = 8
 theme_override_constants/v_separation = 8
 columns = 3
 
-[node name="Module1" type="Button" parent="ContentMargin/PanelStack/Tabs/Buildings/ModulesGrid"]
-custom_minimum_size = Vector2(96, 64)
+[node name="Module1" parent="ContentMargin/PanelStack/TabPages/Buildings/ModulesGrid" instance=ExtResource("7_slot_card")]
 layout_mode = 2
-text = "Module"
+pips_active = 4
+bottom_tier = 1
 
-[node name="Module2" type="Button" parent="ContentMargin/PanelStack/Tabs/Buildings/ModulesGrid"]
-custom_minimum_size = Vector2(96, 64)
+[node name="Module2" parent="ContentMargin/PanelStack/TabPages/Buildings/ModulesGrid" instance=ExtResource("7_slot_card")]
 layout_mode = 2
-text = "Module"
+pips_active = 3
+bottom_tier = 1
 
-[node name="Module3" type="Button" parent="ContentMargin/PanelStack/Tabs/Buildings/ModulesGrid"]
-custom_minimum_size = Vector2(96, 64)
+[node name="Module3" parent="ContentMargin/PanelStack/TabPages/Buildings/ModulesGrid" instance=ExtResource("7_slot_card")]
 layout_mode = 2
-text = "Add"
+base_state = "empty"
 
-[node name="Stats" type="VBoxContainer" parent="ContentMargin/PanelStack/Tabs"]
+[node name="Stats" type="VBoxContainer" parent="ContentMargin/PanelStack/TabPages"]
 visible = false
-layout_mode = 2
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 theme_override_constants/separation = 8
 
-[node name="GridLoad" parent="ContentMargin/PanelStack/Tabs/Stats" instance=ExtResource("2_stat_bar")]
+[node name="GridLoad" parent="ContentMargin/PanelStack/TabPages/Stats" instance=ExtResource("2_stat_bar")]
 layout_mode = 2
 title_text = "GRID LOAD"
 value_text = "76%"
 progress_value = 76.0
+semantic_state = "normal"
 detail_text = "Reserve time 4.2 h"
 
-[node name="ImportExport" parent="ContentMargin/PanelStack/Tabs/Stats" instance=ExtResource("2_stat_bar")]
+[node name="ImportExport" parent="ContentMargin/PanelStack/TabPages/Stats" instance=ExtResource("2_stat_bar")]
 layout_mode = 2
 title_text = "IMPORT / EXPORT"
 value_text = "+1.3 GW"
 progress_value = 58.0
+semantic_state = "success"
 detail_text = "Current regional exchange"
 
-[node name="ManageRegionButton" type="Button" parent="ContentMargin/PanelStack"]
-custom_minimum_size = Vector2(0, 42)
+[node name="Stability" parent="ContentMargin/PanelStack/TabPages/Stats" instance=ExtResource("2_stat_bar")]
 layout_mode = 2
-text = "MANAGE REGION"
+title_text = "GRID STABILITY"
+value_text = "64%"
+progress_value = 64.0
+semantic_state = "warning"
+detail_text = "Frequency drift under watch"
+
+[node name="FooterRow" type="HBoxContainer" parent="ContentMargin/PanelStack"]
+layout_mode = 2
+
+[node name="FooterSpacer" type="Control" parent="ContentMargin/PanelStack/FooterRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="ManageRegionButton" parent="ContentMargin/PanelStack/FooterRow" instance=ExtResource("4_mini_button")]
+layout_mode = 2
+label_text = "MANAGE"

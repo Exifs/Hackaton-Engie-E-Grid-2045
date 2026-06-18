@@ -1,10 +1,23 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/game/e_grid_stat_bar.gd" id="1_stat_bar"]
+[ext_resource type="PackedScene" path="res://scenes/ui/components/e_grid_progress_bar.tscn" id="2_progress_bar"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_title"]
+font_size = 12
+font_color = Color(0.537255, 0.6, 0.611765, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_value"]
+font_size = 12
+font_color = Color(0.878431, 0.909804, 0.909804, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_detail"]
+font_size = 10
+font_color = Color(0.537255, 0.6, 0.611765, 0.92)
 
 [node name="EGridStatBar" type="VBoxContainer"]
-custom_minimum_size = Vector2(0, 54)
-theme_override_constants/separation = 4
+custom_minimum_size = Vector2(0, 62)
+theme_override_constants/separation = 2
 script = ExtResource("1_stat_bar")
 
 [node name="Header" type="HBoxContainer" parent="."]
@@ -14,20 +27,24 @@ layout_mode = 2
 layout_mode = 2
 size_flags_horizontal = 3
 text = "STAT"
+label_settings = SubResource("LabelSettings_title")
 clip_text = true
 
 [node name="ValueLabel" type="Label" parent="Header"]
 layout_mode = 2
 text = "0%"
+label_settings = SubResource("LabelSettings_value")
 horizontal_alignment = 2
 
-[node name="ProgressBar" type="ProgressBar" parent="."]
-custom_minimum_size = Vector2(0, 8)
+[node name="ProgressBar" parent="." instance=ExtResource("2_progress_bar")]
+custom_minimum_size = Vector2(320, 26)
 layout_mode = 2
-max_value = 100.0
-show_percentage = false
+size_flags_horizontal = 3
+value = 0.0
+show_value_label = false
 
 [node name="DetailLabel" type="Label" parent="."]
 layout_mode = 2
 text = "Details"
+label_settings = SubResource("LabelSettings_detail")
 clip_text = true

@@ -10,6 +10,9 @@ const DEFAULT_MENU_SCENE := "res://scenes/main_menu.tscn"
 @export_node_path("Control") var region_panel_path: NodePath = ^"SafeArea/Root/MainRow/RegionPanel"
 @export_node_path("Control") var alert_bar_path: NodePath = ^"SafeArea/Root/AlertBar"
 @export_node_path("Button") var menu_button_path: NodePath = ^"SafeArea/Root/TopBar/ContentMargin/MainRow/MenuButton"
+@export_node_path("Button") var pause_button_path: NodePath = ^"SafeArea/Root/TopBar/ContentMargin/MainRow/SpeedBlock/SpeedControls/PauseButton"
+@export_node_path("Button") var play_button_path: NodePath = ^"SafeArea/Root/TopBar/ContentMargin/MainRow/SpeedBlock/SpeedControls/PlayButton"
+@export_node_path("Button") var fast_button_path: NodePath = ^"SafeArea/Root/TopBar/ContentMargin/MainRow/SpeedBlock/SpeedControls/FastButton"
 @export_node_path("Node") var input_controller_path: NodePath = ^"InputController"
 
 var _top_bar: Control
@@ -61,13 +64,10 @@ func _wire_input_controller() -> void:
 
 
 func _wire_navigation() -> void:
-	var menu_button := get_node_or_null(menu_button_path) as Button
-
-	if menu_button == null:
-		return
-
-	if not menu_button.pressed.is_connected(_request_return_to_menu):
-		menu_button.pressed.connect(_request_return_to_menu)
+	_connect_button_once(menu_button_path, Callable(self, "_request_return_to_menu"))
+	_connect_button_once(pause_button_path, Callable(self, "_on_pause_button_pressed"))
+	_connect_button_once(play_button_path, Callable(self, "_on_play_button_pressed"))
+	_connect_button_once(fast_button_path, Callable(self, "_on_fast_button_pressed"))
 
 
 func _request_return_to_menu() -> void:
@@ -80,6 +80,23 @@ func _request_return_to_menu() -> void:
 
 func _on_pause_toggle_requested() -> void:
 	_simulation_paused = not _simulation_paused
+	_sync_simulation_status()
+
+
+func _on_pause_button_pressed() -> void:
+	_simulation_paused = true
+	_sync_simulation_status()
+
+
+func _on_play_button_pressed() -> void:
+	_simulation_paused = false
+	_simulation_speed = 1.0
+	_sync_simulation_status()
+
+
+func _on_fast_button_pressed() -> void:
+	_simulation_paused = false
+	_simulation_speed = 2.0
 	_sync_simulation_status()
 
 
@@ -97,6 +114,10 @@ func _sync_simulation_status() -> void:
 		_top_bar.set("speed_text", "PAUSED")
 	else:
 		_top_bar.set("speed_text", "%.1fx" % _simulation_speed)
+
+	_top_bar.set("pause_active", _simulation_paused)
+	_top_bar.set("play_active", not _simulation_paused and _simulation_speed <= 1.0)
+	_top_bar.set("fast_active", not _simulation_paused and _simulation_speed > 1.0)
 
 
 func _change_scene_to_menu() -> void:
@@ -133,3 +154,14 @@ func _connect_signal_once(emitter: Object, signal_name: String, callback: Callab
 
 	if not emitter.is_connected(signal_name, callback):
 		emitter.connect(signal_name, callback)
+
+
+func _connect_button_once(path: NodePath, callback: Callable) -> void:
+	var button := get_node_or_null(path) as BaseButton
+
+	if button == null:
+		push_warning("GameScene cannot connect missing button at %s." % path)
+		return
+
+	if not button.pressed.is_connected(callback):
+		button.pressed.connect(callback)

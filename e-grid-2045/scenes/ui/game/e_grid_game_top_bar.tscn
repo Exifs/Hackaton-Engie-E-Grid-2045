@@ -1,13 +1,48 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/game/e_grid_game_top_bar.gd" id="1_top_bar"]
+[ext_resource type="PackedScene" path="res://scenes/ui/components/e_grid_panel.tscn" id="2_panel"]
+[ext_resource type="PackedScene" path="res://scenes/ui/components/e_grid_resource_chip.tscn" id="3_resource_chip"]
+[ext_resource type="PackedScene" path="res://scenes/ui/components/e_grid_mini_button.tscn" id="4_mini_button"]
 
-[node name="EGridGameTopBar" type="PanelContainer"]
-custom_minimum_size = Vector2(0, 86)
+[sub_resource type="LabelSettings" id="LabelSettings_title"]
+font_size = 18
+font_color = Color(0.878431, 0.909804, 0.909804, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_subtitle"]
+font_size = 10
+font_color = Color(0.537255, 0.6, 0.611765, 0.95)
+
+[sub_resource type="LabelSettings" id="LabelSettings_meta"]
+font_size = 11
+font_color = Color(0.878431, 0.909804, 0.909804, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_muted"]
+font_size = 10
+font_color = Color(0.537255, 0.6, 0.611765, 0.92)
+
+[node name="EGridGameTopBar" type="Control"]
+custom_minimum_size = Vector2(0, 74)
 script = ExtResource("1_top_bar")
 
+[node name="BackgroundPanel" parent="." instance=ExtResource("2_panel")]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+fit_to_source_size = false
+stretch_to_bounds = true
+
 [node name="ContentMargin" type="MarginContainer" parent="."]
-layout_mode = 2
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 theme_override_constants/margin_left = 12
 theme_override_constants/margin_top = 8
 theme_override_constants/margin_right = 12
@@ -15,114 +50,130 @@ theme_override_constants/margin_bottom = 8
 
 [node name="MainRow" type="HBoxContainer" parent="ContentMargin"]
 layout_mode = 2
-theme_override_constants/separation = 16
+theme_override_constants/separation = 10
 
 [node name="BrandBlock" type="VBoxContainer" parent="ContentMargin/MainRow"]
-custom_minimum_size = Vector2(280, 0)
+custom_minimum_size = Vector2(198, 0)
 layout_mode = 2
-theme_override_constants/separation = 2
+theme_override_constants/separation = 0
 
 [node name="TitleLabel" type="Label" parent="ContentMargin/MainRow/BrandBlock"]
 layout_mode = 2
 text = "E-GRID 2045"
+label_settings = SubResource("LabelSettings_title")
 clip_text = true
 
 [node name="SubtitleLabel" type="Label" parent="ContentMargin/MainRow/BrandBlock"]
 layout_mode = 2
 text = "BUILD. OPTIMIZE. POWER EUROPE."
+label_settings = SubResource("LabelSettings_subtitle")
 clip_text = true
 
-[node name="AgiBlock" type="VBoxContainer" parent="ContentMargin/MainRow"]
-custom_minimum_size = Vector2(230, 0)
+[node name="KpiStrip" type="HBoxContainer" parent="ContentMargin/MainRow"]
 layout_mode = 2
-theme_override_constants/separation = 4
+theme_override_constants/separation = 6
 
-[node name="AgiTitleLabel" type="Label" parent="ContentMargin/MainRow/AgiBlock"]
+[node name="EuropeChip" parent="ContentMargin/MainRow/KpiStrip" instance=ExtResource("3_resource_chip")]
 layout_mode = 2
-text = "AGI PROGRESS"
+label_text = "EUROPE 62%"
+normal_state = "research"
+hover_state = "research"
+pressed_state = "research"
+selected_state = "research"
 
-[node name="EuropeProgressLabel" type="Label" parent="ContentMargin/MainRow/AgiBlock"]
+[node name="UsaChip" parent="ContentMargin/MainRow/KpiStrip" instance=ExtResource("3_resource_chip")]
 layout_mode = 2
-text = "EUROPE 62%"
+label_text = "USA 48%"
+normal_state = "usa_warning"
+hover_state = "usa_warning"
+pressed_state = "usa_warning"
+selected_state = "usa_warning"
 
-[node name="UsaProgressLabel" type="Label" parent="ContentMargin/MainRow/AgiBlock"]
+[node name="BudgetChip" parent="ContentMargin/MainRow/KpiStrip" instance=ExtResource("3_resource_chip")]
 layout_mode = 2
-text = "USA 48%"
+label_text = "EUR 24.7B"
+normal_state = "money"
+hover_state = "money"
+pressed_state = "money"
+selected_state = "money"
 
-[node name="BudgetBlock" type="VBoxContainer" parent="ContentMargin/MainRow"]
-custom_minimum_size = Vector2(160, 0)
-layout_mode = 2
-theme_override_constants/separation = 4
-
-[node name="BudgetTitleLabel" type="Label" parent="ContentMargin/MainRow/BudgetBlock"]
-layout_mode = 2
-text = "BUDGET"
-
-[node name="BudgetValueLabel" type="Label" parent="ContentMargin/MainRow/BudgetBlock"]
-layout_mode = 2
-text = "EUR 24.7B"
-
-[node name="BudgetDeltaLabel" type="Label" parent="ContentMargin/MainRow/BudgetBlock"]
+[node name="BudgetDeltaLabel" type="Label" parent="ContentMargin/MainRow/KpiStrip"]
+custom_minimum_size = Vector2(96, 0)
 layout_mode = 2
 text = "+1.35B / DAY"
-
-[node name="DateBlock" type="VBoxContainer" parent="ContentMargin/MainRow"]
-custom_minimum_size = Vector2(160, 0)
-layout_mode = 2
-theme_override_constants/separation = 4
-
-[node name="DateTitleLabel" type="Label" parent="ContentMargin/MainRow/DateBlock"]
-layout_mode = 2
-text = "DATE"
-
-[node name="DateValueLabel" type="Label" parent="ContentMargin/MainRow/DateBlock"]
-layout_mode = 2
-text = "17 MAY 2045"
-
-[node name="WeekLabel" type="Label" parent="ContentMargin/MainRow/DateBlock"]
-layout_mode = 2
-text = "WEEK 20"
+label_settings = SubResource("LabelSettings_muted")
+vertical_alignment = 1
+clip_text = true
 
 [node name="Spacer" type="Control" parent="ContentMargin/MainRow"]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="SpeedBlock" type="VBoxContainer" parent="ContentMargin/MainRow"]
-custom_minimum_size = Vector2(310, 0)
+[node name="DateBlock" type="VBoxContainer" parent="ContentMargin/MainRow"]
+custom_minimum_size = Vector2(126, 0)
 layout_mode = 2
-theme_override_constants/separation = 4
+theme_override_constants/separation = 0
+
+[node name="DateTitleLabel" type="Label" parent="ContentMargin/MainRow/DateBlock"]
+layout_mode = 2
+text = "DATE"
+label_settings = SubResource("LabelSettings_muted")
+
+[node name="DateValueLabel" type="Label" parent="ContentMargin/MainRow/DateBlock"]
+layout_mode = 2
+text = "17 MAY 2045"
+label_settings = SubResource("LabelSettings_meta")
+clip_text = true
+
+[node name="WeekLabel" type="Label" parent="ContentMargin/MainRow/DateBlock"]
+layout_mode = 2
+text = "WEEK 20"
+label_settings = SubResource("LabelSettings_muted")
+
+[node name="SpeedBlock" type="VBoxContainer" parent="ContentMargin/MainRow"]
+custom_minimum_size = Vector2(246, 0)
+layout_mode = 2
+theme_override_constants/separation = 2
 
 [node name="SpeedTitleLabel" type="Label" parent="ContentMargin/MainRow/SpeedBlock"]
 layout_mode = 2
-text = "SIMULATION SPEED"
+text = "SIM SPEED"
+label_settings = SubResource("LabelSettings_muted")
 
 [node name="SpeedControls" type="HBoxContainer" parent="ContentMargin/MainRow/SpeedBlock"]
 layout_mode = 2
-theme_override_constants/separation = 6
+theme_override_constants/separation = 4
 
-[node name="PauseButton" type="Button" parent="ContentMargin/MainRow/SpeedBlock/SpeedControls"]
-custom_minimum_size = Vector2(48, 0)
+[node name="PauseButton" parent="ContentMargin/MainRow/SpeedBlock/SpeedControls" instance=ExtResource("4_mini_button")]
 layout_mode = 2
-text = "PAUSE"
+toggle_mode = true
+label_text = "II"
+selected_state = "pressed"
+selected_hover_state = "pressed"
 
-[node name="PlayButton" type="Button" parent="ContentMargin/MainRow/SpeedBlock/SpeedControls"]
-custom_minimum_size = Vector2(48, 0)
+[node name="PlayButton" parent="ContentMargin/MainRow/SpeedBlock/SpeedControls" instance=ExtResource("4_mini_button")]
 layout_mode = 2
-text = "PLAY"
+toggle_mode = true
+button_pressed = true
+label_text = "1X"
+selected_state = "pressed"
+selected_hover_state = "pressed"
 
-[node name="FastButton" type="Button" parent="ContentMargin/MainRow/SpeedBlock/SpeedControls"]
-custom_minimum_size = Vector2(48, 0)
+[node name="FastButton" parent="ContentMargin/MainRow/SpeedBlock/SpeedControls" instance=ExtResource("4_mini_button")]
 layout_mode = 2
-text = "FAST"
+toggle_mode = true
+label_text = "2X"
+selected_state = "pressed"
+selected_hover_state = "pressed"
 
 [node name="SpeedValueLabel" type="Label" parent="ContentMargin/MainRow/SpeedBlock/SpeedControls"]
 custom_minimum_size = Vector2(58, 0)
 layout_mode = 2
 text = "1.0x"
+label_settings = SubResource("LabelSettings_meta")
 vertical_alignment = 1
 horizontal_alignment = 1
 
-[node name="MenuButton" type="Button" parent="ContentMargin/MainRow"]
-custom_minimum_size = Vector2(64, 0)
+[node name="MenuButton" parent="ContentMargin/MainRow" instance=ExtResource("4_mini_button")]
 layout_mode = 2
-text = "MENU"
+label_text = "MENU"

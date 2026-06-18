@@ -20,6 +20,12 @@ const E_GRID_COMPONENT_BITMAP_TEXT_SCRIPT := preload("res://scripts/ui/component
 		fit_to_source_size = value
 		_sync_texture()
 
+@export var stretch_to_bounds := false:
+	set(value):
+		stretch_to_bounds = value
+		_sync_stretch_mode()
+		queue_redraw()
+
 @export var clear_placeholder_lines := true:
 	set(value):
 		clear_placeholder_lines = value
@@ -34,7 +40,7 @@ var _text_layer: Control
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	_sync_stretch_mode()
 	_cache_text_layer()
 	_sync_texture()
 
@@ -70,7 +76,7 @@ func _draw() -> void:
 	if not clear_placeholder_lines:
 		return
 
-	var fitted_rect := E_GRID_UI_ATLAS.get_aspect_fit_rect(component_name, size)
+	var fitted_rect := _texture_rect()
 	for source_rect in _placeholder_clear_rects():
 		var source_scale := _source_scale(fitted_rect)
 		var target_rect := Rect2(fitted_rect.position + source_rect.position * source_scale, source_rect.size * source_scale)
@@ -126,6 +132,17 @@ func _sync_text_layer_layout() -> void:
 		_text_layer.set("horizontal_alignment", "left")
 		_text_layer.set("vertical_alignment", "center")
 		_text_layer.queue_redraw()
+
+
+func _sync_stretch_mode() -> void:
+	stretch_mode = TextureRect.STRETCH_SCALE if stretch_to_bounds else TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+
+
+func _texture_rect() -> Rect2:
+	if stretch_to_bounds:
+		return Rect2(Vector2.ZERO, size)
+
+	return E_GRID_UI_ATLAS.get_aspect_fit_rect(component_name, size)
 
 
 func _source_scale(fitted_rect: Rect2) -> float:
