@@ -1,11 +1,12 @@
-[gd_scene format=3 uid="uid://bxejftsj2ogkq"]
+[gd_scene load_steps=3 format=3 uid="uid://bxejftsj2ogkq"]
 
 [ext_resource type="Script" uid="uid://dmk51rkbmi7qc" path="res://scripts/ui/settings/settings_slider_row.gd" id="1_slider_script"]
+[ext_resource type="PackedScene" path="res://scenes/ui/components/e_grid_horizontal_slider.tscn" id="2_egrid_slider"]
 
 [node name="SettingsSliderRow" type="HBoxContainer"]
-custom_minimum_size = Vector2(0, 36)
+custom_minimum_size = Vector2(0, 44)
 offset_right = 640.0
-offset_bottom = 36.0
+offset_bottom = 44.0
 theme_override_constants/separation = 12
 script = ExtResource("1_slider_script")
 
@@ -15,13 +16,18 @@ layout_mode = 2
 text = "Option"
 vertical_alignment = 1
 
-[node name="Slider" type="HSlider" parent="."]
+[node name="Slider" parent="." instance=ExtResource("2_egrid_slider")]
 layout_mode = 2
-size_flags_horizontal = 3
+size_flags_horizontal = 0
 min_value = 0.0
 max_value = 100.0
 step = 1.0
-value = 100.0
+slider_value = 100.0
+show_value_label = false
+
+[node name="ValueSpacer" type="Control" parent="."]
+layout_mode = 2
+size_flags_horizontal = 3
 
 [node name="ValueLabel" type="Label" parent="."]
 custom_minimum_size = Vector2(90, 0)

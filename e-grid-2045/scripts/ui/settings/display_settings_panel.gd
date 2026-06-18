@@ -14,16 +14,16 @@ const COMMON_RESOLUTIONS := [
 	Vector2i(3840, 2160),
 ]
 
-@export_node_path("OptionButton") var screen_option_path: NodePath = ^"OptionsGrid/ScreenOptionButton"
-@export_node_path("OptionButton") var resolution_option_path: NodePath = ^"OptionsGrid/ResolutionOptionButton"
-@export_node_path("CheckBox") var fullscreen_checkbox_path: NodePath = ^"OptionsGrid/FullscreenCheckBox"
-@export_node_path("CheckBox") var vsync_checkbox_path: NodePath = ^"OptionsGrid/VsyncCheckBox"
+@export_node_path("Control") var screen_option_path: NodePath = ^"OptionsGrid/ScreenOptionButton"
+@export_node_path("Control") var resolution_option_path: NodePath = ^"OptionsGrid/ResolutionOptionButton"
+@export_node_path("Button") var fullscreen_checkbox_path: NodePath = ^"OptionsGrid/FullscreenCheckBox"
+@export_node_path("Button") var vsync_checkbox_path: NodePath = ^"OptionsGrid/VsyncCheckBox"
 @export_node_path("Control") var fps_slider_path: NodePath = ^"FpsSlider"
 
-var _screen_option: OptionButton
-var _resolution_option: OptionButton
-var _fullscreen_checkbox: CheckBox
-var _vsync_checkbox: CheckBox
+var _screen_option: Control
+var _resolution_option: Control
+var _fullscreen_checkbox: BaseButton
+var _vsync_checkbox: BaseButton
 var _fps_slider: Control
 var _resolution_options: Array[Vector2i] = []
 var _selected_screen := 0
@@ -39,27 +39,31 @@ func _ready() -> void:
 
 
 func _cache_nodes() -> void:
-	_screen_option = get_node_or_null(screen_option_path) as OptionButton
-	_resolution_option = get_node_or_null(resolution_option_path) as OptionButton
-	_fullscreen_checkbox = get_node_or_null(fullscreen_checkbox_path) as CheckBox
-	_vsync_checkbox = get_node_or_null(vsync_checkbox_path) as CheckBox
+	_screen_option = get_node_or_null(screen_option_path) as Control
+	_resolution_option = get_node_or_null(resolution_option_path) as Control
+	_fullscreen_checkbox = get_node_or_null(fullscreen_checkbox_path) as BaseButton
+	_vsync_checkbox = get_node_or_null(vsync_checkbox_path) as BaseButton
 	_fps_slider = get_node_or_null(fps_slider_path) as Control
 
 
 func _wire_signals() -> void:
-	if _screen_option != null:
-		_screen_option.item_selected.connect(_on_screen_selected)
+	if _screen_option != null and _screen_option.has_signal("item_selected"):
+		var screen_call := Callable(self, "_on_screen_selected")
+		if not _screen_option.is_connected("item_selected", screen_call):
+			_screen_option.connect("item_selected", screen_call)
 
-	if _resolution_option != null:
-		_resolution_option.item_selected.connect(_on_resolution_selected)
+	if _resolution_option != null and _resolution_option.has_signal("item_selected"):
+		var resolution_call := Callable(self, "_on_resolution_selected")
+		if not _resolution_option.is_connected("item_selected", resolution_call):
+			_resolution_option.connect("item_selected", resolution_call)
 
-	if _fullscreen_checkbox != null:
+	if _fullscreen_checkbox != null and not _fullscreen_checkbox.toggled.is_connected(_on_fullscreen_toggled):
 		_fullscreen_checkbox.toggled.connect(_on_fullscreen_toggled)
 
-	if _vsync_checkbox != null:
+	if _vsync_checkbox != null and not _vsync_checkbox.toggled.is_connected(_on_vsync_toggled):
 		_vsync_checkbox.toggled.connect(_on_vsync_toggled)
 
-	if _fps_slider != null:
+	if _fps_slider != null and _fps_slider.has_signal("value_changed"):
 		_fps_slider.connect("value_changed", _on_fps_slider_changed)
 
 
@@ -69,8 +73,8 @@ func get_settings() -> Dictionary:
 		"screen": _selected_screen,
 		"resolution_width": _selected_resolution.x,
 		"resolution_height": _selected_resolution.y,
-		"fullscreen": _fullscreen_checkbox.button_pressed if _fullscreen_checkbox != null else _is_fullscreen(),
-		"vsync": _vsync_checkbox.button_pressed if _vsync_checkbox != null else DisplayServer.window_get_vsync_mode() != DisplayServer.VSYNC_DISABLED,
+		"fullscreen": _get_button_pressed(_fullscreen_checkbox, _is_fullscreen()),
+		"vsync": _get_button_pressed(_vsync_checkbox, DisplayServer.window_get_vsync_mode() != DisplayServer.VSYNC_DISABLED),
 		"max_fps": max_fps,
 	}
 
@@ -105,10 +109,10 @@ func set_settings(settings: Dictionary) -> void:
 	_select_resolution(_get_best_resolution_index(resolution))
 
 	if _fullscreen_checkbox != null:
-		_fullscreen_checkbox.set_pressed_no_signal(bool(settings.get("fullscreen", _is_fullscreen())))
+		_set_button_pressed_no_signal(_fullscreen_checkbox, bool(settings.get("fullscreen", _is_fullscreen())))
 
 	if _vsync_checkbox != null:
-		_vsync_checkbox.set_pressed_no_signal(bool(settings.get("vsync", DisplayServer.window_get_vsync_mode() != DisplayServer.VSYNC_DISABLED)))
+		_set_button_pressed_no_signal(_vsync_checkbox, bool(settings.get("vsync", DisplayServer.window_get_vsync_mode() != DisplayServer.VSYNC_DISABLED)))
 
 	_set_fps_slider_value(_fps_setting_to_slider_value(int(settings.get("max_fps", Engine.max_fps))))
 	_is_setting_controls = false
@@ -142,13 +146,13 @@ func _populate_screen_options() -> void:
 	if _screen_option == null:
 		return
 
-	_screen_option.clear()
+	_clear_options(_screen_option)
 
 	var screen_count := maxi(DisplayServer.get_screen_count(), 1)
 	var primary_screen := clampi(DisplayServer.get_primary_screen(), 0, screen_count - 1)
 
 	for screen_index in screen_count:
-		_screen_option.add_item(_format_screen_label(screen_index, primary_screen), screen_index)
+		_add_option(_screen_option, _format_screen_label(screen_index, primary_screen), screen_index)
 
 	_select_screen(primary_screen)
 	_populate_resolution_options()
@@ -170,9 +174,9 @@ func _select_screen(screen_index: int) -> void:
 	if _screen_option == null:
 		return
 
-	for item_index in _screen_option.get_item_count():
-		if _screen_option.get_item_id(item_index) == _selected_screen:
-			_screen_option.select(item_index)
+	for item_index in _get_option_count(_screen_option):
+		if _get_option_id(_screen_option, item_index) == _selected_screen:
+			_select_option(_screen_option, item_index)
 			return
 
 
@@ -180,12 +184,12 @@ func _populate_resolution_options() -> void:
 	if _resolution_option == null:
 		return
 
-	_resolution_option.clear()
+	_clear_options(_resolution_option)
 	_resolution_options = _get_resolutions_for_screen(_selected_screen)
 
 	for item_index in _resolution_options.size():
 		var resolution := _resolution_options[item_index]
-		_resolution_option.add_item("%d x %d" % [resolution.x, resolution.y], item_index)
+		_add_option(_resolution_option, "%d x %d" % [resolution.x, resolution.y], item_index)
 
 	var current_size := DisplayServer.window_get_size()
 	var selected_index := _find_resolution_index(current_size)
@@ -244,7 +248,7 @@ func _select_resolution(item_index: int) -> void:
 	_selected_resolution = _resolution_options[item_index]
 
 	if _resolution_option != null:
-		_resolution_option.select(item_index)
+		_select_option(_resolution_option, item_index)
 
 
 func _is_fullscreen() -> bool:
@@ -274,16 +278,16 @@ func _center_window_on_screen(screen: int, resolution: Vector2i) -> void:
 	DisplayServer.window_set_position(screen_position + centered_offset)
 
 
-func _on_screen_selected(item_index: int) -> void:
+func _on_screen_selected(item_index: int, _label := "") -> void:
 	if _screen_option == null:
 		return
 
-	_select_screen(_screen_option.get_item_id(item_index))
+	_select_screen(_get_option_id(_screen_option, item_index))
 	_populate_resolution_options()
 	_emit_settings_changed()
 
 
-func _on_resolution_selected(item_index: int) -> void:
+func _on_resolution_selected(item_index: int, _label := "") -> void:
 	_select_resolution(item_index)
 	_emit_settings_changed()
 
@@ -355,6 +359,54 @@ func _fps_setting_to_slider_value(max_fps: int) -> float:
 		return UNLIMITED_FPS_SLIDER_VALUE
 
 	return clampf(float(max_fps), _get_fps_slider_min_value(), UNLIMITED_FPS_SLIDER_VALUE - 1.0)
+
+
+func _clear_options(option_control: Control) -> void:
+	if option_control.has_method("clear"):
+		option_control.call("clear")
+
+
+func _add_option(option_control: Control, label: String, id: int) -> void:
+	if option_control.has_method("add_item"):
+		option_control.call("add_item", label, id)
+
+
+func _select_option(option_control: Control, item_index: int) -> void:
+	if option_control.has_method("select"):
+		option_control.call("select", item_index)
+
+
+func _get_option_count(option_control: Control) -> int:
+	if option_control != null and option_control.has_method("get_item_count"):
+		return int(option_control.call("get_item_count"))
+
+	return 0
+
+
+func _get_option_id(option_control: Control, item_index: int) -> int:
+	if option_control != null and option_control.has_method("get_item_id"):
+		return int(option_control.call("get_item_id", item_index))
+
+	return item_index
+
+
+func _get_button_pressed(button: BaseButton, fallback: bool) -> bool:
+	return button.button_pressed if button != null else fallback
+
+
+func _set_button_pressed_no_signal(button: BaseButton, pressed: bool) -> void:
+	if button == null:
+		return
+
+	if button.has_method("set_pressed_no_signal"):
+		button.call("set_pressed_no_signal", pressed)
+	else:
+		button.button_pressed = pressed
+
+	if button.has_method("sync_visual_state"):
+		button.call("sync_visual_state")
+	else:
+		button.queue_redraw()
 
 
 func _emit_settings_changed() -> void:

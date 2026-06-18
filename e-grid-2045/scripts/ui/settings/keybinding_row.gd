@@ -45,8 +45,8 @@ func configure(new_action_name: String, new_action_label: String, new_category_l
 
 
 func _wire_buttons() -> void:
-	var remap_button := get_node_or_null("RemapButton") as Button
-	var reset_button := get_node_or_null("ResetButton") as Button
+	var remap_button := get_node_or_null("RemapButton") as BaseButton
+	var reset_button := get_node_or_null("ResetButton") as BaseButton
 
 	if remap_button != null and not remap_button.pressed.is_connected(_on_remap_button_pressed):
 		remap_button.pressed.connect(_on_remap_button_pressed)
@@ -62,7 +62,7 @@ func _sync() -> void:
 	var action_label_node := get_node_or_null("ActionLabel") as Label
 	var category_label_node := get_node_or_null("CategoryLabel") as Label
 	var binding_label_node := get_node_or_null("BindingLabel") as Label
-	var remap_button := get_node_or_null("RemapButton") as Button
+	var remap_button := get_node_or_null("RemapButton") as BaseButton
 
 	if action_label_node != null:
 		action_label_node.text = action_label
@@ -74,8 +74,9 @@ func _sync() -> void:
 		binding_label_node.text = "Appuyez sur une touche..." if awaiting_input else binding_text
 
 	if remap_button != null:
-		remap_button.text = "En attente" if awaiting_input else "Changer"
+		_set_button_label(remap_button, "En attente" if awaiting_input else "Changer")
 		remap_button.disabled = awaiting_input
+		_sync_button_visual(remap_button)
 
 
 func _on_remap_button_pressed() -> void:
@@ -84,3 +85,28 @@ func _on_remap_button_pressed() -> void:
 
 func _on_reset_button_pressed() -> void:
 	reset_requested.emit(action_name)
+
+
+func _set_button_label(button: BaseButton, label: String) -> void:
+	if button == null:
+		return
+
+	if _has_property(button, "label_text"):
+		button.set("label_text", label)
+	else:
+		button.text = label
+
+
+func _sync_button_visual(button: BaseButton) -> void:
+	if button.has_method("sync_visual_state"):
+		button.call("sync_visual_state")
+	else:
+		button.queue_redraw()
+
+
+func _has_property(target: Object, property_name: String) -> bool:
+	for property in target.get_property_list():
+		if str(property.get("name", "")) == property_name:
+			return true
+
+	return false
