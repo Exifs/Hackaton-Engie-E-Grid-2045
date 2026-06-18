@@ -75,9 +75,13 @@ func _wire_input_controller() -> void:
 		return
 
 	var callback := Callable(self, "_on_input_action_pressed")
+	var back_callback := Callable(self, "_on_input_back_requested")
 
 	if _input_controller.has_signal("action_pressed") and not _input_controller.is_connected("action_pressed", callback):
 		_input_controller.connect("action_pressed", callback)
+
+	if _input_controller.has_signal("back_requested") and not _input_controller.is_connected("back_requested", back_callback):
+		_input_controller.connect("back_requested", back_callback)
 
 
 func _update_version_label_text() -> void:
@@ -110,12 +114,7 @@ func _get_menu_version_text() -> String:
 
 
 func _on_input_action_pressed(action_name: String) -> void:
-	if _is_settings_menu_open():
-		if action_name == str(_menu_actions.get("back", INPUT_ACTIONS.MENU_BACK)):
-			_close_settings_menu()
-		return
-
-	if _buttons.is_empty():
+	if _is_settings_menu_open() or _buttons.is_empty():
 		return
 
 	if action_name == str(_menu_actions.get("up", INPUT_ACTIONS.MENU_UP)):
@@ -124,8 +123,14 @@ func _on_input_action_pressed(action_name: String) -> void:
 		_focus_relative(1)
 	elif action_name == str(_menu_actions.get("accept", INPUT_ACTIONS.MENU_ACCEPT)):
 		_activate_or_focus_first_button()
-	elif action_name == str(_menu_actions.get("back", INPUT_ACTIONS.MENU_BACK)):
-		_focus_first_button()
+
+
+func _on_input_back_requested() -> void:
+	if _is_settings_menu_open():
+		_close_settings_menu()
+		return
+
+	_request_close_game()
 
 
 func _on_menu_button_pressed(button: Button) -> void:
@@ -170,6 +175,10 @@ func _close_settings_menu() -> void:
 		_button_layer.show()
 
 	_set_menu_input_enabled(true)
+
+
+func _request_close_game() -> void:
+	get_tree().quit()
 
 
 func _is_settings_menu_open() -> bool:

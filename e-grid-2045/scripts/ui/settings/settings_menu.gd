@@ -69,21 +69,30 @@ func _wire_input_controller() -> void:
 		return
 
 	var callback := Callable(self, "_on_input_action_pressed")
+	var back_callback := Callable(self, "_on_input_back_requested")
 
 	if _input_controller.has_signal("action_pressed") and not _input_controller.is_connected("action_pressed", callback):
 		_input_controller.connect("action_pressed", callback)
+
+	if _input_controller.has_signal("back_requested") and not _input_controller.is_connected("back_requested", back_callback):
+		_input_controller.connect("back_requested", back_callback)
 
 
 func _on_input_action_pressed(action_name: String) -> void:
 	if not visible:
 		return
 
-	if action_name == str(_settings_actions.get("back", INPUT_ACTIONS.MENU_BACK)):
-		_emit_close_request()
-	elif action_name == str(_settings_actions.get("tab_previous", INPUT_ACTIONS.SETTINGS_TAB_PREVIOUS)):
+	if action_name == str(_settings_actions.get("tab_previous", INPUT_ACTIONS.SETTINGS_TAB_PREVIOUS)):
 		_switch_tab(-1)
 	elif action_name == str(_settings_actions.get("tab_next", INPUT_ACTIONS.SETTINGS_TAB_NEXT)):
 		_switch_tab(1)
+
+
+func _on_input_back_requested() -> void:
+	if not visible:
+		return
+
+	_emit_close_request()
 
 
 func _switch_tab(offset: int) -> void:
