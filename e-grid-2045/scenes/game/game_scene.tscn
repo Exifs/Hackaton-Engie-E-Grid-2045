@@ -1,0 +1,68 @@
+[gd_scene load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://scripts/game/game_scene.gd" id="1_game_scene"]
+[ext_resource type="PackedScene" path="res://scenes/ui/game/e_grid_game_top_bar.tscn" id="2_top_bar"]
+[ext_resource type="PackedScene" path="res://scenes/ui/game/e_grid_build_palette.tscn" id="3_build_palette"]
+[ext_resource type="PackedScene" path="res://scenes/ui/game/e_grid_map_view.tscn" id="4_map_view"]
+[ext_resource type="PackedScene" path="res://scenes/ui/game/e_grid_region_panel.tscn" id="5_region_panel"]
+[ext_resource type="PackedScene" path="res://scenes/ui/game/e_grid_alert_bar.tscn" id="6_alert_bar"]
+[ext_resource type="PackedScene" path="res://scenes/input/e_grid_input_controller.tscn" id="7_input_controller"]
+
+[node name="GameScene" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_game_scene")
+
+[node name="InputController" parent="." instance=ExtResource("7_input_controller")]
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.025, 0.03, 0.035, 1)
+
+[node name="SafeArea" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 8
+
+[node name="Root" type="VBoxContainer" parent="SafeArea"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="TopBar" parent="SafeArea/Root" instance=ExtResource("2_top_bar")]
+layout_mode = 2
+
+[node name="MainRow" type="HBoxContainer" parent="SafeArea/Root"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 8
+
+[node name="BuildPalette" parent="SafeArea/Root/MainRow" instance=ExtResource("3_build_palette")]
+layout_mode = 2
+
+[node name="MapView" parent="SafeArea/Root/MainRow" instance=ExtResource("4_map_view")]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="RegionPanel" parent="SafeArea/Root/MainRow" instance=ExtResource("5_region_panel")]
+layout_mode = 2
+
+[node name="AlertBar" parent="SafeArea/Root" instance=ExtResource("6_alert_bar")]
+layout_mode = 2

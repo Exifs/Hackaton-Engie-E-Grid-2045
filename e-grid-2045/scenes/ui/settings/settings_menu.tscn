@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://bl7a7rxg4fpbb" path="res://scripts/ui/settings/settings_menu.gd" id="1_settings_script"]
 [ext_resource type="PackedScene" uid="uid://coybhy5b88ixg" path="res://scenes/ui/settings/sound_settings_panel.tscn" id="2_sound_panel"]
 [ext_resource type="PackedScene" uid="uid://c51mvrxemivg6" path="res://scenes/ui/settings/display_settings_panel.tscn" id="3_display_panel"]
+[ext_resource type="PackedScene" path="res://scenes/input/e_grid_input_controller.tscn" id="4_input_controller"]
 
 [node name="SettingsMenu" type="Control"]
 layout_mode = 3
@@ -12,6 +13,10 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_settings_script")
+
+[node name="InputController" parent="." instance=ExtResource("4_input_controller")]
+enabled = false
+active_actions = PackedStringArray("menu_back", "settings_tab_previous", "settings_tab_next")
 
 [node name="Panel" type="PanelContainer" parent="."]
 layout_mode = 1
