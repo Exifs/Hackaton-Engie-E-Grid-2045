@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=9 format=3]
 
 [ext_resource type="Script" path="res://scripts/game/game_scene.gd" id="1_game_scene"]
 [ext_resource type="PackedScene" path="res://scenes/ui/game/e_grid_game_top_bar.tscn" id="2_top_bar"]
@@ -7,6 +7,7 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/game/e_grid_region_panel.tscn" id="5_region_panel"]
 [ext_resource type="PackedScene" path="res://scenes/ui/game/e_grid_alert_bar.tscn" id="6_alert_bar"]
 [ext_resource type="PackedScene" path="res://scenes/input/e_grid_input_controller.tscn" id="7_input_controller"]
+[ext_resource type="PackedScene" path="res://scenes/ui/resolution/e_grid_resolution_policy.tscn" id="8_resolution_policy"]
 
 [node name="GameScene" type="Control"]
 layout_mode = 3
@@ -16,6 +17,8 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_game_scene")
+
+[node name="ResolutionPolicy" parent="." instance=ExtResource("8_resolution_policy")]
 
 [node name="InputController" parent="." instance=ExtResource("7_input_controller")]
 
