@@ -9,9 +9,14 @@ const CELL_H := 112.0
 const COLS := 16
 const CHARSET := " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~"
 
+static var _shared_map: Dictionary = {}
+static var _shared_metrics: Dictionary = {}
+static var _shared_glyph_bounds_by_atlas: Dictionary = {}
+
 @export var atlas_texture: Texture2D:
 	set(value):
 		atlas_texture = value
+		_glyph_bounds_cache_key = ""
 		queue_redraw()
 
 @export_multiline var text := "":
@@ -83,6 +88,7 @@ const CHARSET := " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\
 var _map := {}
 var _metrics := {}
 var _glyph_bounds := {}
+var _glyph_bounds_cache_key := ""
 
 
 func _ready() -> void:
@@ -90,17 +96,13 @@ func _ready() -> void:
 	texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
 	if atlas_texture == null:
 		atlas_texture = load(DEFAULT_FONT_ATLAS_PATH) as Texture2D
-	_build_map()
-	_load_metrics()
-	_build_glyph_bounds()
+	_ensure_font_data()
 	queue_redraw()
 
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_ENTER_TREE:
-		_build_map()
-		_load_metrics()
-		_build_glyph_bounds()
+		_ensure_font_data()
 	if what == NOTIFICATION_RESIZED:
 		queue_redraw()
 
@@ -109,8 +111,7 @@ func _draw() -> void:
 	if atlas_texture == null:
 		return
 
-	if _map.is_empty():
-		_build_map()
+	_ensure_font_data()
 
 	var lines := text.split("\n")
 	var text_scale := _resolved_scale(lines)
@@ -169,42 +170,67 @@ func _draw_text_pass(
 		y += glyph_height + line_spacing
 
 
-func _build_map() -> void:
-	_map.clear()
-	for i in CHARSET.length():
-		_map[CHARSET.substr(i, 1)] = i
+func _ensure_font_data() -> void:
+	if _map.is_empty():
+		_map = _get_shared_map()
 
+	if _metrics.is_empty():
+		_metrics = _get_shared_metrics()
 
-func _load_metrics() -> void:
-	if not _metrics.is_empty():
+	var atlas_key := _atlas_cache_key(atlas_texture)
+	if atlas_key.is_empty() or atlas_key == _glyph_bounds_cache_key:
 		return
+
+	_glyph_bounds = _get_shared_glyph_bounds(atlas_texture, _map, atlas_key)
+	_glyph_bounds_cache_key = atlas_key
+
+
+static func _get_shared_map() -> Dictionary:
+	if not _shared_map.is_empty():
+		return _shared_map
+
+	for i in CHARSET.length():
+		_shared_map[CHARSET.substr(i, 1)] = i
+
+	return _shared_map
+
+
+static func _get_shared_metrics() -> Dictionary:
+	if not _shared_metrics.is_empty():
+		return _shared_metrics
 
 	if not FileAccess.file_exists(FONT_MANIFEST_PATH):
-		return
+		return {}
 
 	var file := FileAccess.open(FONT_MANIFEST_PATH, FileAccess.READ)
 	if file == null:
-		return
+		return {}
 
 	var parsed = JSON.parse_string(file.get_as_text())
 	if typeof(parsed) != TYPE_DICTIONARY:
-		return
+		return {}
 
 	var metric_data = parsed.get("metrics", {})
 	if typeof(metric_data) == TYPE_DICTIONARY:
-		_metrics = metric_data
+		_shared_metrics = metric_data
+
+	return _shared_metrics
 
 
-func _build_glyph_bounds() -> void:
-	if atlas_texture == null or not _glyph_bounds.is_empty():
-		return
+static func _get_shared_glyph_bounds(atlas: Texture2D, glyph_map: Dictionary, atlas_key: String) -> Dictionary:
+	if atlas == null:
+		return {}
 
-	var image := atlas_texture.get_image()
+	if _shared_glyph_bounds_by_atlas.has(atlas_key):
+		return _shared_glyph_bounds_by_atlas[atlas_key]
+
+	var image := atlas.get_image()
 	if image == null:
-		return
+		return {}
 
-	for character in _map.keys():
-		var idx: int = _map[character]
+	var bounds := {}
+	for character in glyph_map.keys():
+		var idx: int = glyph_map[character]
 		var cell_x := int(idx % COLS) * int(CELL_W)
 		var cell_y := int(float(idx) / float(COLS)) * int(CELL_H)
 		var min_x := int(CELL_W)
@@ -222,7 +248,20 @@ func _build_glyph_bounds() -> void:
 					max_y = maxi(max_y, y)
 
 		if max_x >= min_x and max_y >= min_y:
-			_glyph_bounds[character] = Rect2(cell_x + min_x, cell_y + min_y, max_x - min_x + 1, max_y - min_y + 1)
+			bounds[character] = Rect2(cell_x + min_x, cell_y + min_y, max_x - min_x + 1, max_y - min_y + 1)
+
+	_shared_glyph_bounds_by_atlas[atlas_key] = bounds
+	return bounds
+
+
+static func _atlas_cache_key(atlas: Texture2D) -> String:
+	if atlas == null:
+		return ""
+
+	if not atlas.resource_path.is_empty():
+		return atlas.resource_path
+
+	return str(atlas.get_instance_id())
 
 
 func _normalize_char(character: String) -> String:

@@ -1,6 +1,7 @@
 extends Control
 class_name EGridGameScene
 
+const E_GRID_SCENE_TRANSITION := preload("res://scripts/ui/e_grid_scene_transition.gd")
 const DEFAULT_MENU_SCENE := "res://scenes/main_menu.tscn"
 
 @export_file("*.tscn") var menu_scene_path := DEFAULT_MENU_SCENE
@@ -131,7 +132,7 @@ func _change_scene_to_menu() -> void:
 		_is_changing_scene = false
 		return
 
-	var error := get_tree().change_scene_to_file(menu_scene_path)
+	var error := await E_GRID_SCENE_TRANSITION.change_scene(self, menu_scene_path, "RETOUR AU MENU")
 
 	if error != OK:
 		push_error("GameScene failed to return to menu. Error code: %d." % error)

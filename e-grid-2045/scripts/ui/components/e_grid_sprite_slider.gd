@@ -373,19 +373,12 @@ static func _load_texture(texture_path: String) -> Texture2D:
 	if _texture_cache.has(texture_path):
 		return _texture_cache[texture_path]
 
-	var imported_texture := load(texture_path) as Texture2D
+	var imported_texture := ResourceLoader.load(texture_path, "Texture2D") as Texture2D
 	if imported_texture != null:
 		_texture_cache[texture_path] = imported_texture
 		return imported_texture
 
-	var image := Image.new()
-	var error := image.load(ProjectSettings.globalize_path(texture_path))
-	if error != OK:
-		return null
-
-	var texture := ImageTexture.create_from_image(image)
-	_texture_cache[texture_path] = texture
-	return texture
+	return null
 
 
 func _track_rect(fitted_rect: Rect2) -> Rect2:

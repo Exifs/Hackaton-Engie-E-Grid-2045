@@ -1,12 +1,17 @@
 extends Control
 
 const INPUT_ACTIONS := preload("res://scripts/input/e_grid_input_actions.gd")
+const E_GRID_SETTINGS_RUNTIME := preload("res://scripts/ui/settings/e_grid_settings_runtime.gd")
+const E_GRID_SCENE_TRANSITION := preload("res://scripts/ui/e_grid_scene_transition.gd")
 const GAME_SCENE_PATH := "res://scenes/game/game_scene.tscn"
+const DEFAULT_SETTINGS_MENU_SCENE := "res://scenes/ui/settings/settings_menu.tscn"
 
 @export_node_path("Control") var button_container_path: NodePath = ^"MenuArtboardAspect/MenuArtboard/MenuButtons"
 @export_node_path("Control") var version_label_path: NodePath = ^"MenuArtboardAspect/MenuArtboard/VersionLabel"
 @export_node_path("Node") var input_controller_path: NodePath = ^"InputController"
 @export_node_path("Control") var settings_menu_path: NodePath = ^"MenuArtboardAspect/MenuArtboard/SettingsMenu"
+@export_node_path("Control") var settings_menu_parent_path: NodePath = ^"MenuArtboardAspect/MenuArtboard"
+@export_file("*.tscn") var settings_menu_scene_path := DEFAULT_SETTINGS_MENU_SCENE
 
 var _button_layer: Control
 var _version_label: Control
@@ -18,12 +23,14 @@ var _is_changing_scene := false
 
 
 func _ready() -> void:
+	E_GRID_SETTINGS_RUNTIME.apply_saved_settings()
 	_menu_actions = INPUT_ACTIONS.get_menu_navigation_actions()
 	_button_layer = get_node_or_null(button_container_path) as Control
 	_version_label = get_node_or_null(version_label_path) as Control
 	_settings_menu = get_node_or_null(settings_menu_path) as Control
 
-	_setup_settings_menu()
+	if _settings_menu != null:
+		_setup_settings_menu()
 	_collect_buttons()
 	_wire_focus_navigation()
 	_wire_input_controller()
@@ -153,7 +160,7 @@ func _get_button_label(button: Button) -> String:
 
 
 func _open_settings_menu() -> void:
-	if _settings_menu == null:
+	if not _ensure_settings_menu():
 		push_warning("Le menu principal ne trouve pas la scene de parametres.")
 		return
 
@@ -183,6 +190,54 @@ func _request_close_game() -> void:
 
 func _is_settings_menu_open() -> bool:
 	return _settings_menu != null and _settings_menu.visible
+
+
+func _ensure_settings_menu() -> bool:
+	if _settings_menu != null and is_instance_valid(_settings_menu):
+		return true
+
+	_settings_menu = get_node_or_null(settings_menu_path) as Control
+	if _settings_menu != null:
+		_setup_settings_menu()
+		return true
+
+	var scene_path := settings_menu_scene_path.strip_edges()
+	if scene_path.is_empty() or not ResourceLoader.exists(scene_path):
+		return false
+
+	var packed_scene := ResourceLoader.load(scene_path, "PackedScene") as PackedScene
+	if packed_scene == null:
+		return false
+
+	var parent := get_node_or_null(settings_menu_parent_path) as Control
+	if parent == null:
+		return false
+
+	var instance := packed_scene.instantiate() as Control
+	if instance == null:
+		return false
+
+	_settings_menu = instance
+	_settings_menu.name = "SettingsMenu"
+	parent.add_child(_settings_menu)
+	_apply_settings_menu_layout()
+	_setup_settings_menu()
+	return true
+
+
+func _apply_settings_menu_layout() -> void:
+	if _settings_menu == null:
+		return
+
+	_settings_menu.set_anchors_preset(Control.PRESET_TOP_LEFT)
+	_settings_menu.anchor_left = 0.205
+	_settings_menu.anchor_top = 0.17
+	_settings_menu.anchor_right = 0.795
+	_settings_menu.anchor_bottom = 0.865
+	_settings_menu.offset_left = 0.0
+	_settings_menu.offset_top = 0.0
+	_settings_menu.offset_right = 0.0
+	_settings_menu.offset_bottom = 0.0
 
 
 func _call_settings_menu_method(method_name: StringName, arguments: Array) -> void:
@@ -251,17 +306,19 @@ func _request_change_scene(scene_path: String) -> void:
 		return
 
 	_is_changing_scene = true
-	call_deferred("_change_scene_to_file", scene_path)
+	call_deferred("_change_scene_async", scene_path)
 
 
-func _change_scene_to_file(scene_path: String) -> void:
+func _change_scene_async(scene_path: String) -> void:
 	if not ResourceLoader.exists(scene_path):
 		push_error("MainMenu cannot change scene: scene not found at %s." % scene_path)
 		_is_changing_scene = false
 		return
 
-	var error := get_tree().change_scene_to_file(scene_path)
+	_set_menu_input_enabled(false)
+	var error := await E_GRID_SCENE_TRANSITION.change_scene(self, scene_path, "CHARGEMENT DU JEU")
 
 	if error != OK:
 		push_error("MainMenu failed to change scene. Error code: %d." % error)
 		_is_changing_scene = false
+		_set_menu_input_enabled(true)
