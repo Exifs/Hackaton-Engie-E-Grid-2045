@@ -12,10 +12,10 @@ config_version=5
 
 config/name="E-Grid 2045"
 config/version="1.0.0"
-config/build_number="001"
 run/main_scene="res://scenes/main_menu.tscn"
 config/features=PackedStringArray("4.6", "Forward Plus")
 config/icon="res://icon.svg"
+config/build_number="001"
 
 [display]
 
