@@ -1,0 +1,30 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/components/e_grid_sprite_state.gd" id="1_state"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_line"]
+
+[node name="EGridInputField" type="TextureRect"]
+custom_minimum_size = Vector2(340, 48)
+size_flags_horizontal = 0
+size_flags_vertical = 0
+offset_right = 340.0
+offset_bottom = 48.0
+script = ExtResource("1_state")
+component_name = "input_field_states"
+state_name = "normal"
+
+[node name="LineEdit" type="LineEdit" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 18.0
+offset_right = -18.0
+grow_horizontal = 2
+grow_vertical = 2
+placeholder_text = "Energy target"
+caret_blink = true
+theme_override_styles/normal = SubResource("StyleBoxEmpty_line")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_line")
+theme_override_styles/read_only = SubResource("StyleBoxEmpty_line")

@@ -1,0 +1,19 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/components/e_grid_sprite_button.gd" id="1_button"]
+
+[node name="EGridIconButton" type="Button"]
+custom_minimum_size = Vector2(68, 68)
+size_flags_horizontal = 0
+size_flags_vertical = 0
+offset_right = 68.0
+offset_bottom = 68.0
+toggle_mode = true
+script = ExtResource("1_button")
+component_name = "icon_button_states"
+normal_state = "energy_normal"
+hover_state = "energy_hover"
+pressed_state = "energy_selected"
+selected_state = "energy_selected"
+selected_hover_state = "energy_selected"
+disabled_state = "disabled"

@@ -1,0 +1,13 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/components/e_grid_sprite_state.gd" id="1_state"]
+
+[node name="EGridScrollbarHorizontal" type="TextureRect"]
+custom_minimum_size = Vector2(260, 28)
+size_flags_horizontal = 0
+size_flags_vertical = 0
+offset_right = 260.0
+offset_bottom = 28.0
+script = ExtResource("1_state")
+component_name = "scrollbar_horizontal_states"
+state_name = "normal"

@@ -1,0 +1,21 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/components/e_grid_sprite_button.gd" id="1_button"]
+
+[node name="EGridSlotCard" type="Button"]
+custom_minimum_size = Vector2(86, 86)
+size_flags_horizontal = 0
+size_flags_vertical = 0
+offset_right = 86.0
+offset_bottom = 86.0
+toggle_mode = true
+script = ExtResource("1_button")
+component_name = "slot_card_states"
+normal_state = "empty"
+hover_state = "occupied"
+pressed_state = "selected"
+selected_state = "selected"
+selected_hover_state = "selected"
+disabled_state = "disabled"
+warning_state = "warning"
+critical_state = "critical"

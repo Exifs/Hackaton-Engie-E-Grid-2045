@@ -1,0 +1,21 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/components/e_grid_sprite_button.gd" id="1_button"]
+
+[node name="EGridToggle" type="Button"]
+custom_minimum_size = Vector2(76, 32)
+size_flags_horizontal = 0
+size_flags_vertical = 0
+offset_right = 76.0
+offset_bottom = 32.0
+toggle_mode = true
+script = ExtResource("1_button")
+component_name = "toggle_states"
+normal_state = "off"
+hover_state = "off_hover"
+pressed_state = "on"
+selected_state = "on"
+selected_hover_state = "on_hover"
+disabled_state = "disabled"
+warning_state = "warning_off"
+critical_state = "critical_on"

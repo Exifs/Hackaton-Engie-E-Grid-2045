@@ -1,0 +1,30 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/components/e_grid_sprite_state.gd" id="1_state"]
+
+[node name="EGridTooltip" type="TextureRect"]
+custom_minimum_size = Vector2(220, 74)
+size_flags_horizontal = 0
+size_flags_vertical = 0
+offset_right = 220.0
+offset_bottom = 74.0
+script = ExtResource("1_state")
+component_name = "tooltip_states"
+state_name = "info"
+text_color = Color(0.121569, 0.815686, 0.886275, 1)
+
+[node name="Label" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 14.0
+offset_right = -14.0
+offset_top = 8.0
+offset_bottom = -8.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "Grid status stable"
+horizontal_alignment = 0
+vertical_alignment = 1
+autowrap_mode = 2

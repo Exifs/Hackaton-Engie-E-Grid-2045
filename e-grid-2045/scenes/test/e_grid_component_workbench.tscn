@@ -1,0 +1,230 @@
+[gd_scene load_steps=23 format=3]
+
+[ext_resource type="Script" path="res://scripts/test/e_grid_component_workbench.gd" id="1_workbench"]
+[ext_resource type="PackedScene" path="res://scenes/ui/components/e_grid_panel.tscn" id="2_panel"]
+[ext_resource type="PackedScene" path="res://scenes/ui/components/e_grid_horizontal_slider.tscn" id="3_hslider"]
+[ext_resource type="PackedScene" path="res://scenes/ui/components/e_grid_vertical_slider.tscn" id="4_vslider"]
+[ext_resource type="PackedScene" path="res://scenes/ui/components/e_grid_dropdown.tscn" id="5_dropdown"]
+[ext_resource type="PackedScene" path="res://scenes/ui/components/e_grid_progress_bar.tscn" id="6_progress_bar"]
+[ext_resource type="PackedScene" path="res://scenes/ui/components/e_grid_progress_ring.tscn" id="7_progress_ring"]
+[ext_resource type="PackedScene" path="res://scenes/ui/components/e_grid_mini_button.tscn" id="8_mini_button"]
+[ext_resource type="PackedScene" path="res://scenes/ui/components/e_grid_icon_button.tscn" id="9_icon_button"]
+[ext_resource type="PackedScene" path="res://scenes/ui/components/e_grid_checkbox.tscn" id="10_checkbox"]
+[ext_resource type="PackedScene" path="res://scenes/ui/components/e_grid_radio.tscn" id="11_radio"]
+[ext_resource type="PackedScene" path="res://scenes/ui/components/e_grid_toggle.tscn" id="12_toggle"]
+[ext_resource type="PackedScene" path="res://scenes/ui/components/e_grid_tab.tscn" id="13_tab"]
+[ext_resource type="PackedScene" path="res://scenes/ui/components/e_grid_slot_card.tscn" id="14_slot"]
+[ext_resource type="PackedScene" path="res://scenes/ui/components/e_grid_resource_chip.tscn" id="15_chip"]
+[ext_resource type="PackedScene" path="res://scenes/ui/components/e_grid_alert_toast.tscn" id="16_alert"]
+[ext_resource type="PackedScene" path="res://scenes/ui/components/e_grid_tooltip.tscn" id="17_tooltip"]
+[ext_resource type="PackedScene" path="res://scenes/ui/components/e_grid_list_item.tscn" id="18_list_item"]
+[ext_resource type="PackedScene" path="res://scenes/ui/components/e_grid_input_field.tscn" id="19_input"]
+[ext_resource type="PackedScene" path="res://scenes/ui/components/e_grid_scrollbar_horizontal.tscn" id="20_scroll_h"]
+[ext_resource type="PackedScene" path="res://scenes/ui/components/e_grid_scrollbar_vertical.tscn" id="21_scroll_v"]
+[ext_resource type="PackedScene" path="res://scenes/ui/resolution/e_grid_resolution_policy.tscn" id="22_resolution_policy"]
+
+[node name="EGridComponentWorkbench" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = 1600.0
+offset_bottom = 900.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_workbench")
+
+[node name="ResolutionPolicy" parent="." instance=ExtResource("22_resolution_policy")]
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.0196078, 0.0470588, 0.0588235, 1)
+
+[node name="Margin" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 32.0
+offset_top = 28.0
+offset_right = -32.0
+offset_bottom = -28.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Workbench" type="VBoxContainer" parent="Margin"]
+layout_mode = 2
+theme_override_constants/separation = 18
+
+[node name="Header" type="HBoxContainer" parent="Margin/Workbench"]
+layout_mode = 2
+theme_override_constants/separation = 18
+
+[node name="Title" type="Label" parent="Margin/Workbench/Header"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "E-Grid UI Components"
+theme_override_font_sizes/font_size = 28
+
+[node name="StatusLabel" type="Label" parent="Margin/Workbench/Header"]
+custom_minimum_size = Vector2(260, 0)
+layout_mode = 2
+text = "Workbench ready"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="MainRows" type="HBoxContainer" parent="Margin/Workbench"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 24
+
+[node name="InteractiveColumn" type="VBoxContainer" parent="Margin/Workbench/MainRows"]
+custom_minimum_size = Vector2(390, 0)
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="InteractiveLabel" type="Label" parent="Margin/Workbench/MainRows/InteractiveColumn"]
+layout_mode = 2
+text = "Interactive"
+theme_override_font_sizes/font_size = 20
+
+[node name="HorizontalSlider" parent="Margin/Workbench/MainRows/InteractiveColumn" instance=ExtResource("3_hslider")]
+layout_mode = 2
+slider_value = 66.0
+
+[node name="ChoiceRow" type="HBoxContainer" parent="Margin/Workbench/MainRows/InteractiveColumn"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="VerticalSlider" parent="Margin/Workbench/MainRows/InteractiveColumn/ChoiceRow" instance=ExtResource("4_vslider")]
+layout_mode = 2
+slider_value = 38.0
+
+[node name="Dropdown" parent="Margin/Workbench/MainRows/InteractiveColumn/ChoiceRow" instance=ExtResource("5_dropdown")]
+layout_mode = 2
+selected_index = 1
+disabled_item_indices = PackedInt32Array(3)
+warning_item_indices = PackedInt32Array(0)
+success_item_indices = PackedInt32Array(2)
+
+[node name="LongDropdown" parent="Margin/Workbench/MainRows/InteractiveColumn" instance=ExtResource("5_dropdown")]
+layout_mode = 2
+options = PackedStringArray("Energy", "Cooling", "Compute", "Storage", "Transmission", "Grid upgrade", "Research", "Budget", "CO2 capture", "Datacenter", "Battery", "Gas reserve")
+selected_index = 4
+visible_item_count = 4
+disabled_item_indices = PackedInt32Array(5, 10)
+warning_item_indices = PackedInt32Array(1, 7)
+critical_item_indices = PackedInt32Array(2)
+success_item_indices = PackedInt32Array(3, 8)
+
+[node name="DisabledDropdown" parent="Margin/Workbench/MainRows/InteractiveColumn" instance=ExtResource("5_dropdown")]
+layout_mode = 2
+options = PackedStringArray("Grid locked", "Maintenance", "Emergency")
+selected_index = 0
+disabled = true
+
+[node name="ButtonRow" type="HBoxContainer" parent="Margin/Workbench/MainRows/InteractiveColumn"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="MiniButton" parent="Margin/Workbench/MainRows/InteractiveColumn/ButtonRow" instance=ExtResource("8_mini_button")]
+layout_mode = 2
+label_text = "GO"
+
+[node name="IconButton" parent="Margin/Workbench/MainRows/InteractiveColumn/ButtonRow" instance=ExtResource("9_icon_button")]
+layout_mode = 2
+button_pressed = true
+
+[node name="Checkbox" parent="Margin/Workbench/MainRows/InteractiveColumn/ButtonRow" instance=ExtResource("10_checkbox")]
+layout_mode = 2
+button_pressed = true
+
+[node name="Radio" parent="Margin/Workbench/MainRows/InteractiveColumn/ButtonRow" instance=ExtResource("11_radio")]
+layout_mode = 2
+
+[node name="Toggle" parent="Margin/Workbench/MainRows/InteractiveColumn/ButtonRow" instance=ExtResource("12_toggle")]
+layout_mode = 2
+button_pressed = true
+
+[node name="TabRow" type="HBoxContainer" parent="Margin/Workbench/MainRows/InteractiveColumn"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="GridTab" parent="Margin/Workbench/MainRows/InteractiveColumn/TabRow" instance=ExtResource("13_tab")]
+layout_mode = 2
+button_pressed = true
+
+[node name="BuildTab" parent="Margin/Workbench/MainRows/InteractiveColumn/TabRow" instance=ExtResource("13_tab")]
+layout_mode = 2
+label_text = "BUILD"
+
+[node name="StatusColumn" type="VBoxContainer" parent="Margin/Workbench/MainRows"]
+custom_minimum_size = Vector2(370, 0)
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="StatusLabelTitle" type="Label" parent="Margin/Workbench/MainRows/StatusColumn"]
+layout_mode = 2
+text = "Status"
+theme_override_font_sizes/font_size = 20
+
+[node name="ProgressBar" parent="Margin/Workbench/MainRows/StatusColumn" instance=ExtResource("6_progress_bar")]
+layout_mode = 2
+value = 77.0
+
+[node name="ProgressRing" parent="Margin/Workbench/MainRows/StatusColumn" instance=ExtResource("7_progress_ring")]
+layout_mode = 2
+value = 44.0
+
+[node name="ResourceChip" parent="Margin/Workbench/MainRows/StatusColumn" instance=ExtResource("15_chip")]
+layout_mode = 2
+label_text = "Power"
+
+[node name="AlertToast" parent="Margin/Workbench/MainRows/StatusColumn" instance=ExtResource("16_alert")]
+layout_mode = 2
+label_text = "Cooling demand rising"
+semantic_state = "warning"
+
+[node name="Tooltip" parent="Margin/Workbench/MainRows/StatusColumn" instance=ExtResource("17_tooltip")]
+layout_mode = 2
+
+[node name="ListItem" parent="Margin/Workbench/MainRows/StatusColumn" instance=ExtResource("18_list_item")]
+layout_mode = 2
+button_pressed = true
+
+[node name="InputField" parent="Margin/Workbench/MainRows/StatusColumn" instance=ExtResource("19_input")]
+layout_mode = 2
+
+[node name="FrameColumn" type="VBoxContainer" parent="Margin/Workbench/MainRows"]
+custom_minimum_size = Vector2(430, 0)
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="FramesLabel" type="Label" parent="Margin/Workbench/MainRows/FrameColumn"]
+layout_mode = 2
+text = "Frames"
+theme_override_font_sizes/font_size = 20
+
+[node name="Panel" parent="Margin/Workbench/MainRows/FrameColumn" instance=ExtResource("2_panel")]
+layout_mode = 2
+
+[node name="FrameRow" type="HBoxContainer" parent="Margin/Workbench/MainRows/FrameColumn"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="SlotCard" parent="Margin/Workbench/MainRows/FrameColumn/FrameRow" instance=ExtResource("14_slot")]
+layout_mode = 2
+button_pressed = true
+
+[node name="ScrollbarVertical" parent="Margin/Workbench/MainRows/FrameColumn/FrameRow" instance=ExtResource("21_scroll_v")]
+layout_mode = 2
+state_name = "active"
+
+[node name="ScrollbarHorizontal" parent="Margin/Workbench/MainRows/FrameColumn" instance=ExtResource("20_scroll_h")]
+layout_mode = 2
+state_name = "active"

@@ -6,6 +6,7 @@
 [ext_resource type="PackedScene" uid="uid://dwxbgecgihb3c" path="res://scenes/ui/e_grid_menu_version_label.tscn" id="4_version_label"]
 [ext_resource type="PackedScene" path="res://scenes/input/e_grid_input_controller.tscn" id="5_input_controller"]
 [ext_resource type="PackedScene" uid="uid://bmgci422xnl4h" path="res://scenes/ui/settings/settings_menu.tscn" id="6_settings_menu"]
+[ext_resource type="PackedScene" path="res://scenes/ui/resolution/e_grid_resolution_policy.tscn" id="7_resolution_policy"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_wu84c"]
 
@@ -45,6 +46,8 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_main_menu")
+
+[node name="ResolutionPolicy" parent="." instance=ExtResource("7_resolution_policy")]
 
 [node name="InputController" parent="." instance=ExtResource("5_input_controller")]
 active_actions = PackedStringArray("menu_up", "menu_down", "menu_accept", "menu_back")
