@@ -61,6 +61,20 @@ const E_GRID_DROPDOWN_ITEM_SCENE := preload("res://scenes/ui/components/e_grid_d
 		popup_offset_y = value
 		_layout_nodes()
 
+@export_group("Field Layout")
+@export var selected_label_source_rect := Rect2(42.0, 8.0, 240.0, 40.0):
+	set(value):
+		selected_label_source_rect = value
+		_sync_selected_label_layout()
+@export var popup_scrollbar_width := 14.0:
+	set(value):
+		popup_scrollbar_width = value
+		_layout_nodes()
+@export var popup_scrollbar_track_width := 4.0:
+	set(value):
+		popup_scrollbar_track_width = value
+		_layout_nodes()
+
 @export_group("Item Scene")
 @export var item_scene: PackedScene = E_GRID_DROPDOWN_ITEM_SCENE:
 	set(value):
@@ -114,6 +128,10 @@ const E_GRID_DROPDOWN_ITEM_SCENE := preload("res://scenes/ui/components/e_grid_d
 	set(value):
 		item_disabled_label_color = value
 		_apply_item_runtime_states()
+@export var item_status_states_enabled := false:
+	set(value):
+		item_status_states_enabled = value
+		_apply_item_runtime_states()
 
 @export_group("Item State Overrides")
 @export var disabled_item_indices := PackedInt32Array():
@@ -135,10 +153,13 @@ const E_GRID_DROPDOWN_ITEM_SCENE := preload("res://scenes/ui/components/e_grid_d
 
 var _field_texture: TextureRect
 var _selected_label: Control
+var _legacy_selected_label: Label
+var _indicator_overlay: Control
 var _hotspot: Button
 var _open_panel: Control
 var _open_texture: TextureRect
 var _scroll_container: ScrollContainer
+var _popup_scrollbar: Control
 var _items: VBoxContainer
 var _is_open := false
 var _tween: Tween
@@ -168,6 +189,9 @@ func _input(event: InputEvent) -> void:
 	if not _is_open or disabled:
 		return
 
+	if _handle_global_scroll_input(event):
+		return
+
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		if not _contains_global_point(event.global_position):
 			close()
@@ -187,22 +211,28 @@ func toggle() -> void:
 
 func _cache_nodes() -> void:
 	_field_texture = get_node_or_null("FieldTexture") as TextureRect
+	_legacy_selected_label = get_node_or_null("SelectedLabel") as Label
 	_selected_label = get_node_or_null("SelectedBitmapText") as Control
 	if _selected_label == null:
-		var old_label := get_node_or_null("SelectedLabel") as Label
 		_selected_label = E_GRID_COMPONENT_BITMAP_TEXT_SCRIPT.new() as Control
 		_selected_label.name = "SelectedBitmapText"
 		add_child(_selected_label)
-		if old_label != null:
-			_selected_label.anchor_left = old_label.anchor_left
-			_selected_label.anchor_top = old_label.anchor_top
-			_selected_label.anchor_right = old_label.anchor_right
-			_selected_label.anchor_bottom = old_label.anchor_bottom
-			_selected_label.offset_left = old_label.offset_left
-			_selected_label.offset_top = old_label.offset_top
-			_selected_label.offset_right = old_label.offset_right
-			_selected_label.offset_bottom = old_label.offset_bottom
-			old_label.visible = false
+		if _legacy_selected_label != null:
+			_selected_label.anchor_left = _legacy_selected_label.anchor_left
+			_selected_label.anchor_top = _legacy_selected_label.anchor_top
+			_selected_label.anchor_right = _legacy_selected_label.anchor_right
+			_selected_label.anchor_bottom = _legacy_selected_label.anchor_bottom
+			_selected_label.offset_left = _legacy_selected_label.offset_left
+			_selected_label.offset_top = _legacy_selected_label.offset_top
+			_selected_label.offset_right = _legacy_selected_label.offset_right
+			_selected_label.offset_bottom = _legacy_selected_label.offset_bottom
+	if _legacy_selected_label != null:
+		_legacy_selected_label.text = _selected_text()
+		_legacy_selected_label.visible = false
+		_legacy_selected_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_indicator_overlay = get_node_or_null("IndicatorOverlay") as Control
+	if _indicator_overlay != null:
+		_indicator_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_hotspot = get_node_or_null("Hotspot") as Button
 	_open_panel = get_node_or_null("OpenPanel") as Control
 
@@ -211,10 +241,14 @@ func _cache_nodes() -> void:
 		var panel_input_call := Callable(self, "_on_popup_panel_gui_input")
 		if not _open_panel.gui_input.is_connected(panel_input_call):
 			_open_panel.gui_input.connect(panel_input_call)
+		_open_panel.z_index = 4096
+		_set_property_if_available(_open_panel, "z_as_relative", false)
 		_open_texture = _open_panel.get_node_or_null("OpenTexture") as TextureRect
 		_scroll_container = _open_panel.get_node_or_null("Scroll") as ScrollContainer
+		_popup_scrollbar = _open_panel.get_node_or_null("DropdownScrollbar") as Control
 		_items = _open_panel.find_child("Items", true, false) as VBoxContainer
 		_style_scroll_container()
+		_refresh_popup_scrollbar()
 
 
 func _prepare_hotspot() -> void:
@@ -260,9 +294,9 @@ func _layout_nodes() -> void:
 		var panel_width := maxf(size.x, item_size.x + popup_padding.x * 2.0)
 		var list_height := float(visible_item_count) * item_size.y + float(maxi(visible_item_count - 1, 0)) * float(item_separation)
 		var panel_height := list_height + popup_padding.y * 2.0
-		_open_panel.position = Vector2(0.0, popup_offset_y)
 		_open_panel.custom_minimum_size = Vector2(panel_width, panel_height)
 		_open_panel.size = _open_panel.custom_minimum_size
+		_sync_popup_canvas_position()
 
 	if _scroll_container != null and _open_panel != null:
 		_scroll_container.position = popup_padding
@@ -270,6 +304,21 @@ func _layout_nodes() -> void:
 			maxf(item_size.x, _open_panel.custom_minimum_size.x - popup_padding.x * 2.0),
 			maxf(item_size.y, _open_panel.custom_minimum_size.y - popup_padding.y * 2.0)
 		)
+
+	if _popup_scrollbar != null and _scroll_container != null:
+		var right_scrollbar_x := _scroll_container.position.x + item_size.x + 2.0
+		var max_scrollbar_x := _open_panel.custom_minimum_size.x - popup_padding.x + 2.0
+		_popup_scrollbar.position = Vector2(minf(right_scrollbar_x, max_scrollbar_x), popup_padding.y)
+		_popup_scrollbar.size = Vector2(popup_scrollbar_width, _scroll_container.size.y)
+		_set_property_if_available(_popup_scrollbar, "track_width", popup_scrollbar_track_width)
+		call_deferred("_refresh_popup_scrollbar")
+
+	if _indicator_overlay != null:
+		_indicator_overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
+		_indicator_overlay.offset_left = 0.0
+		_indicator_overlay.offset_top = 0.0
+		_indicator_overlay.offset_right = 0.0
+		_indicator_overlay.offset_bottom = 0.0
 
 
 func _sync_state() -> void:
@@ -289,11 +338,15 @@ func _sync_state() -> void:
 		_selected_label.set("font_color", Color("#e0e8e8") if not disabled else Color("#546467"))
 		_sync_selected_label_layout()
 		_selected_label.queue_redraw()
+	_sync_legacy_selected_label()
+
+	_sync_indicator_state()
 
 	if _hotspot != null:
 		_hotspot.disabled = disabled
 
 	_apply_item_runtime_states()
+	_refresh_popup_scrollbar()
 
 
 func _field_state() -> String:
@@ -331,11 +384,32 @@ func _sync_selected_label_layout() -> void:
 	if _selected_label == null:
 		return
 
+	var fitted_rect := E_GRID_UI_ATLAS.get_aspect_fit_rect("dropdown_field_states", size)
+	var source_scale := _field_source_scale(fitted_rect)
 	_selected_label.set_anchors_preset(Control.PRESET_TOP_LEFT)
-	_selected_label.position = Vector2(18.0, 8.0)
-	_selected_label.size = Vector2(260.0, 40.0)
+	_selected_label.position = fitted_rect.position + selected_label_source_rect.position * source_scale
+	_selected_label.size = selected_label_source_rect.size * source_scale
 	_selected_label.set("horizontal_alignment", "left")
 	_selected_label.set("vertical_alignment", "center")
+
+
+func _sync_legacy_selected_label() -> void:
+	if _legacy_selected_label == null:
+		return
+
+	_legacy_selected_label.text = _selected_text()
+	_legacy_selected_label.visible = false
+
+
+func _sync_indicator_state() -> void:
+	if _indicator_overlay == null:
+		return
+
+	_indicator_overlay.set("opened", _is_open)
+	_indicator_overlay.set("disabled", disabled)
+	_indicator_overlay.set("semantic_state", semantic_state)
+	_indicator_overlay.set("hovered", _hotspot != null and (_hotspot.is_hovered() or _hotspot.has_focus()))
+	_indicator_overlay.queue_redraw()
 
 
 func _set_open(opened: bool) -> void:
@@ -359,15 +433,19 @@ func _set_open(opened: bool) -> void:
 
 	if _is_open:
 		_open_panel.scale = Vector2(1.0, maxf(_open_panel.scale.y, 0.01))
+		_sync_popup_canvas_position()
 		_tween.parallel().tween_property(_open_panel, "scale:y", 1.0, animation_duration)
 		_tween.parallel().tween_property(_open_panel, "modulate:a", 1.0, animation_duration)
 		call_deferred("_scroll_selected_item_into_view")
+		call_deferred("_refresh_popup_scrollbar")
 	else:
 		_tween.parallel().tween_property(_open_panel, "scale:y", 0.01, animation_duration)
 		_tween.parallel().tween_property(_open_panel, "modulate:a", 0.0, animation_duration)
 		_tween.finished.connect(func() -> void:
 			if not _is_open and _open_panel != null:
 				_open_panel.visible = false
+				_set_popup_top_level(false)
+				_open_panel.position = Vector2(0.0, popup_offset_y)
 		)
 
 
@@ -395,11 +473,13 @@ func _rebuild_items() -> void:
 		item.size = item_size
 		item.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 		item.pressed.connect(_on_item_pressed.bind(index))
+		item.toggled.connect(_on_item_toggled.bind(index))
 		item.gui_input.connect(_on_item_gui_input.bind(item))
 		_items.add_child(item)
 
 	_sync_item_container_style()
 	_apply_item_runtime_states()
+	call_deferred("_refresh_popup_scrollbar")
 
 
 func _create_item(index: int) -> BaseButton:
@@ -473,10 +553,11 @@ func _apply_item_runtime_states() -> void:
 			continue
 
 		var item_disabled := disabled or _is_item_disabled(index)
+		var is_selected := index == selected_index
 		item.disabled = item_disabled
-		item.button_pressed = index == selected_index
+		_set_button_pressed_no_signal(item, is_selected)
 		item.mouse_default_cursor_shape = Control.CURSOR_ARROW if item_disabled else Control.CURSOR_POINTING_HAND
-		_set_property_if_available(item, "semantic_state", _item_semantic_state(index))
+		_set_property_if_available(item, "semantic_state", _item_semantic_state(index) if item_status_states_enabled and not is_selected else "normal")
 		_set_property_if_available(item, "label_color", item_label_color)
 		_set_property_if_available(item, "disabled_label_color", item_disabled_label_color)
 		item.queue_redraw()
@@ -502,6 +583,13 @@ func _item_semantic_state(index: int) -> String:
 func _set_property_if_available(target: Object, property_name: String, value: Variant) -> void:
 	if _has_property(target, property_name):
 		target.set(property_name, value)
+
+
+func _set_button_pressed_no_signal(item: BaseButton, pressed: bool) -> void:
+	if item.has_method("set_pressed_no_signal"):
+		item.call("set_pressed_no_signal", pressed)
+	else:
+		item.button_pressed = pressed
 
 
 func _has_property(target: Object, property_name: String) -> bool:
@@ -539,32 +627,42 @@ func _style_scroll_container() -> void:
 		return
 
 	var scroll_style := StyleBoxEmpty.new()
-	var grabber_style := StyleBoxFlat.new()
-	grabber_style.bg_color = Color("#1fd0e2cc")
-	grabber_style.corner_radius_top_left = 2
-	grabber_style.corner_radius_top_right = 2
-	grabber_style.corner_radius_bottom_left = 2
-	grabber_style.corner_radius_bottom_right = 2
-
-	var grabber_hover_style := grabber_style.duplicate() as StyleBoxFlat
-	grabber_hover_style.bg_color = Color("#3af5ffee")
-
-	vbar.custom_minimum_size = Vector2(5.0, 0.0)
+	vbar.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	vbar.custom_minimum_size = Vector2.ZERO
 	vbar.add_theme_stylebox_override("scroll", scroll_style)
 	vbar.add_theme_stylebox_override("scroll_focus", scroll_style)
-	vbar.add_theme_stylebox_override("grabber", grabber_style)
-	vbar.add_theme_stylebox_override("grabber_highlight", grabber_hover_style)
-	vbar.add_theme_stylebox_override("grabber_pressed", grabber_hover_style)
+	vbar.add_theme_stylebox_override("grabber", scroll_style)
+	vbar.add_theme_stylebox_override("grabber_highlight", scroll_style)
+	vbar.add_theme_stylebox_override("grabber_pressed", scroll_style)
 
 
 func _on_item_pressed(index: int) -> void:
-	if _is_item_disabled(index):
+	select_index(index, true, true)
+
+
+func _on_item_toggled(pressed: bool, index: int) -> void:
+	if pressed:
+		select_index(index, true, true)
+	else:
+		call_deferred("_apply_item_runtime_states")
+
+
+func select_index(index: int, close_popup := true, emit_change := true) -> void:
+	if disabled or options.is_empty():
 		return
 
-	selected_index = index
+	var next_index := clampi(index, 0, options.size() - 1)
+	if _is_item_disabled(next_index):
+		_apply_item_runtime_states()
+		return
+
+	var changed := selected_index != next_index
+	selected_index = next_index
 	_sync_state()
-	item_selected.emit(selected_index, _selected_text())
-	close()
+	if emit_change and changed:
+		item_selected.emit(selected_index, _selected_text())
+	if close_popup:
+		close()
 
 
 func _handle_keyboard_event(event: InputEvent) -> bool:
@@ -612,8 +710,7 @@ func _move_selection(delta: int) -> void:
 		if not _is_item_disabled(next_index):
 			if next_index == selected_index:
 				return
-			selected_index = next_index
-			item_selected.emit(selected_index, _selected_text())
+			select_index(next_index, false, true)
 			_scroll_selected_item_into_view()
 			return
 
@@ -651,15 +748,31 @@ func _scroll_popup_by_items(item_delta: int) -> void:
 		return
 
 	var step_size := int(roundf((item_size.y + float(item_separation)) * float(item_delta)))
+	_scroll_popup_by_pixels(float(step_size))
+
+
+func _scroll_popup_by_pixels(pixel_delta: float) -> void:
+	if _scroll_container == null:
+		return
+
 	var previous_scroll := _scroll_container.scroll_vertical
-	_scroll_container.scroll_vertical += step_size
-	if step_size != 0 and _scroll_container.scroll_vertical == previous_scroll:
-		call_deferred("_apply_deferred_scroll", step_size)
+	var next_scroll := clampf(float(previous_scroll) + pixel_delta, 0.0, _popup_scroll_max())
+	_scroll_container.scroll_vertical = int(roundf(next_scroll))
+
+	var vbar := _scroll_container.get_v_scroll_bar()
+	if vbar != null:
+		vbar.value = next_scroll
+
+	_refresh_popup_scrollbar()
+	if absf(next_scroll - float(previous_scroll)) > 0.5 and _scroll_container.scroll_vertical == previous_scroll:
+		call_deferred("_apply_deferred_scroll", int(roundf(pixel_delta)))
 
 
 func _apply_deferred_scroll(step_size: int) -> void:
 	if _scroll_container != null:
-		_scroll_container.scroll_vertical += step_size
+		var next_scroll := clampf(float(_scroll_container.scroll_vertical + step_size), 0.0, _popup_scroll_max())
+		_scroll_container.scroll_vertical = int(roundf(next_scroll))
+		_refresh_popup_scrollbar()
 
 
 func _force_close_popup() -> void:
@@ -672,6 +785,8 @@ func _force_close_popup() -> void:
 		_open_panel.visible = false
 		_open_panel.modulate.a = 0.0
 		_open_panel.scale.y = 0.01
+		_set_popup_top_level(false)
+		_open_panel.position = Vector2(0.0, popup_offset_y)
 
 
 func _contains_global_point(screen_position: Vector2) -> bool:
@@ -682,6 +797,74 @@ func _contains_global_point(screen_position: Vector2) -> bool:
 		return true
 
 	return false
+
+
+func _handle_global_scroll_input(event: InputEvent) -> bool:
+	if _open_panel == null or not _open_panel.visible:
+		return false
+
+	var mouse_button := event as InputEventMouseButton
+	if mouse_button == null or not mouse_button.pressed:
+		return false
+
+	if mouse_button.button_index != MOUSE_BUTTON_WHEEL_DOWN and mouse_button.button_index != MOUSE_BUTTON_WHEEL_UP:
+		return false
+
+	if not _open_panel.get_global_rect().has_point(mouse_button.global_position):
+		return false
+
+	if _handle_scroll_input(event):
+		get_viewport().set_input_as_handled()
+		return true
+
+	return false
+
+
+func _refresh_popup_scrollbar() -> void:
+	if _popup_scrollbar == null:
+		return
+
+	_set_property_if_available(_popup_scrollbar, "scroll_container", _scroll_container)
+	_set_property_if_available(_popup_scrollbar, "track_width", popup_scrollbar_track_width)
+	if _popup_scrollbar.has_method("refresh"):
+		_popup_scrollbar.call("refresh")
+
+
+func _sync_popup_canvas_position() -> void:
+	if _open_panel == null:
+		return
+
+	if _is_open or _open_panel.visible:
+		_set_popup_top_level(true)
+		_open_panel.global_position = global_position + Vector2(0.0, popup_offset_y)
+	else:
+		_set_popup_top_level(false)
+		_open_panel.position = Vector2(0.0, popup_offset_y)
+
+
+func _set_popup_top_level(enabled: bool) -> void:
+	if _open_panel == null:
+		return
+
+	if _open_panel.has_method("set_as_top_level"):
+		_open_panel.call("set_as_top_level", enabled)
+	else:
+		_set_property_if_available(_open_panel, "top_level", enabled)
+
+
+func _popup_scroll_max() -> float:
+	if _scroll_container == null or _items == null:
+		return 0.0
+
+	return maxf(_list_content_height() - _scroll_container.size.y, 0.0)
+
+
+func _field_source_scale(fitted_rect: Rect2) -> float:
+	var source_size := E_GRID_UI_ATLAS.get_cell_size("dropdown_field_states")
+	if source_size == Vector2i.ZERO:
+		return 1.0
+
+	return fitted_rect.size.x / float(source_size.x)
 
 
 func _on_hotspot_gui_input(event: InputEvent) -> void:

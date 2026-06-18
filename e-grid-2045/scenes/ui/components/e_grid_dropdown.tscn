@@ -1,42 +1,65 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene format=3 uid="uid://mxue0bvhen5h"]
 
-[ext_resource type="Script" path="res://scripts/ui/components/e_grid_dropdown.gd" id="1_dropdown"]
-[ext_resource type="Script" path="res://scripts/ui/components/e_grid_dropdown_popup_panel.gd" id="2_popup"]
-[ext_resource type="PackedScene" path="res://scenes/ui/components/e_grid_dropdown_item.tscn" id="3_item"]
+[ext_resource type="Script" uid="uid://c2qrrb5doqpud" path="res://scripts/ui/components/e_grid_dropdown.gd" id="1_dropdown"]
+[ext_resource type="Texture2D" uid="uid://dmclmlweu0py1" path="res://assets/ui/components/egrid_2045_ui_component_pack_concept_v3/spritesheets/dropdown_field_states.png" id="2_f738b"]
+[ext_resource type="Script" uid="uid://cqqmwxo771khs" path="res://scripts/ui/components/e_grid_dropdown_popup_panel.gd" id="2_popup"]
+[ext_resource type="Script" uid="uid://c47b5f6jvutwd" path="res://scripts/ui/components/e_grid_dropdown_indicator.gd" id="4_indicator"]
+[ext_resource type="Script" uid="uid://ceob6tnrsuyg8" path="res://scripts/ui/components/e_grid_dropdown_scrollbar.gd" id="5_scrollbar"]
 
-[node name="EGridDropdown" type="Control"]
+[sub_resource type="AtlasTexture" id="AtlasTexture_clh8d"]
+atlas = ExtResource("2_f738b")
+region = Rect2(0, 0, 340, 56)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_klr31"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_nwfy2"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_6uui2"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_7wyrt"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_b4bim"]
+
+[node name="EGridDropdown" type="Control" unique_id=565394803]
 custom_minimum_size = Vector2(340, 56)
-size_flags_horizontal = 0
-size_flags_vertical = 0
+layout_mode = 3
+anchors_preset = 0
 offset_right = 340.0
 offset_bottom = 56.0
+size_flags_horizontal = 0
+size_flags_vertical = 0
+focus_mode = 2
 script = ExtResource("1_dropdown")
 options = PackedStringArray("Energy", "Cooling", "Compute", "Storage")
-item_scene = ExtResource("3_item")
+disabled_item_indices = PackedInt32Array()
+warning_item_indices = PackedInt32Array()
+critical_item_indices = PackedInt32Array()
+success_item_indices = PackedInt32Array()
 
-[node name="FieldTexture" type="TextureRect" parent="."]
+[node name="FieldTexture" type="TextureRect" parent="." unique_id=1169981788]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+texture = SubResource("AtlasTexture_clh8d")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="SelectedLabel" type="Label" parent="."]
+[node name="SelectedLabel" type="Label" parent="." unique_id=691261284]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 18.0
+offset_left = 26.0
 offset_right = -48.0
 grow_horizontal = 2
 grow_vertical = 2
 text = "Energy"
 vertical_alignment = 1
 
-[node name="ArrowLabel" type="Label" parent="."]
+[node name="ArrowLabel" type="Label" parent="." unique_id=448371716]
 visible = false
 layout_mode = 1
 anchors_preset = 11
@@ -51,35 +74,64 @@ text = "v"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="Hotspot" type="Button" parent="."]
+[node name="IndicatorOverlay" type="Control" parent="." unique_id=1274823341]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("4_indicator")
 
-[node name="OpenPanel" type="Control" parent="."]
+[node name="Hotspot" type="Button" parent="." unique_id=1586007384]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_default_cursor_shape = 2
+theme_override_styles/normal = SubResource("StyleBoxEmpty_klr31")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_nwfy2")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_6uui2")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_7wyrt")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_b4bim")
+flat = true
+
+[node name="OpenPanel" type="Control" parent="." unique_id=1786873986]
 visible = false
+modulate = Color(1, 1, 1, 0)
 z_index = 20
 clip_contents = true
-custom_minimum_size = Vector2(340, 214)
-layout_mode = 0
+custom_minimum_size = Vector2(340, 185)
+anchors_preset = 0
 offset_top = 56.0
 offset_right = 340.0
-offset_bottom = 270.0
+offset_bottom = 241.0
 scale = Vector2(1, 0.01)
-modulate = Color(1, 1, 1, 0)
 script = ExtResource("2_popup")
 
-[node name="Scroll" type="ScrollContainer" parent="OpenPanel"]
+[node name="Scroll" type="ScrollContainer" parent="OpenPanel" unique_id=1207817732]
 layout_mode = 0
 offset_left = 16.0
 offset_top = 16.0
 offset_right = 324.0
-offset_bottom = 196.0
+offset_bottom = 169.0
+horizontal_scroll_mode = 0
 
-[node name="Items" type="VBoxContainer" parent="OpenPanel/Scroll"]
+[node name="Items" type="VBoxContainer" parent="OpenPanel/Scroll" unique_id=87939720]
+custom_minimum_size = Vector2(300, 153)
 layout_mode = 2
 size_flags_horizontal = 0
 theme_override_constants/separation = 3
+
+[node name="DropdownScrollbar" type="Control" parent="OpenPanel" unique_id=1951129541 node_paths=PackedStringArray("scroll_container")]
+visible = false
+anchors_preset = 0
+offset_left = 318.0
+offset_top = 16.0
+offset_right = 332.0
+offset_bottom = 169.0
+script = ExtResource("5_scrollbar")
+scroll_container = NodePath("../Scroll")

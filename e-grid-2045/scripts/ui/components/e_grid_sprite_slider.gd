@@ -5,6 +5,9 @@ extends Control
 signal value_changed(value: float)
 
 const E_GRID_UI_ATLAS := preload("res://scripts/ui/components/e_grid_ui_atlas.gd")
+const GENERATED_SLIDER_ROOT := "res://assets/ui/components/egrid_2045_ui_component_pack_concept_v3/generated/sliders"
+
+static var _texture_cache: Dictionary = {}
 
 @export_enum("horizontal", "vertical") var orientation := "horizontal":
 	set(value):
@@ -63,8 +66,32 @@ var _slider_value := 50.0
 @export var vertical_track_rect := Rect2(23.0, 28.0, 8.0, 164.0)
 @export var horizontal_handle_size := Vector2(18.0, 24.0)
 @export var vertical_handle_size := Vector2(28.0, 18.0)
-@export var horizontal_baked_handle_clear_rect := Rect2(20.0, 10.0, 18.0, 24.0)
-@export var vertical_baked_handle_clear_rect := Rect2(13.0, 184.0, 28.0, 18.0)
+
+@export_group("Clean Slider Assets")
+@export_file("*.png") var horizontal_base_texture_path := GENERATED_SLIDER_ROOT + "/slider_horizontal_base_clean.png":
+	set(value):
+		horizontal_base_texture_path = value
+		queue_redraw()
+@export_file("*.png") var horizontal_fill_texture_path := GENERATED_SLIDER_ROOT + "/slider_horizontal_fill_tile.png":
+	set(value):
+		horizontal_fill_texture_path = value
+		queue_redraw()
+@export_file("*.png") var horizontal_handle_texture_path := GENERATED_SLIDER_ROOT + "/slider_horizontal_handle.png":
+	set(value):
+		horizontal_handle_texture_path = value
+		queue_redraw()
+@export_file("*.png") var vertical_base_texture_path := GENERATED_SLIDER_ROOT + "/slider_vertical_base_clean.png":
+	set(value):
+		vertical_base_texture_path = value
+		queue_redraw()
+@export_file("*.png") var vertical_fill_texture_path := GENERATED_SLIDER_ROOT + "/slider_vertical_fill_tile.png":
+	set(value):
+		vertical_fill_texture_path = value
+		queue_redraw()
+@export_file("*.png") var vertical_handle_texture_path := GENERATED_SLIDER_ROOT + "/slider_vertical_handle.png":
+	set(value):
+		vertical_handle_texture_path = value
+		queue_redraw()
 
 var _display_value := 50.0
 var _dragging := false
@@ -126,15 +153,14 @@ func _gui_input(event: InputEvent) -> void:
 
 func _draw() -> void:
 	var fitted_rect := E_GRID_UI_ATLAS.get_aspect_fit_rect(_component_name(), size)
-	var base_texture := E_GRID_UI_ATLAS.get_texture(_component_name(), "value_0")
+	var base_texture := _load_texture(_base_texture_path())
 	if base_texture == null:
 		draw_rect(fitted_rect, Color("#081115e6"), true)
-		return
+	else:
+		var base_modulate := Color(1.0, 1.0, 1.0, 0.45) if not enabled else Color.WHITE
+		draw_texture_rect(base_texture, fitted_rect, false, base_modulate)
 
 	var percent := _get_visual_percent(_display_value)
-	var base_modulate := Color(1.0, 1.0, 1.0, 0.45) if not enabled else Color.WHITE
-	draw_texture_rect(base_texture, fitted_rect, false, base_modulate)
-	_clear_baked_min_handle(fitted_rect)
 	_draw_continuous_fill(fitted_rect, percent)
 	_draw_handle(fitted_rect, percent)
 
@@ -214,12 +240,66 @@ func _draw_continuous_fill(fitted_rect: Rect2, percent: float) -> void:
 			Vector2(track_rect.position.x, track_rect.position.y + track_rect.size.y - fill_height),
 			Vector2(track_rect.size.x, fill_height)
 		)
-		draw_rect(fill_rect, color, true)
-		_draw_fill_stripes(fill_rect, true)
+		_draw_fill_texture(fill_rect, track_rect, color, true)
 	else:
 		var fill_rect := Rect2(track_rect.position, Vector2(track_rect.size.x * percent, track_rect.size.y))
-		draw_rect(fill_rect, color, true)
-		_draw_fill_stripes(fill_rect, false)
+		_draw_fill_texture(fill_rect, track_rect, color, false)
+
+
+func _draw_fill_texture(fill_rect: Rect2, anchor_rect: Rect2, color: Color, vertical: bool) -> void:
+	if fill_rect.size.x <= 1.0 or fill_rect.size.y <= 1.0:
+		return
+
+	var fill_texture := _load_texture(_fill_texture_path())
+	if fill_texture != null:
+		_draw_tiled_fill_texture(fill_texture, fill_rect, anchor_rect, color, vertical)
+		return
+
+	draw_rect(fill_rect, color, true)
+	_draw_fill_stripes(fill_rect, vertical)
+
+
+func _draw_tiled_fill_texture(texture: Texture2D, fill_rect: Rect2, anchor_rect: Rect2, color: Color, vertical: bool) -> void:
+	var texture_size := Vector2(float(texture.get_width()), float(texture.get_height()))
+	if texture_size.x <= 0.0 or texture_size.y <= 0.0:
+		return
+
+	if vertical:
+		var tile_scale := anchor_rect.size.x / texture_size.x
+		var tile_size := Vector2(anchor_rect.size.x, texture_size.y * tile_scale)
+		var tile_bottom := anchor_rect.position.y + anchor_rect.size.y
+
+		while tile_bottom > anchor_rect.position.y:
+			var tile_top := tile_bottom - tile_size.y
+			var tile_rect := Rect2(Vector2(anchor_rect.position.x, tile_top), tile_size)
+			_draw_tile_intersection(texture, tile_rect, fill_rect, texture_size, color)
+			tile_bottom -= tile_size.y
+	else:
+		var tile_scale := anchor_rect.size.y / texture_size.y
+		var tile_size := Vector2(texture_size.x * tile_scale, anchor_rect.size.y)
+		var tile_left := anchor_rect.position.x
+		var track_end := anchor_rect.position.x + anchor_rect.size.x
+
+		while tile_left < track_end:
+			var tile_rect := Rect2(Vector2(tile_left, anchor_rect.position.y), tile_size)
+			_draw_tile_intersection(texture, tile_rect, fill_rect, texture_size, color)
+			tile_left += tile_size.x
+
+
+func _draw_tile_intersection(texture: Texture2D, tile_rect: Rect2, fill_rect: Rect2, texture_size: Vector2, color: Color) -> void:
+	var visible_rect := tile_rect.intersection(fill_rect)
+	if visible_rect.size.x <= 0.0 or visible_rect.size.y <= 0.0:
+		return
+
+	var source_position := Vector2(
+		(visible_rect.position.x - tile_rect.position.x) / maxf(tile_rect.size.x, 1.0) * texture_size.x,
+		(visible_rect.position.y - tile_rect.position.y) / maxf(tile_rect.size.y, 1.0) * texture_size.y
+	)
+	var source_size := Vector2(
+		visible_rect.size.x / maxf(tile_rect.size.x, 1.0) * texture_size.x,
+		visible_rect.size.y / maxf(tile_rect.size.y, 1.0) * texture_size.y
+	)
+	draw_texture_rect_region(texture, visible_rect, Rect2(source_position, source_size), color)
 
 
 func _draw_fill_stripes(fill_rect: Rect2, vertical: bool) -> void:
@@ -253,6 +333,11 @@ func _draw_handle(fitted_rect: Rect2, percent: float) -> void:
 		center = Vector2(track_rect.position.x + track_rect.size.x * percent, track_rect.get_center().y)
 
 	var handle_rect := Rect2(center - handle_size * 0.5, handle_size)
+	var handle_texture := _load_texture(_handle_texture_path())
+	if handle_texture != null:
+		draw_texture_rect(handle_texture, handle_rect, false, Color.WHITE if enabled else Color("#546467cc"))
+		return
+
 	var edge_color := _fill_color()
 	var fill_color := Color("#081115e6") if enabled else Color("#151b1dcc")
 
@@ -261,35 +346,46 @@ func _draw_handle(fitted_rect: Rect2, percent: float) -> void:
 	draw_rect(handle_rect.grow(-2.0 * source_scale), edge_color, false, maxf(1.0, source_scale))
 
 
-func _clear_baked_min_handle(fitted_rect: Rect2) -> void:
-	var clear_rect := _baked_handle_clear_rect(fitted_rect)
-	var track_rect := _track_rect(fitted_rect)
-	var track_patch := clear_rect.intersection(track_rect.grow(1.0 * _source_scale(fitted_rect)))
-	var source_scale := _source_scale(fitted_rect)
-
-	draw_rect(clear_rect, Color("#081115f2"), true)
-
-	if track_patch.size.x <= 0.0 or track_patch.size.y <= 0.0:
-		return
-
-	draw_rect(track_patch, Color("#050c0fcc"), true)
-
-	if orientation == "vertical":
-		draw_line(track_patch.position, Vector2(track_patch.position.x, track_patch.position.y + track_patch.size.y), Color("#26363aaa"), maxf(1.0, source_scale))
-		draw_line(Vector2(track_patch.position.x + track_patch.size.x, track_patch.position.y), track_patch.position + track_patch.size, Color("#26363aaa"), maxf(1.0, source_scale))
-	else:
-		draw_line(track_patch.position, Vector2(track_patch.position.x + track_patch.size.x, track_patch.position.y), Color("#26363aaa"), maxf(1.0, source_scale))
-		draw_line(Vector2(track_patch.position.x, track_patch.position.y + track_patch.size.y), track_patch.position + track_patch.size, Color("#26363aaa"), maxf(1.0, source_scale))
+func _base_texture_path() -> String:
+	return vertical_base_texture_path if orientation == "vertical" else horizontal_base_texture_path
 
 
-func _baked_handle_clear_rect(fitted_rect: Rect2) -> Rect2:
-	var source_rect := vertical_baked_handle_clear_rect if orientation == "vertical" else horizontal_baked_handle_clear_rect
-	var source_scale := _source_scale(fitted_rect)
-	return Rect2(fitted_rect.position + source_rect.position * source_scale, source_rect.size * source_scale)
+func _fill_texture_path() -> String:
+	return vertical_fill_texture_path if orientation == "vertical" else horizontal_fill_texture_path
+
+
+func _handle_texture_path() -> String:
+	return vertical_handle_texture_path if orientation == "vertical" else horizontal_handle_texture_path
+
+
+static func _load_texture(texture_path: String) -> Texture2D:
+	if texture_path.is_empty():
+		return null
+
+	if _texture_cache.has(texture_path):
+		return _texture_cache[texture_path]
+
+	var imported_texture := load(texture_path) as Texture2D
+	if imported_texture != null:
+		_texture_cache[texture_path] = imported_texture
+		return imported_texture
+
+	var image := Image.new()
+	var error := image.load(ProjectSettings.globalize_path(texture_path))
+	if error != OK:
+		return null
+
+	var texture := ImageTexture.create_from_image(image)
+	_texture_cache[texture_path] = texture
+	return texture
 
 
 func _track_rect(fitted_rect: Rect2) -> Rect2:
 	var source_rect := vertical_track_rect if orientation == "vertical" else horizontal_track_rect
+	return _source_rect_to_fitted(source_rect, fitted_rect)
+
+
+func _source_rect_to_fitted(source_rect: Rect2, fitted_rect: Rect2) -> Rect2:
 	var source_scale := _source_scale(fitted_rect)
 	return Rect2(fitted_rect.position + source_rect.position * source_scale, source_rect.size * source_scale)
 

@@ -131,6 +131,22 @@ func _test_dropdown() -> void:
 	if open_panel == null or not open_panel.visible:
 		_failures.append("Dropdown open panel did not become visible")
 		return
+	if open_panel.has_method("is_set_as_top_level") and not bool(open_panel.call("is_set_as_top_level")):
+		_failures.append("Dropdown open panel should be top-level while expanded")
+	if open_panel.z_index < 1000:
+		_failures.append("Dropdown open panel z-index is too low to own pointer interactions")
+
+	var selected_label := dropdown.get_node_or_null("SelectedBitmapText") as Control
+	if selected_label == null:
+		_failures.append("Dropdown selected bitmap label is missing")
+	elif selected_label.position.x < 36.0:
+		_failures.append("Dropdown selected label overlaps the left status chip")
+
+	var indicator := dropdown.get_node_or_null("IndicatorOverlay") as Control
+	if indicator == null:
+		_failures.append("Dropdown indicator overlay is missing")
+	elif not bool(indicator.get("opened")):
+		_failures.append("Dropdown indicator overlay did not sync the open state")
 
 	var open_texture := open_panel.get_node_or_null("OpenTexture") as TextureRect
 	if open_texture != null and (open_texture.visible or open_texture.texture != null):
@@ -151,12 +167,12 @@ func _test_dropdown() -> void:
 			var critical_item := items.get_child(2)
 			var success_item := items.get_child(3)
 			var disabled_item := items.get_child(6) as BaseButton
-			if warning_item.get("semantic_state") != "warning":
-				_failures.append("Dropdown warning item state not applied")
-			if critical_item.get("semantic_state") != "critical":
-				_failures.append("Dropdown critical item state not applied")
-			if success_item.get("semantic_state") != "success":
-				_failures.append("Dropdown success item state not applied")
+			if warning_item.get("semantic_state") != "normal":
+				_failures.append("Dropdown warning status should not masquerade as selection")
+			if critical_item.get("semantic_state") != "normal":
+				_failures.append("Dropdown critical status should not masquerade as selection")
+			if success_item.get("semantic_state") != "normal":
+				_failures.append("Dropdown success status should not masquerade as selection")
 			if disabled_item == null or not disabled_item.disabled:
 				_failures.append("Dropdown disabled item state not applied")
 			var selected_count := 0
@@ -169,6 +185,7 @@ func _test_dropdown() -> void:
 			if items.get_child_count() >= 3:
 				(items.get_child(0) as BaseButton).button_pressed = true
 				(items.get_child(2) as BaseButton).button_pressed = true
+				dropdown.call("_apply_item_runtime_states")
 				selected_count = 0
 				for child in items.get_children():
 					var item_button := child as BaseButton
@@ -176,10 +193,62 @@ func _test_dropdown() -> void:
 						selected_count += 1
 				if selected_count != 1:
 					_failures.append("Dropdown item button group allows multiple selected items")
+			var cooling_item := items.get_child(1) as BaseButton
+			if cooling_item != null:
+				cooling_item.button_pressed = true
+				await get_tree().process_frame
+				if int(dropdown.get("selected_index")) != 1:
+					_failures.append("Dropdown visual item selection did not update selected_index")
+				var selected_label_after_toggle := dropdown.get_node_or_null("SelectedBitmapText") as Control
+				if selected_label_after_toggle == null or str(selected_label_after_toggle.get("text")) != "Cooling":
+					_failures.append("Dropdown closed field did not mirror toggled item text")
+				dropdown.call("open")
+				await get_tree().process_frame
+			dropdown.call("select_index", 3, false, true)
+			await get_tree().process_frame
+			if int(dropdown.get("selected_index")) != 3:
+				_failures.append("Dropdown click selection did not update selected_index")
+			var selected_label_after_click := dropdown.get_node_or_null("SelectedBitmapText") as Control
+			if selected_label_after_click == null or str(selected_label_after_click.get("text")) != "Storage":
+				_failures.append("Dropdown closed field did not mirror selected item text")
+			selected_count = 0
+			for child in items.get_children():
+				var item_button := child as BaseButton
+				if item_button != null and item_button.button_pressed:
+					selected_count += 1
+			if selected_count != 1:
+				_failures.append("Dropdown selection sync should leave exactly one pressed item after select_index")
 			var before_scroll := scroll.scroll_vertical
 			dropdown.call("_scroll_popup_by_items", 2)
 			if scroll.scroll_vertical <= before_scroll:
 				_failures.append("Dropdown scroll helper did not move the popup list")
+			var before_wheel_scroll := scroll.scroll_vertical
+			var wheel_event := InputEventMouseButton.new()
+			wheel_event.button_index = MOUSE_BUTTON_WHEEL_DOWN
+			wheel_event.pressed = true
+			wheel_event.position = Vector2(24.0, 24.0)
+			wheel_event.global_position = open_panel.global_position + wheel_event.position
+			dropdown.call("_handle_global_scroll_input", wheel_event)
+			if scroll.scroll_vertical <= before_wheel_scroll:
+				_failures.append("Dropdown global wheel input did not scroll the popup list")
+			scroll.scroll_vertical = 0
+			var popup_scrollbar := open_panel.get_node_or_null("DropdownScrollbar") as Control
+			if popup_scrollbar == null:
+				_failures.append("Dropdown popup has no custom scrollbar")
+			elif not popup_scrollbar.visible:
+				_failures.append("Dropdown popup scrollbar is hidden for a long list")
+			else:
+				var dropdown_item_size: Vector2 = dropdown.get("item_size")
+				if popup_scrollbar.position.x <= scroll.position.x + dropdown_item_size.x:
+					_failures.append("Dropdown popup scrollbar should be placed on the right of the list items")
+				var click_event := InputEventMouseButton.new()
+				click_event.button_index = MOUSE_BUTTON_LEFT
+				click_event.pressed = true
+				click_event.position = Vector2(popup_scrollbar.size.x * 0.5, popup_scrollbar.size.y - 2.0)
+				click_event.global_position = popup_scrollbar.global_position + click_event.position
+				popup_scrollbar.call("_gui_input", click_event)
+				if scroll.scroll_vertical <= 0:
+					_failures.append("Dropdown popup scrollbar click did not move the popup list")
 
 	dropdown.call("close")
 	dropdown.set("disabled", true)
