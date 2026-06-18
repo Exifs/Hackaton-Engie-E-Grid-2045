@@ -1,11 +1,15 @@
 extends SceneTree
 
+const DESIGN_RESOLUTION := Vector2i(1600, 900)
 const OUTPUT_PATH := "C:/Users/cleme/Documents/Hackaton Energie 2026/e-grid-2045/main_menu_screenshot.png"
 
 
 func _initialize() -> void:
-	root.size = Vector2i(1600, 900)
-	root.content_scale_mode = Window.CONTENT_SCALE_MODE_DISABLED
+	root.size = DESIGN_RESOLUTION
+	root.content_scale_size = DESIGN_RESOLUTION
+	root.content_scale_mode = Window.CONTENT_SCALE_MODE_CANVAS_ITEMS
+	root.content_scale_aspect = Window.CONTENT_SCALE_ASPECT_EXPAND
+	root.content_scale_factor = 1.0
 	call_deferred("_capture")
 
 

@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/resolution/e_grid_resolution_policy.gd" id="1_resolution_policy"]
+
+[node name="EGridResolutionPolicy" type="Node"]
+script = ExtResource("1_resolution_policy")

@@ -1,11 +1,14 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/test/e_grid_component_smoke_test.gd" id="1_smoke"]
+[ext_resource type="PackedScene" path="res://scenes/ui/resolution/e_grid_resolution_policy.tscn" id="2_resolution_policy"]
 
 [node name="EGridComponentSmokeTest" type="Control"]
 offset_right = 1600.0
 offset_bottom = 900.0
 script = ExtResource("1_smoke")
+
+[node name="ResolutionPolicy" parent="." instance=ExtResource("2_resolution_policy")]
 
 [node name="Background" type="ColorRect" parent="."]
 layout_mode = 1

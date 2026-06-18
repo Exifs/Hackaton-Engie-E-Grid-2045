@@ -1,4 +1,4 @@
-[gd_scene load_steps=22 format=3]
+[gd_scene load_steps=23 format=3]
 
 [ext_resource type="Script" path="res://scripts/test/e_grid_component_workbench.gd" id="1_workbench"]
 [ext_resource type="PackedScene" path="res://scenes/ui/components/e_grid_panel.tscn" id="2_panel"]
@@ -21,6 +21,7 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/components/e_grid_input_field.tscn" id="19_input"]
 [ext_resource type="PackedScene" path="res://scenes/ui/components/e_grid_scrollbar_horizontal.tscn" id="20_scroll_h"]
 [ext_resource type="PackedScene" path="res://scenes/ui/components/e_grid_scrollbar_vertical.tscn" id="21_scroll_v"]
+[ext_resource type="PackedScene" path="res://scenes/ui/resolution/e_grid_resolution_policy.tscn" id="22_resolution_policy"]
 
 [node name="EGridComponentWorkbench" type="Control"]
 layout_mode = 3
@@ -32,6 +33,8 @@ offset_bottom = 900.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_workbench")
+
+[node name="ResolutionPolicy" parent="." instance=ExtResource("22_resolution_policy")]
 
 [node name="Background" type="ColorRect" parent="."]
 layout_mode = 1
