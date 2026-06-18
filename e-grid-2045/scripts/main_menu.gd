@@ -117,15 +117,13 @@ func _open_settings_menu() -> void:
 
 
 func _close_settings_menu() -> void:
+	get_viewport().gui_release_focus()
+
 	if _settings_menu != null:
 		_call_settings_menu_method("hide_menu", [])
 
 	if _button_layer != null:
 		_button_layer.show()
-
-	var settings_button := _find_button_by_action("settings")
-	if settings_button != null:
-		settings_button.grab_focus()
 
 
 func _is_settings_menu_open() -> bool:
@@ -145,11 +143,3 @@ func _call_settings_menu_method(method_name: StringName, arguments: Array) -> vo
 			_settings_menu.show()
 		&"hide_menu":
 			_settings_menu.hide()
-
-
-func _find_button_by_action(action_name: String) -> EGridMenuButton:
-	for button in _buttons:
-		if button.action_name == action_name:
-			return button
-
-	return null
