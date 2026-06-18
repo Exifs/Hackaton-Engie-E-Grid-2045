@@ -6,9 +6,11 @@
 [ext_resource type="Script" uid="uid://c47b5f6jvutwd" path="res://scripts/ui/components/e_grid_dropdown_indicator.gd" id="4_indicator"]
 [ext_resource type="Script" uid="uid://ceob6tnrsuyg8" path="res://scripts/ui/components/e_grid_dropdown_scrollbar.gd" id="5_scrollbar"]
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_clh8d"]
+[sub_resource type="AtlasTexture" id="AtlasTexture_f738b"]
 atlas = ExtResource("2_f738b")
 region = Rect2(0, 0, 340, 56)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_clh8d"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_klr31"]
 
@@ -17,8 +19,6 @@ region = Rect2(0, 0, 340, 56)
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_6uui2"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_7wyrt"]
-
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_b4bim"]
 
 [node name="EGridDropdown" type="Control" unique_id=565394803]
 custom_minimum_size = Vector2(340, 56)
@@ -43,11 +43,12 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-texture = SubResource("AtlasTexture_clh8d")
+texture = SubResource("AtlasTexture_f738b")
 expand_mode = 1
 stretch_mode = 5
 
 [node name="SelectedLabel" type="Label" parent="." unique_id=691261284]
+visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -92,17 +93,18 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_default_cursor_shape = 2
-theme_override_styles/normal = SubResource("StyleBoxEmpty_klr31")
-theme_override_styles/pressed = SubResource("StyleBoxEmpty_nwfy2")
-theme_override_styles/hover = SubResource("StyleBoxEmpty_6uui2")
-theme_override_styles/disabled = SubResource("StyleBoxEmpty_7wyrt")
-theme_override_styles/focus = SubResource("StyleBoxEmpty_b4bim")
+theme_override_styles/normal = SubResource("StyleBoxEmpty_clh8d")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_klr31")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_nwfy2")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_6uui2")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_7wyrt")
 flat = true
 
 [node name="OpenPanel" type="Control" parent="." unique_id=1786873986]
 visible = false
 modulate = Color(1, 1, 1, 0)
-z_index = 20
+z_index = 4096
+z_as_relative = false
 clip_contents = true
 custom_minimum_size = Vector2(340, 185)
 anchors_preset = 0

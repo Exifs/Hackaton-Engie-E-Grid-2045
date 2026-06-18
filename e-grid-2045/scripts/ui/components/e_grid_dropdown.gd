@@ -8,6 +8,8 @@ const E_GRID_UI_ATLAS := preload("res://scripts/ui/components/e_grid_ui_atlas.gd
 const E_GRID_SPRITE_BUTTON_SCRIPT := preload("res://scripts/ui/components/e_grid_sprite_button.gd")
 const E_GRID_COMPONENT_BITMAP_TEXT_SCRIPT := preload("res://scripts/ui/components/e_grid_component_bitmap_text.gd")
 const E_GRID_DROPDOWN_ITEM_SCENE := preload("res://scenes/ui/components/e_grid_dropdown_item.tscn")
+const SELECTED_LABEL_FONT_ATLAS := preload("res://assets/ui/menu/font/egrid_2045_menu_font_atlas_normal.png")
+const SELECTED_LABEL_ACTIVE_FONT_ATLAS := preload("res://assets/ui/menu/font/egrid_2045_menu_font_atlas_hover.png")
 
 @export_group("Content")
 @export var options := PackedStringArray(["Energy", "Cooling", "Compute"]):
@@ -74,6 +76,18 @@ const E_GRID_DROPDOWN_ITEM_SCENE := preload("res://scenes/ui/components/e_grid_d
 	set(value):
 		popup_scrollbar_track_width = value
 		_layout_nodes()
+@export var selected_label_color := Color("#ffffff"):
+	set(value):
+		selected_label_color = value
+		_sync_state()
+@export var selected_label_disabled_color := Color("#6f7c7f"):
+	set(value):
+		selected_label_disabled_color = value
+		_sync_state()
+@export_range(0.10, 0.24, 0.01) var selected_label_scale_px := 0.17:
+	set(value):
+		selected_label_scale_px = value
+		_sync_state()
 
 @export_group("Item Scene")
 @export var item_scene: PackedScene = E_GRID_DROPDOWN_ITEM_SCENE:
@@ -123,6 +137,10 @@ const E_GRID_DROPDOWN_ITEM_SCENE := preload("res://scenes/ui/components/e_grid_d
 @export var item_label_color := Color("#e0e8e8"):
 	set(value):
 		item_label_color = value
+		_apply_item_runtime_states()
+@export var selected_item_label_color := Color("#ffffff"):
+	set(value):
+		selected_item_label_color = value
 		_apply_item_runtime_states()
 @export var item_disabled_label_color := Color("#546467"):
 	set(value):
@@ -335,7 +353,18 @@ func _sync_state() -> void:
 
 	if _selected_label != null:
 		_selected_label.set("text", _selected_text())
-		_selected_label.set("font_color", Color("#e0e8e8") if not disabled else Color("#546467"))
+		_selected_label.set("atlas_texture", _selected_label_atlas())
+		_selected_label.set("font_color", selected_label_color if not disabled else selected_label_disabled_color)
+		_set_property_if_available(_selected_label, "scale_px", selected_label_scale_px)
+		_set_property_if_available(_selected_label, "min_scale_px", 0.10)
+		_set_property_if_available(_selected_label, "max_scale_px", 0.22)
+		_set_property_if_available(_selected_label, "opacity_passes", 1)
+		_set_property_if_available(_selected_label, "shadow_enabled", not disabled)
+		_set_property_if_available(_selected_label, "shadow_color", Color("#020608f2"))
+		_set_property_if_available(_selected_label, "shadow_offset", Vector2(1.0, 1.0))
+		_set_property_if_available(_selected_label, "outline_enabled", not disabled)
+		_set_property_if_available(_selected_label, "outline_color", Color("#020608e6"))
+		_set_property_if_available(_selected_label, "outline_size", 1.0)
 		_sync_selected_label_layout()
 		_selected_label.queue_redraw()
 	_sync_legacy_selected_label()
@@ -361,6 +390,14 @@ func _field_state() -> String:
 	if _hotspot != null and (_hotspot.is_hovered() or _hotspot.has_focus()):
 		return "hover"
 	return "normal"
+
+
+func _selected_label_atlas() -> Texture2D:
+	if disabled:
+		return SELECTED_LABEL_FONT_ATLAS
+
+	var hovered := _hotspot != null and (_hotspot.is_hovered() or _hotspot.has_focus())
+	return SELECTED_LABEL_ACTIVE_FONT_ATLAS if _is_open or hovered else SELECTED_LABEL_FONT_ATLAS
 
 
 func _open_state() -> String:
@@ -391,6 +428,8 @@ func _sync_selected_label_layout() -> void:
 	_selected_label.size = selected_label_source_rect.size * source_scale
 	_selected_label.set("horizontal_alignment", "left")
 	_selected_label.set("vertical_alignment", "center")
+	_selected_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_selected_label.z_index = 16
 
 
 func _sync_legacy_selected_label() -> void:
@@ -558,7 +597,7 @@ func _apply_item_runtime_states() -> void:
 		_set_button_pressed_no_signal(item, is_selected)
 		item.mouse_default_cursor_shape = Control.CURSOR_ARROW if item_disabled else Control.CURSOR_POINTING_HAND
 		_set_property_if_available(item, "semantic_state", _item_semantic_state(index) if item_status_states_enabled and not is_selected else "normal")
-		_set_property_if_available(item, "label_color", item_label_color)
+		_set_property_if_available(item, "label_color", selected_item_label_color if is_selected else item_label_color)
 		_set_property_if_available(item, "disabled_label_color", item_disabled_label_color)
 		item.queue_redraw()
 
