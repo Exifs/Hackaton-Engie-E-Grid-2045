@@ -1,0 +1,79 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/ui/game/e_grid_build_category.tscn" id="1_build_category"]
+
+[node name="EGridBuildPalette" type="PanelContainer"]
+custom_minimum_size = Vector2(296, 0)
+
+[node name="ContentMargin" type="MarginContainer" parent="."]
+layout_mode = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 8
+
+[node name="PaletteStack" type="VBoxContainer" parent="ContentMargin"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="HeaderRow" type="HBoxContainer" parent="ContentMargin/PaletteStack"]
+layout_mode = 2
+
+[node name="TitleLabel" type="Label" parent="ContentMargin/PaletteStack/HeaderRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "BUILD"
+
+[node name="CollapseButton" type="Button" parent="ContentMargin/PaletteStack/HeaderRow"]
+custom_minimum_size = Vector2(34, 0)
+layout_mode = 2
+text = "<<"
+
+[node name="EnergyCategory" parent="ContentMargin/PaletteStack" instance=ExtResource("1_build_category")]
+layout_mode = 2
+category_title = "ENERGY"
+tool_labels = PackedStringArray("Plant", "Wind", "Solar", "Battery")
+
+[node name="DatacentersCategory" parent="ContentMargin/PaletteStack" instance=ExtResource("1_build_category")]
+layout_mode = 2
+category_title = "DATACENTERS"
+tool_labels = PackedStringArray("Compute", "Server", "Storage", "AI")
+
+[node name="CoolingCategory" parent="ContentMargin/PaletteStack" instance=ExtResource("1_build_category")]
+layout_mode = 2
+category_title = "COOLING"
+tool_labels = PackedStringArray("Air", "Liquid", "Heat", "Water")
+
+[node name="ResearchCategory" parent="ContentMargin/PaletteStack" instance=ExtResource("1_build_category")]
+layout_mode = 2
+category_title = "RESEARCH"
+tool_labels = PackedStringArray("Lab", "Uni", "Chips", "Policy")
+
+[node name="GridNetworkCategory" parent="ContentMargin/PaletteStack" instance=ExtResource("1_build_category")]
+layout_mode = 2
+category_title = "GRID & NETWORK"
+tool_labels = PackedStringArray("Line", "Node", "HVDC", "Monitor")
+
+[node name="OverlayPanel" type="VBoxContainer" parent="ContentMargin/PaletteStack"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 6
+
+[node name="OverlayTitleLabel" type="Label" parent="ContentMargin/PaletteStack/OverlayPanel"]
+layout_mode = 2
+text = "NETWORK OVERLAY"
+
+[node name="PowerFlowCheck" type="CheckButton" parent="ContentMargin/PaletteStack/OverlayPanel"]
+layout_mode = 2
+text = "Power flow"
+button_pressed = true
+
+[node name="DataFlowCheck" type="CheckButton" parent="ContentMargin/PaletteStack/OverlayPanel"]
+layout_mode = 2
+text = "Data flow"
+button_pressed = true
+
+[node name="CongestionCheck" type="CheckButton" parent="ContentMargin/PaletteStack/OverlayPanel"]
+layout_mode = 2
+text = "Congestion"
+button_pressed = true

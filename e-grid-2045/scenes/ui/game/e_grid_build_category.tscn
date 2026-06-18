@@ -1,0 +1,18 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/game/e_grid_build_category.gd" id="1_build_category"]
+
+[node name="EGridBuildCategory" type="VBoxContainer"]
+custom_minimum_size = Vector2(0, 96)
+theme_override_constants/separation = 6
+script = ExtResource("1_build_category")
+
+[node name="TitleLabel" type="Label" parent="."]
+layout_mode = 2
+text = "CATEGORY"
+
+[node name="SlotsGrid" type="GridContainer" parent="."]
+layout_mode = 2
+theme_override_constants/h_separation = 6
+theme_override_constants/v_separation = 6
+columns = 4

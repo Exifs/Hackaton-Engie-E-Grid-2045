@@ -1,0 +1,128 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/game/e_grid_game_top_bar.gd" id="1_top_bar"]
+
+[node name="EGridGameTopBar" type="PanelContainer"]
+custom_minimum_size = Vector2(0, 86)
+script = ExtResource("1_top_bar")
+
+[node name="ContentMargin" type="MarginContainer" parent="."]
+layout_mode = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 8
+
+[node name="MainRow" type="HBoxContainer" parent="ContentMargin"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="BrandBlock" type="VBoxContainer" parent="ContentMargin/MainRow"]
+custom_minimum_size = Vector2(280, 0)
+layout_mode = 2
+theme_override_constants/separation = 2
+
+[node name="TitleLabel" type="Label" parent="ContentMargin/MainRow/BrandBlock"]
+layout_mode = 2
+text = "E-GRID 2045"
+clip_text = true
+
+[node name="SubtitleLabel" type="Label" parent="ContentMargin/MainRow/BrandBlock"]
+layout_mode = 2
+text = "BUILD. OPTIMIZE. POWER EUROPE."
+clip_text = true
+
+[node name="AgiBlock" type="VBoxContainer" parent="ContentMargin/MainRow"]
+custom_minimum_size = Vector2(230, 0)
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="AgiTitleLabel" type="Label" parent="ContentMargin/MainRow/AgiBlock"]
+layout_mode = 2
+text = "AGI PROGRESS"
+
+[node name="EuropeProgressLabel" type="Label" parent="ContentMargin/MainRow/AgiBlock"]
+layout_mode = 2
+text = "EUROPE 62%"
+
+[node name="UsaProgressLabel" type="Label" parent="ContentMargin/MainRow/AgiBlock"]
+layout_mode = 2
+text = "USA 48%"
+
+[node name="BudgetBlock" type="VBoxContainer" parent="ContentMargin/MainRow"]
+custom_minimum_size = Vector2(160, 0)
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="BudgetTitleLabel" type="Label" parent="ContentMargin/MainRow/BudgetBlock"]
+layout_mode = 2
+text = "BUDGET"
+
+[node name="BudgetValueLabel" type="Label" parent="ContentMargin/MainRow/BudgetBlock"]
+layout_mode = 2
+text = "EUR 24.7B"
+
+[node name="BudgetDeltaLabel" type="Label" parent="ContentMargin/MainRow/BudgetBlock"]
+layout_mode = 2
+text = "+1.35B / DAY"
+
+[node name="DateBlock" type="VBoxContainer" parent="ContentMargin/MainRow"]
+custom_minimum_size = Vector2(160, 0)
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="DateTitleLabel" type="Label" parent="ContentMargin/MainRow/DateBlock"]
+layout_mode = 2
+text = "DATE"
+
+[node name="DateValueLabel" type="Label" parent="ContentMargin/MainRow/DateBlock"]
+layout_mode = 2
+text = "17 MAY 2045"
+
+[node name="WeekLabel" type="Label" parent="ContentMargin/MainRow/DateBlock"]
+layout_mode = 2
+text = "WEEK 20"
+
+[node name="Spacer" type="Control" parent="ContentMargin/MainRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="SpeedBlock" type="VBoxContainer" parent="ContentMargin/MainRow"]
+custom_minimum_size = Vector2(310, 0)
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="SpeedTitleLabel" type="Label" parent="ContentMargin/MainRow/SpeedBlock"]
+layout_mode = 2
+text = "SIMULATION SPEED"
+
+[node name="SpeedControls" type="HBoxContainer" parent="ContentMargin/MainRow/SpeedBlock"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="PauseButton" type="Button" parent="ContentMargin/MainRow/SpeedBlock/SpeedControls"]
+custom_minimum_size = Vector2(48, 0)
+layout_mode = 2
+text = "PAUSE"
+
+[node name="PlayButton" type="Button" parent="ContentMargin/MainRow/SpeedBlock/SpeedControls"]
+custom_minimum_size = Vector2(48, 0)
+layout_mode = 2
+text = "PLAY"
+
+[node name="FastButton" type="Button" parent="ContentMargin/MainRow/SpeedBlock/SpeedControls"]
+custom_minimum_size = Vector2(48, 0)
+layout_mode = 2
+text = "FAST"
+
+[node name="SpeedValueLabel" type="Label" parent="ContentMargin/MainRow/SpeedBlock/SpeedControls"]
+custom_minimum_size = Vector2(58, 0)
+layout_mode = 2
+text = "1.0x"
+vertical_alignment = 1
+horizontal_alignment = 1
+
+[node name="MenuButton" type="Button" parent="ContentMargin/MainRow"]
+custom_minimum_size = Vector2(64, 0)
+layout_mode = 2
+text = "MENU"

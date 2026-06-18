@@ -1,0 +1,54 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/game/e_grid_alert_bar.gd" id="1_alert_bar"]
+[ext_resource type="PackedScene" path="res://scenes/ui/game/e_grid_alert_item.tscn" id="2_alert_item"]
+
+[node name="EGridAlertBar" type="PanelContainer"]
+custom_minimum_size = Vector2(0, 76)
+script = ExtResource("1_alert_bar")
+
+[node name="ContentMargin" type="MarginContainer" parent="."]
+layout_mode = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 6
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 6
+
+[node name="AlertRow" type="HBoxContainer" parent="ContentMargin"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="AlertItems" type="HBoxContainer" parent="ContentMargin/AlertRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="PowerCongestionAlert" parent="ContentMargin/AlertRow/AlertItems" instance=ExtResource("2_alert_item")]
+layout_mode = 2
+title_text = "POWER CONGESTION"
+body_text = "Germany -> Austria"
+action_name = "power_congestion"
+
+[node name="CoolingWarningAlert" parent="ContentMargin/AlertRow/AlertItems" instance=ExtResource("2_alert_item")]
+layout_mode = 2
+title_text = "COOLING WARNING"
+body_text = "Low reserve in Italy"
+action_name = "cooling_warning"
+
+[node name="ResearchCompleteAlert" parent="ContentMargin/AlertRow/AlertItems" instance=ExtResource("2_alert_item")]
+layout_mode = 2
+title_text = "RESEARCH COMPLETE"
+body_text = "Advanced Liquid Cooling"
+action_text = "CLAIM"
+action_name = "research_complete"
+
+[node name="MarketUpdateAlert" parent="ContentMargin/AlertRow/AlertItems" instance=ExtResource("2_alert_item")]
+layout_mode = 2
+title_text = "MARKET UPDATE"
+body_text = "Battery prices decreased"
+action_name = "market_update"
+
+[node name="CollapseButton" type="Button" parent="ContentMargin/AlertRow"]
+custom_minimum_size = Vector2(44, 0)
+layout_mode = 2
+text = "V"
