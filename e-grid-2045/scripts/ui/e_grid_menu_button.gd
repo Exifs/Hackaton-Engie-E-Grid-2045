@@ -1,3 +1,4 @@
+@tool
 class_name EGridMenuButton
 extends Button
 
@@ -11,6 +12,7 @@ const BITMAP_CELL_H := 112.0
 
 @export var button_text := "BUTTON"
 @export var action_name := ""
+@export var fallback_label := ""
 @export_file("*.png") var spritesheet_path := DEFAULT_SPRITESHEET_PATH
 @export_file("*.png") var normal_font_atlas_path := DEFAULT_NORMAL_FONT_ATLAS_PATH
 @export_file("*.png") var active_font_atlas_path := DEFAULT_ACTIVE_FONT_ATLAS_PATH
@@ -24,7 +26,7 @@ var _normal_texture: Texture2D
 var _active_texture: Texture2D
 var _normal_font_atlas: Texture2D
 var _active_font_atlas: Texture2D
-var _text_layer
+var _text_layer: EGridMenuBitmapText
 
 
 func _ready() -> void:
@@ -32,10 +34,11 @@ func _ready() -> void:
 	flat = true
 	focus_mode = Control.FOCUS_ALL
 	mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	tooltip_text = get_display_label()
 	_install_empty_button_styles()
 	_load_sprite_frames()
 	_load_font_atlases()
-	_build_text_layer()
+	_setup_text_layer()
 
 	mouse_entered.connect(_request_redraw)
 	mouse_exited.connect(_request_redraw)
@@ -48,10 +51,17 @@ func _ready() -> void:
 
 func set_button_text(value: String) -> void:
 	button_text = value
-	tooltip_text = value
+	tooltip_text = get_display_label()
 	if _text_layer != null:
 		_text_layer.text = button_text
 	queue_redraw()
+
+
+func get_display_label() -> String:
+	if not fallback_label.strip_edges().is_empty():
+		return fallback_label
+
+	return button_text
 
 
 func _install_empty_button_styles() -> void:
@@ -63,10 +73,9 @@ func _install_empty_button_styles() -> void:
 
 
 func _load_sprite_frames() -> void:
-	var sheet := Image.new()
-	var error := sheet.load(spritesheet_path)
+	var sheet := load(spritesheet_path) as Texture2D
 
-	if error != OK:
+	if sheet == null:
 		push_error("Impossible de charger la spritesheet de bouton: %s" % spritesheet_path)
 		return
 
@@ -85,30 +94,35 @@ func _load_font_atlases() -> void:
 
 
 func _load_texture_from_png(path: String) -> Texture2D:
-	var image := Image.new()
-	var error := image.load(path)
+	var texture := load(path) as Texture2D
 
-	if error != OK:
+	if texture == null:
 		push_error("Impossible de charger la texture UI: %s" % path)
 		return null
 
-	return ImageTexture.create_from_image(image)
+	return texture
 
 
-func _create_frame_texture(sheet: Image, frame_index: int, frame_height: int) -> Texture2D:
-	var frame_rect := Rect2i(0, frame_index * frame_height, sheet.get_width(), frame_height)
-	var frame := sheet.get_region(frame_rect)
-	return ImageTexture.create_from_image(frame)
+func _create_frame_texture(sheet: Texture2D, frame_index: int, frame_height: int) -> Texture2D:
+	var frame := AtlasTexture.new()
+	frame.atlas = sheet
+	frame.region = Rect2(0, frame_index * frame_height, sheet.get_width(), frame_height)
+	return frame
 
 
-func _build_text_layer() -> void:
-	_text_layer = E_GRID_MENU_BITMAP_TEXT_SCRIPT.new()
-	_text_layer.name = "BitmapText"
+func _setup_text_layer() -> void:
+	_text_layer = get_node_or_null("BitmapText") as EGridMenuBitmapText
+
+	if _text_layer == null:
+		_text_layer = E_GRID_MENU_BITMAP_TEXT_SCRIPT.new()
+		_text_layer.name = "BitmapText"
+		add_child(_text_layer)
+
+	_text_layer.set_anchors_preset(Control.PRESET_TOP_LEFT)
 	_text_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_text_layer.text = button_text
 	_text_layer.center = true
 	_text_layer.letter_spacing = letter_spacing
-	add_child(_text_layer)
 	_update_text_layer()
 
 

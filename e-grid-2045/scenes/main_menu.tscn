@@ -1,6 +1,39 @@
 [gd_scene format=3 uid="uid://djhl4p278s61d"]
 
 [ext_resource type="Script" uid="uid://chjx4243iokxw" path="res://scripts/main_menu.gd" id="1_main_menu"]
+[ext_resource type="Texture2D" uid="uid://dy4gulnwlq48i" path="res://assets/ui/menu/menu_background.png" id="2_background"]
+[ext_resource type="PackedScene" uid="uid://b7xwxq7s44sxk" path="res://scenes/ui/e_grid_menu_button.tscn" id="3_menu_button"]
+[ext_resource type="PackedScene" uid="uid://dwxbgecgihb3c" path="res://scenes/ui/e_grid_menu_version_label.tscn" id="4_version_label"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_wu84c"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_8ln24"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_rtw2f"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_oa1go"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_tbmy8"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_jk1qb"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_5dd4i"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_lgwnu"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_flqon"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_rcqid"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_1ajci"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_7b55j"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_5pajh"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_j7ex8"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_a8gd2"]
 
 [node name="MainMenu" type="Control" unique_id=1992571628]
 layout_mode = 3
@@ -10,3 +43,112 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_main_menu")
+
+[node name="MenuArtboardAspect" type="AspectRatioContainer" parent="." unique_id=462331720]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+ratio = 1.7778958
+stretch_mode = 3
+
+[node name="MenuArtboard" type="Control" parent="MenuArtboardAspect" unique_id=1807010574]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="MenuImageBackground" type="TextureRect" parent="MenuArtboardAspect/MenuArtboard" unique_id=1302231855]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("2_background")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="MenuButtons" type="Control" parent="MenuArtboardAspect/MenuArtboard" unique_id=1611554295]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="PlayButton" parent="MenuArtboardAspect/MenuArtboard/MenuButtons" unique_id=981524685 instance=ExtResource("3_menu_button")]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.345
+anchor_top = 0.4015
+anchor_right = 0.655
+anchor_bottom = 0.5305
+offset_right = 0.0
+offset_bottom = 0.0
+tooltip_text = "LANCER LA PARTIE"
+theme_override_styles/normal = SubResource("StyleBoxEmpty_wu84c")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_8ln24")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_rtw2f")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_oa1go")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_tbmy8")
+flat = true
+button_text = "JOUER"
+action_name = "play"
+fallback_label = "LANCER LA PARTIE"
+
+[node name="SettingsButton" parent="MenuArtboardAspect/MenuArtboard/MenuButtons" unique_id=1624357926 instance=ExtResource("3_menu_button")]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.345
+anchor_top = 0.5275
+anchor_right = 0.655
+anchor_bottom = 0.6565
+offset_right = 0.0
+offset_bottom = 0.0
+tooltip_text = "PARAMETRES"
+theme_override_styles/normal = SubResource("StyleBoxEmpty_jk1qb")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_5dd4i")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_lgwnu")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_flqon")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_rcqid")
+flat = true
+button_text = "PARAMETRES"
+action_name = "settings"
+fallback_label = "PARAMETRES"
+
+[node name="QuitButton" parent="MenuArtboardAspect/MenuArtboard/MenuButtons" unique_id=1166678798 instance=ExtResource("3_menu_button")]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.345
+anchor_top = 0.6525
+anchor_right = 0.655
+anchor_bottom = 0.7815
+offset_right = 0.0
+offset_bottom = 0.0
+tooltip_text = "QUITTER"
+theme_override_styles/normal = SubResource("StyleBoxEmpty_1ajci")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_7b55j")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_5pajh")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_j7ex8")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_a8gd2")
+flat = true
+button_text = "QUITTER"
+action_name = "quit"
+fallback_label = "QUITTER"
+
+[node name="VersionLabel" parent="MenuArtboardAspect/MenuArtboard" unique_id=999740965 instance=ExtResource("4_version_label")]
+layout_mode = 1
+anchor_left = 0.0945
+anchor_top = 0.95600003
+anchor_right = 0.13900001
+anchor_bottom = 0.97900003
+offset_left = -0.15693665
+offset_top = -0.4000244
+offset_right = 0.6383209
+offset_bottom = -0.10003662
+display_text = "V0.0.1:001"
+font_size = 15
