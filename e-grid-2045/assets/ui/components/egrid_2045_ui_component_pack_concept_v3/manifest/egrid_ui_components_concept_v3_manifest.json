@@ -1,0 +1,1825 @@
+{
+  "name": "EGrid2045_UI_Components_Concept_Faithful_v3",
+  "version": "3.0.0",
+  "style_notes": [
+    "Derived from original concept frames: matte graphite panels, clipped corners, fine grey strokes, sparse cyan accents.",
+    "No baked text in production sprites; use dynamic labels / existing bitmap font in Godot.",
+    "Warning/critical states use orange/red edge + icon, not full repaint.",
+    "Sliders and progress bars are constrained to the thin status-bar language used in the concept inspector."
+  ],
+  "palette": {
+    "transparent": "#00000000",
+    "bg": "#050C0FFF",
+    "bg2": "#081115FF",
+    "panel": "#091317E8",
+    "panel2": "#0C171BEB",
+    "panel_inner": "#101E23D2",
+    "slot": "#0D1519DC",
+    "stroke": "#37484DBE",
+    "stroke_soft": "#27363AA0",
+    "stroke_dark": "#06090BDC",
+    "grid": "#283B3F4C",
+    "grid_soft": "#1D2D312A",
+    "text": "#E0E8E8FF",
+    "text_muted": "#89999CEB",
+    "text_dim": "#546467D2",
+    "cyan": "#1FD0E2FF",
+    "cyan2": "#2EB0D1FF",
+    "cyan_dim": "#146174D2",
+    "blue": "#42B9E6FF",
+    "green": "#4CE38AFF",
+    "green2": "#28A96BF0",
+    "orange": "#EE5824FF",
+    "orange_dim": "#9B4929E6",
+    "yellow": "#E9C046FF",
+    "red": "#CF3A30FF",
+    "purple": "#9369C8FF",
+    "white_soft": "#D2E0E2AA"
+  },
+  "components": {
+    "dropdown_field_states": {
+      "spritesheet": "spritesheets/dropdown_field_states.png",
+      "cell_size_px": [
+        340,
+        56
+      ],
+      "states": [
+        "normal",
+        "hover",
+        "focused",
+        "pressed",
+        "open",
+        "disabled",
+        "locked",
+        "warning",
+        "critical",
+        "success",
+        "info",
+        "readonly"
+      ],
+      "frames": [
+        {
+          "state": "normal",
+          "x": 0,
+          "y": 0,
+          "w": 340,
+          "h": 56,
+          "file": "sprites/dropdown_field_states/dropdown_field_states_00_normal.png"
+        },
+        {
+          "state": "hover",
+          "x": 340,
+          "y": 0,
+          "w": 340,
+          "h": 56,
+          "file": "sprites/dropdown_field_states/dropdown_field_states_01_hover.png"
+        },
+        {
+          "state": "focused",
+          "x": 680,
+          "y": 0,
+          "w": 340,
+          "h": 56,
+          "file": "sprites/dropdown_field_states/dropdown_field_states_02_focused.png"
+        },
+        {
+          "state": "pressed",
+          "x": 1020,
+          "y": 0,
+          "w": 340,
+          "h": 56,
+          "file": "sprites/dropdown_field_states/dropdown_field_states_03_pressed.png"
+        },
+        {
+          "state": "open",
+          "x": 1360,
+          "y": 0,
+          "w": 340,
+          "h": 56,
+          "file": "sprites/dropdown_field_states/dropdown_field_states_04_open.png"
+        },
+        {
+          "state": "disabled",
+          "x": 1700,
+          "y": 0,
+          "w": 340,
+          "h": 56,
+          "file": "sprites/dropdown_field_states/dropdown_field_states_05_disabled.png"
+        },
+        {
+          "state": "locked",
+          "x": 2040,
+          "y": 0,
+          "w": 340,
+          "h": 56,
+          "file": "sprites/dropdown_field_states/dropdown_field_states_06_locked.png"
+        },
+        {
+          "state": "warning",
+          "x": 2380,
+          "y": 0,
+          "w": 340,
+          "h": 56,
+          "file": "sprites/dropdown_field_states/dropdown_field_states_07_warning.png"
+        },
+        {
+          "state": "critical",
+          "x": 2720,
+          "y": 0,
+          "w": 340,
+          "h": 56,
+          "file": "sprites/dropdown_field_states/dropdown_field_states_08_critical.png"
+        },
+        {
+          "state": "success",
+          "x": 3060,
+          "y": 0,
+          "w": 340,
+          "h": 56,
+          "file": "sprites/dropdown_field_states/dropdown_field_states_09_success.png"
+        },
+        {
+          "state": "info",
+          "x": 3400,
+          "y": 0,
+          "w": 340,
+          "h": 56,
+          "file": "sprites/dropdown_field_states/dropdown_field_states_10_info.png"
+        },
+        {
+          "state": "readonly",
+          "x": 3740,
+          "y": 0,
+          "w": 340,
+          "h": 56,
+          "file": "sprites/dropdown_field_states/dropdown_field_states_11_readonly.png"
+        }
+      ],
+      "godot_import_hint": "Use as AtlasTexture frames or split by cell_size_px; keep text and values dynamic in Godot Control nodes."
+    },
+    "dropdown_open_states": {
+      "spritesheet": "spritesheets/dropdown_open_states.png",
+      "cell_size_px": [
+        340,
+        214
+      ],
+      "states": [
+        "open_default",
+        "open_hover_item",
+        "open_selected_focus",
+        "open_warning",
+        "open_disabled"
+      ],
+      "frames": [
+        {
+          "state": "open_default",
+          "x": 0,
+          "y": 0,
+          "w": 340,
+          "h": 214,
+          "file": "sprites/dropdown_open_states/dropdown_open_states_00_open_default.png"
+        },
+        {
+          "state": "open_hover_item",
+          "x": 340,
+          "y": 0,
+          "w": 340,
+          "h": 214,
+          "file": "sprites/dropdown_open_states/dropdown_open_states_01_open_hover_item.png"
+        },
+        {
+          "state": "open_selected_focus",
+          "x": 680,
+          "y": 0,
+          "w": 340,
+          "h": 214,
+          "file": "sprites/dropdown_open_states/dropdown_open_states_02_open_selected_focus.png"
+        },
+        {
+          "state": "open_warning",
+          "x": 1020,
+          "y": 0,
+          "w": 340,
+          "h": 214,
+          "file": "sprites/dropdown_open_states/dropdown_open_states_03_open_warning.png"
+        },
+        {
+          "state": "open_disabled",
+          "x": 1360,
+          "y": 0,
+          "w": 340,
+          "h": 214,
+          "file": "sprites/dropdown_open_states/dropdown_open_states_04_open_disabled.png"
+        }
+      ],
+      "godot_import_hint": "Use as AtlasTexture frames or split by cell_size_px; keep text and values dynamic in Godot Control nodes."
+    },
+    "list_item_states": {
+      "spritesheet": "spritesheets/list_item_states.png",
+      "cell_size_px": [
+        300,
+        36
+      ],
+      "states": [
+        "normal",
+        "hover",
+        "selected",
+        "disabled",
+        "warning",
+        "critical",
+        "success"
+      ],
+      "frames": [
+        {
+          "state": "normal",
+          "x": 0,
+          "y": 0,
+          "w": 300,
+          "h": 36,
+          "file": "sprites/list_item_states/list_item_states_00_normal.png"
+        },
+        {
+          "state": "hover",
+          "x": 300,
+          "y": 0,
+          "w": 300,
+          "h": 36,
+          "file": "sprites/list_item_states/list_item_states_01_hover.png"
+        },
+        {
+          "state": "selected",
+          "x": 600,
+          "y": 0,
+          "w": 300,
+          "h": 36,
+          "file": "sprites/list_item_states/list_item_states_02_selected.png"
+        },
+        {
+          "state": "disabled",
+          "x": 900,
+          "y": 0,
+          "w": 300,
+          "h": 36,
+          "file": "sprites/list_item_states/list_item_states_03_disabled.png"
+        },
+        {
+          "state": "warning",
+          "x": 1200,
+          "y": 0,
+          "w": 300,
+          "h": 36,
+          "file": "sprites/list_item_states/list_item_states_04_warning.png"
+        },
+        {
+          "state": "critical",
+          "x": 1500,
+          "y": 0,
+          "w": 300,
+          "h": 36,
+          "file": "sprites/list_item_states/list_item_states_05_critical.png"
+        },
+        {
+          "state": "success",
+          "x": 1800,
+          "y": 0,
+          "w": 300,
+          "h": 36,
+          "file": "sprites/list_item_states/list_item_states_06_success.png"
+        }
+      ],
+      "godot_import_hint": "Use as AtlasTexture frames or split by cell_size_px; keep text and values dynamic in Godot Control nodes."
+    },
+    "slider_horizontal_states": {
+      "spritesheet": "spritesheets/slider_horizontal_states.png",
+      "cell_size_px": [
+        340,
+        44
+      ],
+      "states": [
+        "value_0",
+        "value_25",
+        "value_50",
+        "value_75",
+        "value_100",
+        "hover_50",
+        "drag_75",
+        "focused_50",
+        "disabled_50",
+        "warning_65",
+        "critical_40"
+      ],
+      "frames": [
+        {
+          "state": "value_0",
+          "x": 0,
+          "y": 0,
+          "w": 340,
+          "h": 44,
+          "file": "sprites/slider_horizontal_states/slider_horizontal_states_00_value_0.png"
+        },
+        {
+          "state": "value_25",
+          "x": 340,
+          "y": 0,
+          "w": 340,
+          "h": 44,
+          "file": "sprites/slider_horizontal_states/slider_horizontal_states_01_value_25.png"
+        },
+        {
+          "state": "value_50",
+          "x": 680,
+          "y": 0,
+          "w": 340,
+          "h": 44,
+          "file": "sprites/slider_horizontal_states/slider_horizontal_states_02_value_50.png"
+        },
+        {
+          "state": "value_75",
+          "x": 1020,
+          "y": 0,
+          "w": 340,
+          "h": 44,
+          "file": "sprites/slider_horizontal_states/slider_horizontal_states_03_value_75.png"
+        },
+        {
+          "state": "value_100",
+          "x": 1360,
+          "y": 0,
+          "w": 340,
+          "h": 44,
+          "file": "sprites/slider_horizontal_states/slider_horizontal_states_04_value_100.png"
+        },
+        {
+          "state": "hover_50",
+          "x": 1700,
+          "y": 0,
+          "w": 340,
+          "h": 44,
+          "file": "sprites/slider_horizontal_states/slider_horizontal_states_05_hover_50.png"
+        },
+        {
+          "state": "drag_75",
+          "x": 2040,
+          "y": 0,
+          "w": 340,
+          "h": 44,
+          "file": "sprites/slider_horizontal_states/slider_horizontal_states_06_drag_75.png"
+        },
+        {
+          "state": "focused_50",
+          "x": 2380,
+          "y": 0,
+          "w": 340,
+          "h": 44,
+          "file": "sprites/slider_horizontal_states/slider_horizontal_states_07_focused_50.png"
+        },
+        {
+          "state": "disabled_50",
+          "x": 2720,
+          "y": 0,
+          "w": 340,
+          "h": 44,
+          "file": "sprites/slider_horizontal_states/slider_horizontal_states_08_disabled_50.png"
+        },
+        {
+          "state": "warning_65",
+          "x": 3060,
+          "y": 0,
+          "w": 340,
+          "h": 44,
+          "file": "sprites/slider_horizontal_states/slider_horizontal_states_09_warning_65.png"
+        },
+        {
+          "state": "critical_40",
+          "x": 3400,
+          "y": 0,
+          "w": 340,
+          "h": 44,
+          "file": "sprites/slider_horizontal_states/slider_horizontal_states_10_critical_40.png"
+        }
+      ],
+      "godot_import_hint": "Use as AtlasTexture frames or split by cell_size_px; keep text and values dynamic in Godot Control nodes."
+    },
+    "slider_vertical_states": {
+      "spritesheet": "spritesheets/slider_vertical_states.png",
+      "cell_size_px": [
+        54,
+        220
+      ],
+      "states": [
+        "value_0",
+        "value_25",
+        "value_50",
+        "value_75",
+        "value_100",
+        "disabled_50"
+      ],
+      "frames": [
+        {
+          "state": "value_0",
+          "x": 0,
+          "y": 0,
+          "w": 54,
+          "h": 220,
+          "file": "sprites/slider_vertical_states/slider_vertical_states_00_value_0.png"
+        },
+        {
+          "state": "value_25",
+          "x": 54,
+          "y": 0,
+          "w": 54,
+          "h": 220,
+          "file": "sprites/slider_vertical_states/slider_vertical_states_01_value_25.png"
+        },
+        {
+          "state": "value_50",
+          "x": 108,
+          "y": 0,
+          "w": 54,
+          "h": 220,
+          "file": "sprites/slider_vertical_states/slider_vertical_states_02_value_50.png"
+        },
+        {
+          "state": "value_75",
+          "x": 162,
+          "y": 0,
+          "w": 54,
+          "h": 220,
+          "file": "sprites/slider_vertical_states/slider_vertical_states_03_value_75.png"
+        },
+        {
+          "state": "value_100",
+          "x": 216,
+          "y": 0,
+          "w": 54,
+          "h": 220,
+          "file": "sprites/slider_vertical_states/slider_vertical_states_04_value_100.png"
+        },
+        {
+          "state": "disabled_50",
+          "x": 270,
+          "y": 0,
+          "w": 54,
+          "h": 220,
+          "file": "sprites/slider_vertical_states/slider_vertical_states_05_disabled_50.png"
+        }
+      ],
+      "godot_import_hint": "Use as AtlasTexture frames or split by cell_size_px; keep text and values dynamic in Godot Control nodes."
+    },
+    "progress_bar_states": {
+      "spritesheet": "spritesheets/progress_bar_states.png",
+      "cell_size_px": [
+        340,
+        36
+      ],
+      "states": [
+        "empty_0",
+        "energy_25",
+        "cooling_50",
+        "energy_75",
+        "energy_92",
+        "success_100",
+        "warning_63",
+        "critical_35",
+        "compute_81",
+        "indeterminate",
+        "disabled_50"
+      ],
+      "frames": [
+        {
+          "state": "empty_0",
+          "x": 0,
+          "y": 0,
+          "w": 340,
+          "h": 36,
+          "file": "sprites/progress_bar_states/progress_bar_states_00_empty_0.png"
+        },
+        {
+          "state": "energy_25",
+          "x": 340,
+          "y": 0,
+          "w": 340,
+          "h": 36,
+          "file": "sprites/progress_bar_states/progress_bar_states_01_energy_25.png"
+        },
+        {
+          "state": "cooling_50",
+          "x": 680,
+          "y": 0,
+          "w": 340,
+          "h": 36,
+          "file": "sprites/progress_bar_states/progress_bar_states_02_cooling_50.png"
+        },
+        {
+          "state": "energy_75",
+          "x": 1020,
+          "y": 0,
+          "w": 340,
+          "h": 36,
+          "file": "sprites/progress_bar_states/progress_bar_states_03_energy_75.png"
+        },
+        {
+          "state": "energy_92",
+          "x": 1360,
+          "y": 0,
+          "w": 340,
+          "h": 36,
+          "file": "sprites/progress_bar_states/progress_bar_states_04_energy_92.png"
+        },
+        {
+          "state": "success_100",
+          "x": 1700,
+          "y": 0,
+          "w": 340,
+          "h": 36,
+          "file": "sprites/progress_bar_states/progress_bar_states_05_success_100.png"
+        },
+        {
+          "state": "warning_63",
+          "x": 2040,
+          "y": 0,
+          "w": 340,
+          "h": 36,
+          "file": "sprites/progress_bar_states/progress_bar_states_06_warning_63.png"
+        },
+        {
+          "state": "critical_35",
+          "x": 2380,
+          "y": 0,
+          "w": 340,
+          "h": 36,
+          "file": "sprites/progress_bar_states/progress_bar_states_07_critical_35.png"
+        },
+        {
+          "state": "compute_81",
+          "x": 2720,
+          "y": 0,
+          "w": 340,
+          "h": 36,
+          "file": "sprites/progress_bar_states/progress_bar_states_08_compute_81.png"
+        },
+        {
+          "state": "indeterminate",
+          "x": 3060,
+          "y": 0,
+          "w": 340,
+          "h": 36,
+          "file": "sprites/progress_bar_states/progress_bar_states_09_indeterminate.png"
+        },
+        {
+          "state": "disabled_50",
+          "x": 3400,
+          "y": 0,
+          "w": 340,
+          "h": 36,
+          "file": "sprites/progress_bar_states/progress_bar_states_10_disabled_50.png"
+        }
+      ],
+      "godot_import_hint": "Use as AtlasTexture frames or split by cell_size_px; keep text and values dynamic in Godot Control nodes."
+    },
+    "progress_ring_states": {
+      "spritesheet": "spritesheets/progress_ring_states.png",
+      "cell_size_px": [
+        68,
+        68
+      ],
+      "states": [
+        "construction_0",
+        "construction_25",
+        "construction_50",
+        "construction_75",
+        "success_100",
+        "warning_50",
+        "critical_25",
+        "locked_0",
+        "disabled_0"
+      ],
+      "frames": [
+        {
+          "state": "construction_0",
+          "x": 0,
+          "y": 0,
+          "w": 68,
+          "h": 68,
+          "file": "sprites/progress_ring_states/progress_ring_states_00_construction_0.png"
+        },
+        {
+          "state": "construction_25",
+          "x": 68,
+          "y": 0,
+          "w": 68,
+          "h": 68,
+          "file": "sprites/progress_ring_states/progress_ring_states_01_construction_25.png"
+        },
+        {
+          "state": "construction_50",
+          "x": 136,
+          "y": 0,
+          "w": 68,
+          "h": 68,
+          "file": "sprites/progress_ring_states/progress_ring_states_02_construction_50.png"
+        },
+        {
+          "state": "construction_75",
+          "x": 204,
+          "y": 0,
+          "w": 68,
+          "h": 68,
+          "file": "sprites/progress_ring_states/progress_ring_states_03_construction_75.png"
+        },
+        {
+          "state": "success_100",
+          "x": 272,
+          "y": 0,
+          "w": 68,
+          "h": 68,
+          "file": "sprites/progress_ring_states/progress_ring_states_04_success_100.png"
+        },
+        {
+          "state": "warning_50",
+          "x": 340,
+          "y": 0,
+          "w": 68,
+          "h": 68,
+          "file": "sprites/progress_ring_states/progress_ring_states_05_warning_50.png"
+        },
+        {
+          "state": "critical_25",
+          "x": 408,
+          "y": 0,
+          "w": 68,
+          "h": 68,
+          "file": "sprites/progress_ring_states/progress_ring_states_06_critical_25.png"
+        },
+        {
+          "state": "locked_0",
+          "x": 476,
+          "y": 0,
+          "w": 68,
+          "h": 68,
+          "file": "sprites/progress_ring_states/progress_ring_states_07_locked_0.png"
+        },
+        {
+          "state": "disabled_0",
+          "x": 544,
+          "y": 0,
+          "w": 68,
+          "h": 68,
+          "file": "sprites/progress_ring_states/progress_ring_states_08_disabled_0.png"
+        }
+      ],
+      "godot_import_hint": "Use as AtlasTexture frames or split by cell_size_px; keep text and values dynamic in Godot Control nodes."
+    },
+    "checkbox_states": {
+      "spritesheet": "spritesheets/checkbox_states.png",
+      "cell_size_px": [
+        38,
+        38
+      ],
+      "states": [
+        "unchecked",
+        "hover",
+        "checked",
+        "checked_hover",
+        "indeterminate",
+        "disabled",
+        "warning",
+        "error"
+      ],
+      "frames": [
+        {
+          "state": "unchecked",
+          "x": 0,
+          "y": 0,
+          "w": 38,
+          "h": 38,
+          "file": "sprites/checkbox_states/checkbox_states_00_unchecked.png"
+        },
+        {
+          "state": "hover",
+          "x": 38,
+          "y": 0,
+          "w": 38,
+          "h": 38,
+          "file": "sprites/checkbox_states/checkbox_states_01_hover.png"
+        },
+        {
+          "state": "checked",
+          "x": 76,
+          "y": 0,
+          "w": 38,
+          "h": 38,
+          "file": "sprites/checkbox_states/checkbox_states_02_checked.png"
+        },
+        {
+          "state": "checked_hover",
+          "x": 114,
+          "y": 0,
+          "w": 38,
+          "h": 38,
+          "file": "sprites/checkbox_states/checkbox_states_03_checked_hover.png"
+        },
+        {
+          "state": "indeterminate",
+          "x": 152,
+          "y": 0,
+          "w": 38,
+          "h": 38,
+          "file": "sprites/checkbox_states/checkbox_states_04_indeterminate.png"
+        },
+        {
+          "state": "disabled",
+          "x": 190,
+          "y": 0,
+          "w": 38,
+          "h": 38,
+          "file": "sprites/checkbox_states/checkbox_states_05_disabled.png"
+        },
+        {
+          "state": "warning",
+          "x": 228,
+          "y": 0,
+          "w": 38,
+          "h": 38,
+          "file": "sprites/checkbox_states/checkbox_states_06_warning.png"
+        },
+        {
+          "state": "error",
+          "x": 266,
+          "y": 0,
+          "w": 38,
+          "h": 38,
+          "file": "sprites/checkbox_states/checkbox_states_07_error.png"
+        }
+      ],
+      "godot_import_hint": "Use as AtlasTexture frames or split by cell_size_px; keep text and values dynamic in Godot Control nodes."
+    },
+    "radio_states": {
+      "spritesheet": "spritesheets/radio_states.png",
+      "cell_size_px": [
+        38,
+        38
+      ],
+      "states": [
+        "off",
+        "hover",
+        "on",
+        "on_hover",
+        "disabled",
+        "warning",
+        "error"
+      ],
+      "frames": [
+        {
+          "state": "off",
+          "x": 0,
+          "y": 0,
+          "w": 38,
+          "h": 38,
+          "file": "sprites/radio_states/radio_states_00_off.png"
+        },
+        {
+          "state": "hover",
+          "x": 38,
+          "y": 0,
+          "w": 38,
+          "h": 38,
+          "file": "sprites/radio_states/radio_states_01_hover.png"
+        },
+        {
+          "state": "on",
+          "x": 76,
+          "y": 0,
+          "w": 38,
+          "h": 38,
+          "file": "sprites/radio_states/radio_states_02_on.png"
+        },
+        {
+          "state": "on_hover",
+          "x": 114,
+          "y": 0,
+          "w": 38,
+          "h": 38,
+          "file": "sprites/radio_states/radio_states_03_on_hover.png"
+        },
+        {
+          "state": "disabled",
+          "x": 152,
+          "y": 0,
+          "w": 38,
+          "h": 38,
+          "file": "sprites/radio_states/radio_states_04_disabled.png"
+        },
+        {
+          "state": "warning",
+          "x": 190,
+          "y": 0,
+          "w": 38,
+          "h": 38,
+          "file": "sprites/radio_states/radio_states_05_warning.png"
+        },
+        {
+          "state": "error",
+          "x": 228,
+          "y": 0,
+          "w": 38,
+          "h": 38,
+          "file": "sprites/radio_states/radio_states_06_error.png"
+        }
+      ],
+      "godot_import_hint": "Use as AtlasTexture frames or split by cell_size_px; keep text and values dynamic in Godot Control nodes."
+    },
+    "toggle_states": {
+      "spritesheet": "spritesheets/toggle_states.png",
+      "cell_size_px": [
+        76,
+        32
+      ],
+      "states": [
+        "off",
+        "off_hover",
+        "on",
+        "on_hover",
+        "disabled",
+        "warning_off",
+        "critical_on"
+      ],
+      "frames": [
+        {
+          "state": "off",
+          "x": 0,
+          "y": 0,
+          "w": 76,
+          "h": 32,
+          "file": "sprites/toggle_states/toggle_states_00_off.png"
+        },
+        {
+          "state": "off_hover",
+          "x": 76,
+          "y": 0,
+          "w": 76,
+          "h": 32,
+          "file": "sprites/toggle_states/toggle_states_01_off_hover.png"
+        },
+        {
+          "state": "on",
+          "x": 152,
+          "y": 0,
+          "w": 76,
+          "h": 32,
+          "file": "sprites/toggle_states/toggle_states_02_on.png"
+        },
+        {
+          "state": "on_hover",
+          "x": 228,
+          "y": 0,
+          "w": 76,
+          "h": 32,
+          "file": "sprites/toggle_states/toggle_states_03_on_hover.png"
+        },
+        {
+          "state": "disabled",
+          "x": 304,
+          "y": 0,
+          "w": 76,
+          "h": 32,
+          "file": "sprites/toggle_states/toggle_states_04_disabled.png"
+        },
+        {
+          "state": "warning_off",
+          "x": 380,
+          "y": 0,
+          "w": 76,
+          "h": 32,
+          "file": "sprites/toggle_states/toggle_states_05_warning_off.png"
+        },
+        {
+          "state": "critical_on",
+          "x": 456,
+          "y": 0,
+          "w": 76,
+          "h": 32,
+          "file": "sprites/toggle_states/toggle_states_06_critical_on.png"
+        }
+      ],
+      "godot_import_hint": "Use as AtlasTexture frames or split by cell_size_px; keep text and values dynamic in Godot Control nodes."
+    },
+    "tab_states": {
+      "spritesheet": "spritesheets/tab_states.png",
+      "cell_size_px": [
+        126,
+        40
+      ],
+      "states": [
+        "normal",
+        "hover",
+        "selected",
+        "disabled",
+        "warning",
+        "critical"
+      ],
+      "frames": [
+        {
+          "state": "normal",
+          "x": 0,
+          "y": 0,
+          "w": 126,
+          "h": 40,
+          "file": "sprites/tab_states/tab_states_00_normal.png"
+        },
+        {
+          "state": "hover",
+          "x": 126,
+          "y": 0,
+          "w": 126,
+          "h": 40,
+          "file": "sprites/tab_states/tab_states_01_hover.png"
+        },
+        {
+          "state": "selected",
+          "x": 252,
+          "y": 0,
+          "w": 126,
+          "h": 40,
+          "file": "sprites/tab_states/tab_states_02_selected.png"
+        },
+        {
+          "state": "disabled",
+          "x": 378,
+          "y": 0,
+          "w": 126,
+          "h": 40,
+          "file": "sprites/tab_states/tab_states_03_disabled.png"
+        },
+        {
+          "state": "warning",
+          "x": 504,
+          "y": 0,
+          "w": 126,
+          "h": 40,
+          "file": "sprites/tab_states/tab_states_04_warning.png"
+        },
+        {
+          "state": "critical",
+          "x": 630,
+          "y": 0,
+          "w": 126,
+          "h": 40,
+          "file": "sprites/tab_states/tab_states_05_critical.png"
+        }
+      ],
+      "godot_import_hint": "Use as AtlasTexture frames or split by cell_size_px; keep text and values dynamic in Godot Control nodes."
+    },
+    "input_field_states": {
+      "spritesheet": "spritesheets/input_field_states.png",
+      "cell_size_px": [
+        340,
+        48
+      ],
+      "states": [
+        "normal",
+        "hover",
+        "focused",
+        "disabled",
+        "warning",
+        "error",
+        "readonly",
+        "success"
+      ],
+      "frames": [
+        {
+          "state": "normal",
+          "x": 0,
+          "y": 0,
+          "w": 340,
+          "h": 48,
+          "file": "sprites/input_field_states/input_field_states_00_normal.png"
+        },
+        {
+          "state": "hover",
+          "x": 340,
+          "y": 0,
+          "w": 340,
+          "h": 48,
+          "file": "sprites/input_field_states/input_field_states_01_hover.png"
+        },
+        {
+          "state": "focused",
+          "x": 680,
+          "y": 0,
+          "w": 340,
+          "h": 48,
+          "file": "sprites/input_field_states/input_field_states_02_focused.png"
+        },
+        {
+          "state": "disabled",
+          "x": 1020,
+          "y": 0,
+          "w": 340,
+          "h": 48,
+          "file": "sprites/input_field_states/input_field_states_03_disabled.png"
+        },
+        {
+          "state": "warning",
+          "x": 1360,
+          "y": 0,
+          "w": 340,
+          "h": 48,
+          "file": "sprites/input_field_states/input_field_states_04_warning.png"
+        },
+        {
+          "state": "error",
+          "x": 1700,
+          "y": 0,
+          "w": 340,
+          "h": 48,
+          "file": "sprites/input_field_states/input_field_states_05_error.png"
+        },
+        {
+          "state": "readonly",
+          "x": 2040,
+          "y": 0,
+          "w": 340,
+          "h": 48,
+          "file": "sprites/input_field_states/input_field_states_06_readonly.png"
+        },
+        {
+          "state": "success",
+          "x": 2380,
+          "y": 0,
+          "w": 340,
+          "h": 48,
+          "file": "sprites/input_field_states/input_field_states_07_success.png"
+        }
+      ],
+      "godot_import_hint": "Use as AtlasTexture frames or split by cell_size_px; keep text and values dynamic in Godot Control nodes."
+    },
+    "scrollbar_vertical_states": {
+      "spritesheet": "spritesheets/scrollbar_vertical_states.png",
+      "cell_size_px": [
+        28,
+        180
+      ],
+      "states": [
+        "normal",
+        "hover",
+        "active",
+        "disabled"
+      ],
+      "frames": [
+        {
+          "state": "normal",
+          "x": 0,
+          "y": 0,
+          "w": 28,
+          "h": 180,
+          "file": "sprites/scrollbar_vertical_states/scrollbar_vertical_states_00_normal.png"
+        },
+        {
+          "state": "hover",
+          "x": 28,
+          "y": 0,
+          "w": 28,
+          "h": 180,
+          "file": "sprites/scrollbar_vertical_states/scrollbar_vertical_states_01_hover.png"
+        },
+        {
+          "state": "active",
+          "x": 56,
+          "y": 0,
+          "w": 28,
+          "h": 180,
+          "file": "sprites/scrollbar_vertical_states/scrollbar_vertical_states_02_active.png"
+        },
+        {
+          "state": "disabled",
+          "x": 84,
+          "y": 0,
+          "w": 28,
+          "h": 180,
+          "file": "sprites/scrollbar_vertical_states/scrollbar_vertical_states_03_disabled.png"
+        }
+      ],
+      "godot_import_hint": "Use as AtlasTexture frames or split by cell_size_px; keep text and values dynamic in Godot Control nodes."
+    },
+    "scrollbar_horizontal_states": {
+      "spritesheet": "spritesheets/scrollbar_horizontal_states.png",
+      "cell_size_px": [
+        260,
+        28
+      ],
+      "states": [
+        "normal",
+        "hover",
+        "active",
+        "disabled"
+      ],
+      "frames": [
+        {
+          "state": "normal",
+          "x": 0,
+          "y": 0,
+          "w": 260,
+          "h": 28,
+          "file": "sprites/scrollbar_horizontal_states/scrollbar_horizontal_states_00_normal.png"
+        },
+        {
+          "state": "hover",
+          "x": 260,
+          "y": 0,
+          "w": 260,
+          "h": 28,
+          "file": "sprites/scrollbar_horizontal_states/scrollbar_horizontal_states_01_hover.png"
+        },
+        {
+          "state": "active",
+          "x": 520,
+          "y": 0,
+          "w": 260,
+          "h": 28,
+          "file": "sprites/scrollbar_horizontal_states/scrollbar_horizontal_states_02_active.png"
+        },
+        {
+          "state": "disabled",
+          "x": 780,
+          "y": 0,
+          "w": 260,
+          "h": 28,
+          "file": "sprites/scrollbar_horizontal_states/scrollbar_horizontal_states_03_disabled.png"
+        }
+      ],
+      "godot_import_hint": "Use as AtlasTexture frames or split by cell_size_px; keep text and values dynamic in Godot Control nodes."
+    },
+    "icon_button_states": {
+      "spritesheet": "spritesheets/icon_button_states.png",
+      "cell_size_px": [
+        68,
+        68
+      ],
+      "states": [
+        "energy_normal",
+        "energy_hover",
+        "energy_selected",
+        "datacenter_selected",
+        "cooling_selected",
+        "research_selected",
+        "grid_selected",
+        "disabled",
+        "locked",
+        "warning",
+        "critical"
+      ],
+      "frames": [
+        {
+          "state": "energy_normal",
+          "x": 0,
+          "y": 0,
+          "w": 68,
+          "h": 68,
+          "file": "sprites/icon_button_states/icon_button_states_00_energy_normal.png"
+        },
+        {
+          "state": "energy_hover",
+          "x": 68,
+          "y": 0,
+          "w": 68,
+          "h": 68,
+          "file": "sprites/icon_button_states/icon_button_states_01_energy_hover.png"
+        },
+        {
+          "state": "energy_selected",
+          "x": 136,
+          "y": 0,
+          "w": 68,
+          "h": 68,
+          "file": "sprites/icon_button_states/icon_button_states_02_energy_selected.png"
+        },
+        {
+          "state": "datacenter_selected",
+          "x": 204,
+          "y": 0,
+          "w": 68,
+          "h": 68,
+          "file": "sprites/icon_button_states/icon_button_states_03_datacenter_selected.png"
+        },
+        {
+          "state": "cooling_selected",
+          "x": 272,
+          "y": 0,
+          "w": 68,
+          "h": 68,
+          "file": "sprites/icon_button_states/icon_button_states_04_cooling_selected.png"
+        },
+        {
+          "state": "research_selected",
+          "x": 340,
+          "y": 0,
+          "w": 68,
+          "h": 68,
+          "file": "sprites/icon_button_states/icon_button_states_05_research_selected.png"
+        },
+        {
+          "state": "grid_selected",
+          "x": 408,
+          "y": 0,
+          "w": 68,
+          "h": 68,
+          "file": "sprites/icon_button_states/icon_button_states_06_grid_selected.png"
+        },
+        {
+          "state": "disabled",
+          "x": 476,
+          "y": 0,
+          "w": 68,
+          "h": 68,
+          "file": "sprites/icon_button_states/icon_button_states_07_disabled.png"
+        },
+        {
+          "state": "locked",
+          "x": 544,
+          "y": 0,
+          "w": 68,
+          "h": 68,
+          "file": "sprites/icon_button_states/icon_button_states_08_locked.png"
+        },
+        {
+          "state": "warning",
+          "x": 612,
+          "y": 0,
+          "w": 68,
+          "h": 68,
+          "file": "sprites/icon_button_states/icon_button_states_09_warning.png"
+        },
+        {
+          "state": "critical",
+          "x": 680,
+          "y": 0,
+          "w": 68,
+          "h": 68,
+          "file": "sprites/icon_button_states/icon_button_states_10_critical.png"
+        }
+      ],
+      "godot_import_hint": "Use as AtlasTexture frames or split by cell_size_px; keep text and values dynamic in Godot Control nodes."
+    },
+    "slot_card_states": {
+      "spritesheet": "spritesheets/slot_card_states.png",
+      "cell_size_px": [
+        86,
+        86
+      ],
+      "states": [
+        "empty",
+        "occupied",
+        "selected",
+        "constructing_25",
+        "constructing_50",
+        "constructing_75",
+        "missing_energy",
+        "missing_cooling",
+        "locked",
+        "disabled",
+        "warning",
+        "critical"
+      ],
+      "frames": [
+        {
+          "state": "empty",
+          "x": 0,
+          "y": 0,
+          "w": 86,
+          "h": 86,
+          "file": "sprites/slot_card_states/slot_card_states_00_empty.png"
+        },
+        {
+          "state": "occupied",
+          "x": 86,
+          "y": 0,
+          "w": 86,
+          "h": 86,
+          "file": "sprites/slot_card_states/slot_card_states_01_occupied.png"
+        },
+        {
+          "state": "selected",
+          "x": 172,
+          "y": 0,
+          "w": 86,
+          "h": 86,
+          "file": "sprites/slot_card_states/slot_card_states_02_selected.png"
+        },
+        {
+          "state": "constructing_25",
+          "x": 258,
+          "y": 0,
+          "w": 86,
+          "h": 86,
+          "file": "sprites/slot_card_states/slot_card_states_03_constructing_25.png"
+        },
+        {
+          "state": "constructing_50",
+          "x": 344,
+          "y": 0,
+          "w": 86,
+          "h": 86,
+          "file": "sprites/slot_card_states/slot_card_states_04_constructing_50.png"
+        },
+        {
+          "state": "constructing_75",
+          "x": 430,
+          "y": 0,
+          "w": 86,
+          "h": 86,
+          "file": "sprites/slot_card_states/slot_card_states_05_constructing_75.png"
+        },
+        {
+          "state": "missing_energy",
+          "x": 516,
+          "y": 0,
+          "w": 86,
+          "h": 86,
+          "file": "sprites/slot_card_states/slot_card_states_06_missing_energy.png"
+        },
+        {
+          "state": "missing_cooling",
+          "x": 602,
+          "y": 0,
+          "w": 86,
+          "h": 86,
+          "file": "sprites/slot_card_states/slot_card_states_07_missing_cooling.png"
+        },
+        {
+          "state": "locked",
+          "x": 688,
+          "y": 0,
+          "w": 86,
+          "h": 86,
+          "file": "sprites/slot_card_states/slot_card_states_08_locked.png"
+        },
+        {
+          "state": "disabled",
+          "x": 774,
+          "y": 0,
+          "w": 86,
+          "h": 86,
+          "file": "sprites/slot_card_states/slot_card_states_09_disabled.png"
+        },
+        {
+          "state": "warning",
+          "x": 860,
+          "y": 0,
+          "w": 86,
+          "h": 86,
+          "file": "sprites/slot_card_states/slot_card_states_10_warning.png"
+        },
+        {
+          "state": "critical",
+          "x": 946,
+          "y": 0,
+          "w": 86,
+          "h": 86,
+          "file": "sprites/slot_card_states/slot_card_states_11_critical.png"
+        }
+      ],
+      "godot_import_hint": "Use as AtlasTexture frames or split by cell_size_px; keep text and values dynamic in Godot Control nodes."
+    },
+    "resource_chip_states": {
+      "spritesheet": "spritesheets/resource_chip_states.png",
+      "cell_size_px": [
+        154,
+        44
+      ],
+      "states": [
+        "energy",
+        "cooling",
+        "compute",
+        "co2_warning",
+        "money",
+        "research",
+        "usa_warning",
+        "energy_critical",
+        "disabled"
+      ],
+      "frames": [
+        {
+          "state": "energy",
+          "x": 0,
+          "y": 0,
+          "w": 154,
+          "h": 44,
+          "file": "sprites/resource_chip_states/resource_chip_states_00_energy.png"
+        },
+        {
+          "state": "cooling",
+          "x": 154,
+          "y": 0,
+          "w": 154,
+          "h": 44,
+          "file": "sprites/resource_chip_states/resource_chip_states_01_cooling.png"
+        },
+        {
+          "state": "compute",
+          "x": 308,
+          "y": 0,
+          "w": 154,
+          "h": 44,
+          "file": "sprites/resource_chip_states/resource_chip_states_02_compute.png"
+        },
+        {
+          "state": "co2_warning",
+          "x": 462,
+          "y": 0,
+          "w": 154,
+          "h": 44,
+          "file": "sprites/resource_chip_states/resource_chip_states_03_co2_warning.png"
+        },
+        {
+          "state": "money",
+          "x": 616,
+          "y": 0,
+          "w": 154,
+          "h": 44,
+          "file": "sprites/resource_chip_states/resource_chip_states_04_money.png"
+        },
+        {
+          "state": "research",
+          "x": 770,
+          "y": 0,
+          "w": 154,
+          "h": 44,
+          "file": "sprites/resource_chip_states/resource_chip_states_05_research.png"
+        },
+        {
+          "state": "usa_warning",
+          "x": 924,
+          "y": 0,
+          "w": 154,
+          "h": 44,
+          "file": "sprites/resource_chip_states/resource_chip_states_06_usa_warning.png"
+        },
+        {
+          "state": "energy_critical",
+          "x": 1078,
+          "y": 0,
+          "w": 154,
+          "h": 44,
+          "file": "sprites/resource_chip_states/resource_chip_states_07_energy_critical.png"
+        },
+        {
+          "state": "disabled",
+          "x": 1232,
+          "y": 0,
+          "w": 154,
+          "h": 44,
+          "file": "sprites/resource_chip_states/resource_chip_states_08_disabled.png"
+        }
+      ],
+      "godot_import_hint": "Use as AtlasTexture frames or split by cell_size_px; keep text and values dynamic in Godot Control nodes."
+    },
+    "alert_toast_states": {
+      "spritesheet": "spritesheets/alert_toast_states.png",
+      "cell_size_px": [
+        340,
+        68
+      ],
+      "states": [
+        "power_warning",
+        "critical",
+        "cooling_warning",
+        "research_success",
+        "market_info",
+        "disabled"
+      ],
+      "frames": [
+        {
+          "state": "power_warning",
+          "x": 0,
+          "y": 0,
+          "w": 340,
+          "h": 68,
+          "file": "sprites/alert_toast_states/alert_toast_states_00_power_warning.png"
+        },
+        {
+          "state": "critical",
+          "x": 340,
+          "y": 0,
+          "w": 340,
+          "h": 68,
+          "file": "sprites/alert_toast_states/alert_toast_states_01_critical.png"
+        },
+        {
+          "state": "cooling_warning",
+          "x": 680,
+          "y": 0,
+          "w": 340,
+          "h": 68,
+          "file": "sprites/alert_toast_states/alert_toast_states_02_cooling_warning.png"
+        },
+        {
+          "state": "research_success",
+          "x": 1020,
+          "y": 0,
+          "w": 340,
+          "h": 68,
+          "file": "sprites/alert_toast_states/alert_toast_states_03_research_success.png"
+        },
+        {
+          "state": "market_info",
+          "x": 1360,
+          "y": 0,
+          "w": 340,
+          "h": 68,
+          "file": "sprites/alert_toast_states/alert_toast_states_04_market_info.png"
+        },
+        {
+          "state": "disabled",
+          "x": 1700,
+          "y": 0,
+          "w": 340,
+          "h": 68,
+          "file": "sprites/alert_toast_states/alert_toast_states_05_disabled.png"
+        }
+      ],
+      "godot_import_hint": "Use as AtlasTexture frames or split by cell_size_px; keep text and values dynamic in Godot Control nodes."
+    },
+    "panel_states": {
+      "spritesheet": "spritesheets/panel_states.png",
+      "cell_size_px": [
+        400,
+        260
+      ],
+      "states": [
+        "panel",
+        "focused_panel",
+        "warning_panel",
+        "critical_panel",
+        "disabled_panel"
+      ],
+      "frames": [
+        {
+          "state": "panel",
+          "x": 0,
+          "y": 0,
+          "w": 400,
+          "h": 260,
+          "file": "sprites/panel_states/panel_states_00_panel.png"
+        },
+        {
+          "state": "focused_panel",
+          "x": 400,
+          "y": 0,
+          "w": 400,
+          "h": 260,
+          "file": "sprites/panel_states/panel_states_01_focused_panel.png"
+        },
+        {
+          "state": "warning_panel",
+          "x": 800,
+          "y": 0,
+          "w": 400,
+          "h": 260,
+          "file": "sprites/panel_states/panel_states_02_warning_panel.png"
+        },
+        {
+          "state": "critical_panel",
+          "x": 1200,
+          "y": 0,
+          "w": 400,
+          "h": 260,
+          "file": "sprites/panel_states/panel_states_03_critical_panel.png"
+        },
+        {
+          "state": "disabled_panel",
+          "x": 1600,
+          "y": 0,
+          "w": 400,
+          "h": 260,
+          "file": "sprites/panel_states/panel_states_04_disabled_panel.png"
+        }
+      ],
+      "godot_import_hint": "Use as AtlasTexture frames or split by cell_size_px; keep text and values dynamic in Godot Control nodes."
+    },
+    "tooltip_states": {
+      "spritesheet": "spritesheets/tooltip_states.png",
+      "cell_size_px": [
+        220,
+        74
+      ],
+      "states": [
+        "info",
+        "warning",
+        "critical",
+        "success"
+      ],
+      "frames": [
+        {
+          "state": "info",
+          "x": 0,
+          "y": 0,
+          "w": 220,
+          "h": 74,
+          "file": "sprites/tooltip_states/tooltip_states_00_info.png"
+        },
+        {
+          "state": "warning",
+          "x": 220,
+          "y": 0,
+          "w": 220,
+          "h": 74,
+          "file": "sprites/tooltip_states/tooltip_states_01_warning.png"
+        },
+        {
+          "state": "critical",
+          "x": 440,
+          "y": 0,
+          "w": 220,
+          "h": 74,
+          "file": "sprites/tooltip_states/tooltip_states_02_critical.png"
+        },
+        {
+          "state": "success",
+          "x": 660,
+          "y": 0,
+          "w": 220,
+          "h": 74,
+          "file": "sprites/tooltip_states/tooltip_states_03_success.png"
+        }
+      ],
+      "godot_import_hint": "Use as AtlasTexture frames or split by cell_size_px; keep text and values dynamic in Godot Control nodes."
+    },
+    "mini_button_states": {
+      "spritesheet": "spritesheets/mini_button_states.png",
+      "cell_size_px": [
+        58,
+        32
+      ],
+      "states": [
+        "normal",
+        "hover",
+        "pressed",
+        "disabled",
+        "warning",
+        "critical"
+      ],
+      "frames": [
+        {
+          "state": "normal",
+          "x": 0,
+          "y": 0,
+          "w": 58,
+          "h": 32,
+          "file": "sprites/mini_button_states/mini_button_states_00_normal.png"
+        },
+        {
+          "state": "hover",
+          "x": 58,
+          "y": 0,
+          "w": 58,
+          "h": 32,
+          "file": "sprites/mini_button_states/mini_button_states_01_hover.png"
+        },
+        {
+          "state": "pressed",
+          "x": 116,
+          "y": 0,
+          "w": 58,
+          "h": 32,
+          "file": "sprites/mini_button_states/mini_button_states_02_pressed.png"
+        },
+        {
+          "state": "disabled",
+          "x": 174,
+          "y": 0,
+          "w": 58,
+          "h": 32,
+          "file": "sprites/mini_button_states/mini_button_states_03_disabled.png"
+        },
+        {
+          "state": "warning",
+          "x": 232,
+          "y": 0,
+          "w": 58,
+          "h": 32,
+          "file": "sprites/mini_button_states/mini_button_states_04_warning.png"
+        },
+        {
+          "state": "critical",
+          "x": 290,
+          "y": 0,
+          "w": 58,
+          "h": 32,
+          "file": "sprites/mini_button_states/mini_button_states_05_critical.png"
+        }
+      ],
+      "godot_import_hint": "Use as AtlasTexture frames or split by cell_size_px; keep text and values dynamic in Godot Control nodes."
+    },
+    "utility_icons_48px": {
+      "spritesheet": "spritesheets/utility_icons_48px.png",
+      "cell_size_px": [
+        48,
+        48
+      ],
+      "states": [
+        "energy",
+        "datacenter",
+        "cooling",
+        "research",
+        "grid",
+        "snow",
+        "battery",
+        "compute",
+        "gas",
+        "money",
+        "science"
+      ],
+      "frames": [
+        {
+          "state": "energy",
+          "x": 0,
+          "y": 0,
+          "w": 48,
+          "h": 48,
+          "file": "sprites/utility_icons_48px/00_energy.png"
+        },
+        {
+          "state": "datacenter",
+          "x": 48,
+          "y": 0,
+          "w": 48,
+          "h": 48,
+          "file": "sprites/utility_icons_48px/01_datacenter.png"
+        },
+        {
+          "state": "cooling",
+          "x": 96,
+          "y": 0,
+          "w": 48,
+          "h": 48,
+          "file": "sprites/utility_icons_48px/02_cooling.png"
+        },
+        {
+          "state": "research",
+          "x": 144,
+          "y": 0,
+          "w": 48,
+          "h": 48,
+          "file": "sprites/utility_icons_48px/03_research.png"
+        },
+        {
+          "state": "grid",
+          "x": 192,
+          "y": 0,
+          "w": 48,
+          "h": 48,
+          "file": "sprites/utility_icons_48px/04_grid.png"
+        },
+        {
+          "state": "snow",
+          "x": 240,
+          "y": 0,
+          "w": 48,
+          "h": 48,
+          "file": "sprites/utility_icons_48px/05_snow.png"
+        },
+        {
+          "state": "battery",
+          "x": 288,
+          "y": 0,
+          "w": 48,
+          "h": 48,
+          "file": "sprites/utility_icons_48px/06_battery.png"
+        },
+        {
+          "state": "compute",
+          "x": 336,
+          "y": 0,
+          "w": 48,
+          "h": 48,
+          "file": "sprites/utility_icons_48px/07_compute.png"
+        },
+        {
+          "state": "gas",
+          "x": 384,
+          "y": 0,
+          "w": 48,
+          "h": 48,
+          "file": "sprites/utility_icons_48px/08_gas.png"
+        },
+        {
+          "state": "money",
+          "x": 432,
+          "y": 0,
+          "w": 48,
+          "h": 48,
+          "file": "sprites/utility_icons_48px/09_money.png"
+        },
+        {
+          "state": "science",
+          "x": 480,
+          "y": 0,
+          "w": 48,
+          "h": 48,
+          "file": "sprites/utility_icons_48px/10_science.png"
+        }
+      ]
+    }
+  }
+}

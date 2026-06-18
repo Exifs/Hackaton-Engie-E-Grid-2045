@@ -1,0 +1,25 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/components/e_grid_sprite_slider.gd" id="1_slider"]
+
+[node name="EGridHorizontalSlider" type="Control"]
+custom_minimum_size = Vector2(340, 44)
+size_flags_horizontal = 0
+size_flags_vertical = 0
+offset_right = 340.0
+offset_bottom = 44.0
+script = ExtResource("1_slider")
+orientation = "horizontal"
+slider_value = 64.0
+visual_steps = 40
+
+[node name="ValueLabel" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = -18.0
+grow_horizontal = 2
+grow_vertical = 2
+horizontal_alignment = 2
+vertical_alignment = 1

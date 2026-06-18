@@ -1,0 +1,85 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/components/e_grid_dropdown.gd" id="1_dropdown"]
+[ext_resource type="Script" path="res://scripts/ui/components/e_grid_dropdown_popup_panel.gd" id="2_popup"]
+[ext_resource type="PackedScene" path="res://scenes/ui/components/e_grid_dropdown_item.tscn" id="3_item"]
+
+[node name="EGridDropdown" type="Control"]
+custom_minimum_size = Vector2(340, 56)
+size_flags_horizontal = 0
+size_flags_vertical = 0
+offset_right = 340.0
+offset_bottom = 56.0
+script = ExtResource("1_dropdown")
+options = PackedStringArray("Energy", "Cooling", "Compute", "Storage")
+item_scene = ExtResource("3_item")
+
+[node name="FieldTexture" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="SelectedLabel" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 18.0
+offset_right = -48.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "Energy"
+vertical_alignment = 1
+
+[node name="ArrowLabel" type="Label" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 11
+anchor_left = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -42.0
+offset_right = -16.0
+grow_horizontal = 0
+grow_vertical = 2
+text = "v"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Hotspot" type="Button" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="OpenPanel" type="Control" parent="."]
+visible = false
+z_index = 20
+clip_contents = true
+custom_minimum_size = Vector2(340, 214)
+layout_mode = 0
+offset_top = 56.0
+offset_right = 340.0
+offset_bottom = 270.0
+scale = Vector2(1, 0.01)
+modulate = Color(1, 1, 1, 0)
+script = ExtResource("2_popup")
+
+[node name="Scroll" type="ScrollContainer" parent="OpenPanel"]
+layout_mode = 0
+offset_left = 16.0
+offset_top = 16.0
+offset_right = 324.0
+offset_bottom = 196.0
+
+[node name="Items" type="VBoxContainer" parent="OpenPanel/Scroll"]
+layout_mode = 2
+size_flags_horizontal = 0
+theme_override_constants/separation = 3
