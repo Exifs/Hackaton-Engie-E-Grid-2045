@@ -137,6 +137,24 @@ static func is_remappable(action_name: String) -> bool:
 	return bool(definition.get(ACTION_REMAP_ENABLED, true))
 
 
+static func get_action_label(action_name: String) -> String:
+	var definition := get_definition(action_name)
+
+	if definition.is_empty():
+		return action_name
+
+	return str(definition.get(ACTION_LABEL, action_name))
+
+
+static func get_action_category(action_name: String) -> String:
+	var definition := get_definition(action_name)
+
+	if definition.is_empty():
+		return ""
+
+	return str(definition.get(ACTION_CATEGORY, ""))
+
+
 static func get_default_keycodes(action_name: String) -> Array:
 	var definition := get_definition(action_name)
 

@@ -75,20 +75,25 @@ static func set_action_events(action_name: String, events: Array, persist := fal
 	return OK
 
 
-static func would_conflict(action_name: String, event: InputEvent) -> bool:
-	return not get_conflicting_actions(action_name, event).is_empty()
+static func would_conflict(action_name: String, event: InputEvent, same_category_only := true) -> bool:
+	return not get_conflicting_actions(action_name, event, same_category_only).is_empty()
 
 
-static func get_conflicting_actions(action_name: String, event: InputEvent) -> PackedStringArray:
+static func get_conflicting_actions(action_name: String, event: InputEvent, same_category_only := true) -> PackedStringArray:
 	var conflicts := PackedStringArray()
 
 	if event == null:
 		return conflicts
 
+	var source_category := INPUT_ACTIONS.get_action_category(action_name)
+
 	for definition in INPUT_ACTIONS.get_remappable_definitions():
 		var candidate_action := str(definition[INPUT_ACTIONS.ACTION_NAME])
 
 		if candidate_action == action_name:
+			continue
+
+		if same_category_only and str(definition.get(INPUT_ACTIONS.ACTION_CATEGORY, "")) != source_category:
 			continue
 
 		if InputMap.has_action(candidate_action) and InputMap.event_is_action(event, candidate_action, true):
