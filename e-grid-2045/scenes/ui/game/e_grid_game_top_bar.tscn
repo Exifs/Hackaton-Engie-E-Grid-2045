@@ -1,10 +1,13 @@
-[gd_scene load_steps=14 format=3]
+[gd_scene load_steps=17 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/game/e_grid_game_top_bar.gd" id="1_top_bar"]
 [ext_resource type="PackedScene" path="res://scenes/ui/components/e_grid_panel.tscn" id="2_panel"]
 [ext_resource type="PackedScene" path="res://scenes/ui/components/e_grid_progress_ring.tscn" id="3_progress_ring"]
 [ext_resource type="PackedScene" path="res://scenes/ui/components/e_grid_mini_button.tscn" id="4_mini_button"]
 [ext_resource type="Script" path="res://scripts/ui/components/e_grid_component_bitmap_text.gd" id="5_component_bitmap_text"]
+[ext_resource type="PackedScene" path="res://scenes/ui/components/e_grid_time_button.tscn" id="6_time_button"]
+[ext_resource type="PackedScene" path="res://scenes/ui/components/e_grid_time_readout.tscn" id="7_time_readout"]
+[ext_resource type="Script" path="res://scripts/ui/game/e_grid_top_bar_chrome.gd" id="8_top_chrome"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_title"]
 font_size = 28
@@ -56,6 +59,16 @@ grow_vertical = 2
 mouse_filter = 2
 fit_to_source_size = false
 stretch_to_bounds = true
+
+[node name="SegmentChrome" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("8_top_chrome")
 
 [node name="ContentMargin" type="MarginContainer" parent="."]
 layout_mode = 1
@@ -305,46 +318,39 @@ label_settings = SubResource("LabelSettings_section")
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="PauseButton" parent="ContentMargin/MainRow/SpeedSegment/SpeedBlock/SpeedControls" instance=ExtResource("4_mini_button")]
+[node name="PauseButton" parent="ContentMargin/MainRow/SpeedSegment/SpeedBlock/SpeedControls" instance=ExtResource("6_time_button")]
 custom_minimum_size = Vector2(48, 30)
 layout_mode = 2
 toggle_mode = true
+icon_kind = "pause"
 label_text = "II"
-selected_state = "pressed"
-selected_hover_state = "pressed"
 
-[node name="PlayButton" parent="ContentMargin/MainRow/SpeedSegment/SpeedBlock/SpeedControls" instance=ExtResource("4_mini_button")]
+[node name="PlayButton" parent="ContentMargin/MainRow/SpeedSegment/SpeedBlock/SpeedControls" instance=ExtResource("6_time_button")]
 custom_minimum_size = Vector2(48, 30)
 layout_mode = 2
 toggle_mode = true
 button_pressed = true
+icon_kind = "play"
 label_text = ">"
-selected_state = "pressed"
-selected_hover_state = "pressed"
 
-[node name="FastButton" parent="ContentMargin/MainRow/SpeedSegment/SpeedBlock/SpeedControls" instance=ExtResource("4_mini_button")]
+[node name="FastButton" parent="ContentMargin/MainRow/SpeedSegment/SpeedBlock/SpeedControls" instance=ExtResource("6_time_button")]
 custom_minimum_size = Vector2(48, 30)
 layout_mode = 2
 toggle_mode = true
+icon_kind = "fast"
 label_text = ">>"
-selected_state = "pressed"
-selected_hover_state = "pressed"
 
-[node name="FasterButton" parent="ContentMargin/MainRow/SpeedSegment/SpeedBlock/SpeedControls" instance=ExtResource("4_mini_button")]
+[node name="FasterButton" parent="ContentMargin/MainRow/SpeedSegment/SpeedBlock/SpeedControls" instance=ExtResource("6_time_button")]
 custom_minimum_size = Vector2(48, 30)
 layout_mode = 2
 toggle_mode = true
+icon_kind = "faster"
 label_text = ">>>"
-selected_state = "pressed"
-selected_hover_state = "pressed"
 
-[node name="SpeedValueLabel" type="Label" parent="ContentMargin/MainRow/SpeedSegment/SpeedBlock/SpeedControls"]
-custom_minimum_size = Vector2(58, 30)
+[node name="SpeedValueLabel" parent="ContentMargin/MainRow/SpeedSegment/SpeedBlock/SpeedControls" instance=ExtResource("7_time_readout")]
+custom_minimum_size = Vector2(72, 30)
 layout_mode = 2
-text = "1.0x"
-label_settings = SubResource("LabelSettings_meta")
-vertical_alignment = 1
-horizontal_alignment = 1
+label_text = "1.0x"
 
 [node name="DividerSpeed" type="ColorRect" parent="ContentMargin/MainRow"]
 custom_minimum_size = Vector2(1, 64)

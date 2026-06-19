@@ -112,7 +112,11 @@ func _sync_collapsed_state() -> void:
 
 	var alert_items := get_node_or_null(alert_container_path) as Control
 	if alert_items != null:
-		alert_items.visible = not collapsed
+		alert_items.visible = true
+		alert_items.mouse_filter = Control.MOUSE_FILTER_IGNORE if collapsed else Control.MOUSE_FILTER_PASS
+		for child in alert_items.get_children():
+			if child is CanvasItem:
+				(child as CanvasItem).visible = not collapsed
 
 	var count_label := get_node_or_null("ContentMargin/AlertRow/AlertCountLabel") as Control
 	if count_label != null:

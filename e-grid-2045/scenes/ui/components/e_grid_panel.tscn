@@ -14,4 +14,5 @@ state_name = "panel"
 nine_slice_enabled = true
 nine_slice_margins = Vector4(24, 24, 24, 24)
 nine_slice_tile_inner_regions = true
-nine_slice_inner_fill_color = Color(0.0627451, 0.117647, 0.137255, 0.46)
+nine_slice_inner_fill_color = Color(0.0509804, 0.105882, 0.12549, 0.66)
+panel_chrome_enabled = true
