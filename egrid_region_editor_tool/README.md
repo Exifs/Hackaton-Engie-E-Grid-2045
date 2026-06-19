@@ -7,6 +7,7 @@ Le package contient :
 - `tools/region_editor/region_shape_editor.html` : éditeur visuel léger, utilise les assets du package.
 - `tools/region_editor/region_shape_editor_standalone.html` : variante autonome qui embarque aussi l’image de fond.
 - `tools/map_regions/apply_region_editor_export.py` : script d'intégration pour convertir l'export de l'éditeur en assets Godot.
+- `tools/map_regions/sync_region_layout_from_contours.py` : script de synchronisation hors runtime des positions de marqueurs depuis les centroïdes de polygones.
 - `assets/map/europe_map_backdrop_generated_clean_v1.png` : fond de carte utilisé par l'éditeur.
 - `assets/map/region_ids.json` : source des 30 IDs, slugs et noms.
 - `assets/map/generated/regions_contours.json` : première passe de contours utilisée comme point de départ.
@@ -79,6 +80,17 @@ assets/map/regions_master_template.svg
 ```
 
 Le mask est dessiné sans antialiasing : les pixels contiennent uniquement les IDs entiers 0..30.
+
+Synchroniser ensuite les points "capitales" du layout Godot depuis les centroïdes des polygones :
+
+```bash
+python tools/map_regions/sync_region_layout_from_contours.py \
+  --contours assets/map/generated/regions_contours.json \
+  --layout-in ../e-grid-2045/data/region_layout.json \
+  --json-out ../e-grid-2045/data/region_layout.json
+```
+
+Le calcul reste ainsi dans le pipeline d'assets : au runtime, la scène de jeu lit simplement les coordonnées normalisées déjà écrites.
 
 Relancer ensuite la validation existante :
 
