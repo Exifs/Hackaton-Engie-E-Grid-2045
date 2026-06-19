@@ -90,6 +90,21 @@ Le workflow `.github/workflows/godot-release.yml` se déclenche à chaque tag. A
 
 Le site est publié sur GitHub Pages via `actions/upload-pages-artifact@v4` et `actions/deploy-pages@v5`.
 
+### Configuration Pages et environnement
+
+La source `GitHub Actions` dans `Settings -> Pages` active les workflows Pages, mais l’environnement `github-pages` peut encore limiter les branches ou tags autorisés à déployer.
+
+Pour un déploiement déclenché par tag :
+
+1. Aller dans `Settings -> Environments -> github-pages`.
+2. Dans `Deployment branches and tags`, choisir `No restriction` ou `Selected branches and tags`.
+3. Avec `Selected branches and tags`, ajouter une règle `Ref type = Tag` avec le motif `v*`.
+4. Retirer ou valider les règles d’approbation si les tags doivent publier sans intervention manuelle.
+
+Le workflow peut aussi créer automatiquement la règle de tag `v*` quand l’identifiant d’administration du dépôt est fourni dans les secrets de l’action.
+
+Après déploiement, le workflow ajoute l’URL du site aux notes de release et tente de mettre à jour le champ **Website** du dépôt avec l’URL retournée par `actions/deploy-pages`.
+
 ## Notes
 
 - Aucun framework ni dépendance externe.
