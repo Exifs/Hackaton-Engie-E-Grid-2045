@@ -91,14 +91,17 @@ func _validate_panel_backgrounds(game_scene: Control) -> void:
 	var top_bar := game_scene.get_node_or_null("SafeArea/Root/TopBar") as Control
 	var build_owner := game_scene.get_node_or_null("SafeArea/Root/MainRow/BuildPalette") as Control
 	var region_owner := game_scene.get_node_or_null("SafeArea/Root/MainRow/RegionPanel") as Control
+	var alert_owner := game_scene.get_node_or_null("SafeArea/Root/AlertBar") as Control
 	var top_panel := game_scene.get_node_or_null("SafeArea/Root/TopBar/BackgroundPanel") as Control
 	var build_panel := game_scene.get_node_or_null("SafeArea/Root/MainRow/BuildPalette/BackgroundPanel") as Control
 	var region_panel := game_scene.get_node_or_null("SafeArea/Root/MainRow/RegionPanel/BackgroundPanel") as Control
+	var alert_panel := game_scene.get_node_or_null("SafeArea/Root/AlertBar/BackgroundPanel") as Control
 
 	for entry in [
 		{"label": "top bar", "node": top_panel, "owner": top_bar},
 		{"label": "build palette", "node": build_panel, "owner": build_owner},
 		{"label": "region panel", "node": region_panel, "owner": region_owner},
+		{"label": "alert bar", "node": alert_panel, "owner": alert_owner},
 	]:
 		var panel := entry["node"] as Control
 		if panel == null:
@@ -117,6 +120,49 @@ func _validate_panel_backgrounds(game_scene: Control) -> void:
 		var owner := entry["owner"] as Control
 		if owner != null and panel.get_global_rect().size.x < owner.get_global_rect().size.x - 1.0:
 			_failures.append("%s background does not cover its owner width." % entry["label"])
+
+	_validate_panel_edge_chrome(game_scene)
+
+
+func _validate_panel_edge_chrome(game_scene: Control) -> void:
+	for entry in [
+		{
+			"label": "build palette",
+			"owner": game_scene.get_node_or_null("SafeArea/Root/MainRow/BuildPalette"),
+			"background": game_scene.get_node_or_null("SafeArea/Root/MainRow/BuildPalette/BackgroundPanel"),
+			"chrome": game_scene.get_node_or_null("SafeArea/Root/MainRow/BuildPalette/OuterChrome"),
+			"content": game_scene.get_node_or_null("SafeArea/Root/MainRow/BuildPalette/ContentMargin"),
+		},
+		{
+			"label": "alert bar",
+			"owner": game_scene.get_node_or_null("SafeArea/Root/AlertBar"),
+			"background": game_scene.get_node_or_null("SafeArea/Root/AlertBar/BackgroundPanel"),
+			"chrome": game_scene.get_node_or_null("SafeArea/Root/AlertBar/OuterChrome"),
+			"content": game_scene.get_node_or_null("SafeArea/Root/AlertBar/ContentMargin"),
+		},
+	]:
+		var owner := entry["owner"] as Control
+		var background := entry["background"] as Control
+		var chrome := entry["chrome"] as Control
+		var content := entry["content"] as Control
+		var label := str(entry["label"])
+		if owner == null or background == null or content == null:
+			_failures.append("%s panel edge chrome cannot be validated because required nodes are missing." % label)
+			continue
+		if chrome == null:
+			_failures.append("%s panel should expose an OuterChrome border overlay." % label)
+			continue
+
+		var owner_rect := owner.get_global_rect()
+		var chrome_rect := chrome.get_global_rect()
+		if chrome_rect.size.x < owner_rect.size.x - 1.0 or chrome_rect.size.y < owner_rect.size.y - 1.0:
+			_failures.append("%s OuterChrome should cover the full panel bounds." % label)
+		if chrome.get_index() <= background.get_index():
+			_failures.append("%s OuterChrome should render above the background panel." % label)
+		if chrome.get_index() >= content.get_index():
+			_failures.append("%s OuterChrome should stay below content controls." % label)
+		if chrome.mouse_filter != Control.MOUSE_FILTER_IGNORE:
+			_failures.append("%s OuterChrome should not intercept panel input." % label)
 
 
 func _validate_menu_button(game_scene: Control) -> void:
@@ -820,6 +866,16 @@ func _restore_capture_state(game_scene: Control) -> void:
 	var region_panel := game_scene.get_node_or_null("SafeArea/Root/MainRow/RegionPanel") as Control
 	if region_panel != null:
 		region_panel.set("active_tab", "overview")
+	_hide_tutorial_overlay(game_scene)
+
+
+func _hide_tutorial_overlay(game_scene: Control) -> void:
+	var overlay := game_scene.find_child("TutorialOverlay", true, false) as Control
+	if overlay == null:
+		return
+
+	overlay.hide()
+	overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 
 func _validate_top_bar_pixels() -> void:

@@ -1,9 +1,10 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/game/e_grid_alert_bar.gd" id="1_alert_bar"]
 [ext_resource type="PackedScene" path="res://scenes/ui/game/e_grid_alert_item.tscn" id="2_alert_item"]
 [ext_resource type="PackedScene" path="res://scenes/ui/components/e_grid_panel.tscn" id="3_panel"]
 [ext_resource type="PackedScene" path="res://scenes/ui/components/e_grid_chevron_button.tscn" id="4_chevron_button"]
+[ext_resource type="Script" path="res://scripts/ui/game/e_grid_panel_outer_chrome.gd" id="5_outer_chrome"]
 
 [node name="EGridAlertBar" type="Control"]
 custom_minimum_size = Vector2(0, 96)
@@ -21,6 +22,16 @@ grow_vertical = 2
 mouse_filter = 2
 fit_to_source_size = false
 stretch_to_bounds = true
+
+[node name="OuterChrome" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("5_outer_chrome")
 
 [node name="ContentMargin" type="MarginContainer" parent="."]
 layout_mode = 1

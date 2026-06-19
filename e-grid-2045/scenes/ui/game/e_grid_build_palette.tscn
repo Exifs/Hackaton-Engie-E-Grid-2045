@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3]
+[gd_scene load_steps=10 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/ui/game/e_grid_build_category.tscn" id="1_build_category"]
 [ext_resource type="PackedScene" path="res://scenes/ui/components/e_grid_panel.tscn" id="2_panel"]
@@ -6,6 +6,7 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/game/e_grid_grid_overview.tscn" id="4_grid_overview"]
 [ext_resource type="Script" path="res://scripts/ui/game/e_grid_build_palette.gd" id="5_build_palette"]
 [ext_resource type="PackedScene" path="res://scenes/ui/components/e_grid_checkbox.tscn" id="6_checkbox"]
+[ext_resource type="Script" path="res://scripts/ui/game/e_grid_panel_outer_chrome.gd" id="7_outer_chrome"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_title"]
 font_size = 16
@@ -30,6 +31,16 @@ grow_vertical = 2
 mouse_filter = 2
 fit_to_source_size = false
 stretch_to_bounds = true
+
+[node name="OuterChrome" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("7_outer_chrome")
 
 [node name="ContentMargin" type="MarginContainer" parent="."]
 layout_mode = 1
