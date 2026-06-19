@@ -1,5 +1,10 @@
 ﻿extends SceneTree
 
+const DATA_LOADER := preload("res://scripts/simulation/DataLoader.gd")
+const E_GRID_MAP_ASSETS := preload("res://scripts/ui/game/e_grid_map_assets.gd")
+const E_GRID_RUNTIME_TEXTURE_LOADER := preload("res://scripts/ui/components/e_grid_runtime_texture_loader.gd")
+const E_GRID_UI_ATLAS := preload("res://scripts/ui/components/e_grid_ui_atlas.gd")
+
 const GAME_SCENE := "res://scenes/game/game_scene.tscn"
 const MAX_PICK_TEST_USEC := 250000
 const MAX_PROCESSING_NODES := 6
@@ -41,7 +46,7 @@ func _init() -> void:
 		return
 
 	print("E-Grid UI performance smoke test passed. pick_usec=%d processing=%s" % [elapsed_usec, ", ".join(processing_nodes)])
-	quit(0)
+	await _finish(0)
 
 
 func _benchmark_map_picking(map_view: Control) -> int:
@@ -76,3 +81,18 @@ func _collect_processing_nodes_recursive(node: Node, result: PackedStringArray) 
 func _fail(message: String) -> void:
 	push_error(message)
 	quit(1)
+
+
+func _finish(exit_code: int) -> void:
+	if current_scene != null and is_instance_valid(current_scene):
+		current_scene.queue_free()
+		current_scene = null
+		await process_frame
+		await process_frame
+
+	E_GRID_MAP_ASSETS.clear_cache_for_tests()
+	DATA_LOADER.clear_cache_for_tests()
+	E_GRID_RUNTIME_TEXTURE_LOADER.clear_cache_for_tests()
+	E_GRID_UI_ATLAS.clear_cache_for_tests()
+	await process_frame
+	quit(exit_code)

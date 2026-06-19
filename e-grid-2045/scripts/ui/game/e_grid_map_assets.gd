@@ -26,6 +26,10 @@ static func load_cached(backdrop_path: String, contours_path: String, mask_path:
 	return assets
 
 
+static func clear_cache_for_tests() -> void:
+	_asset_cache.clear()
+
+
 func load_from_paths(backdrop_path: String, contours_path: String, mask_path: String) -> RefCounted:
 	backdrop_texture = E_GRID_RUNTIME_TEXTURE_LOADER.load_texture(backdrop_path)
 	_load_mask(mask_path)

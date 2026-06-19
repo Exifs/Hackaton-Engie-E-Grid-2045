@@ -40,6 +40,38 @@ static func change_scene(owner: Node, scene_path: String, loading_text := "CHARG
 	return tree.change_scene_to_packed(packed_scene)
 
 
+static func change_scene_to_node(owner: Node, prepared_scene: Node, loading_text := "CHARGEMENT") -> int:
+	if owner == null or owner.get_tree() == null:
+		return ERR_UNCONFIGURED
+
+	if prepared_scene == null or not is_instance_valid(prepared_scene):
+		return ERR_INVALID_PARAMETER
+
+	var tree := owner.get_tree()
+	var previous_scene := tree.current_scene
+	var overlay := _create_loading_overlay(owner, loading_text)
+	await tree.process_frame
+	_update_loading_overlay(overlay, 1.0)
+
+	var prepared_parent := prepared_scene.get_parent()
+	if prepared_parent != null:
+		prepared_parent.remove_child(prepared_scene)
+
+	if prepared_scene is CanvasItem:
+		(prepared_scene as CanvasItem).show()
+	prepared_scene.process_mode = Node.PROCESS_MODE_INHERIT
+
+	tree.root.add_child(prepared_scene)
+	tree.current_scene = prepared_scene
+
+	if previous_scene != null and is_instance_valid(previous_scene) and previous_scene != prepared_scene:
+		previous_scene.queue_free()
+	else:
+		_free_overlay(overlay)
+
+	return OK
+
+
 static func _create_loading_overlay(owner: Node, loading_text: String) -> Control:
 	var overlay := Control.new()
 	overlay.name = "EGridLoadingOverlay"

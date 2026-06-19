@@ -7,6 +7,10 @@ const DATA_ROOT := "res://data/"
 static var _game_data_cache: Dictionary = {}
 
 
+static func clear_cache_for_tests() -> void:
+	_game_data_cache.clear()
+
+
 func load_game_data() -> Dictionary:
 	if not _game_data_cache.is_empty():
 		return _game_data_cache.duplicate(true)
