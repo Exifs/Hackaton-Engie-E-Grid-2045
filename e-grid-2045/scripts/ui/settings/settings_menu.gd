@@ -2,6 +2,7 @@ class_name SettingsMenu
 extends Control
 
 const INPUT_ACTIONS := preload("res://scripts/input/e_grid_input_actions.gd")
+const TUTORIAL_MANAGER := preload("res://scripts/tutorial/TutorialManager.gd")
 
 signal close_requested
 
@@ -13,6 +14,7 @@ const CONFIG_PATH := "user://settings.cfg"
 @export_node_path("Button") var sound_tab_path: NodePath = ^"Panel/Margin/VBox/TabButtons/SoundTab"
 @export_node_path("Button") var display_tab_path: NodePath = ^"Panel/Margin/VBox/TabButtons/DisplayTab"
 @export_node_path("Button") var keyboard_tab_path: NodePath = ^"Panel/Margin/VBox/TabButtons/KeyboardTab"
+@export_node_path("Button") var reset_tutorial_button_path: NodePath = ^"Panel/Margin/VBox/Footer/ResetTutorialButton"
 @export_node_path("Button") var apply_button_path: NodePath = ^"Panel/Margin/VBox/Footer/ApplyButton"
 @export_node_path("Button") var back_button_path: NodePath = ^"Panel/Margin/VBox/Footer/BackButton"
 @export_node_path("Node") var input_controller_path: NodePath = ^"InputController"
@@ -21,6 +23,7 @@ var _tab_buttons_container: Control
 var _sound_panel: Control
 var _display_panel: Control
 var _keyboard_panel: Control
+var _reset_tutorial_button: BaseButton
 var _apply_button: BaseButton
 var _back_button: BaseButton
 var _tab_buttons: Array[BaseButton] = []
@@ -65,6 +68,7 @@ func _cache_nodes() -> void:
 	_sound_panel = get_node_or_null(sound_panel_path) as Control
 	_display_panel = get_node_or_null(display_panel_path) as Control
 	_keyboard_panel = get_node_or_null(^"Panel/Margin/VBox/Content/Clavier") as Control
+	_reset_tutorial_button = get_node_or_null(reset_tutorial_button_path) as BaseButton
 	_apply_button = get_node_or_null(apply_button_path) as BaseButton
 	_back_button = get_node_or_null(back_button_path) as BaseButton
 	_input_controller = get_node_or_null(input_controller_path)
@@ -93,6 +97,9 @@ func _wire_buttons() -> void:
 
 	if _apply_button != null:
 		_apply_button.pressed.connect(_on_apply_button_pressed)
+
+	if _reset_tutorial_button != null:
+		_reset_tutorial_button.pressed.connect(_on_reset_tutorial_button_pressed)
 
 	if _back_button != null:
 		_back_button.pressed.connect(_on_back_button_pressed)
@@ -223,6 +230,7 @@ func _read_settings_section(config: ConfigFile, section: String, defaults: Dicti
 
 func _save_settings(sound_settings: Dictionary, display_settings: Dictionary) -> void:
 	var config := ConfigFile.new()
+	config.load(CONFIG_PATH)
 
 	for key in sound_settings.keys():
 		config.set_value("sound", key, sound_settings[key])
@@ -327,6 +335,51 @@ func _on_apply_button_pressed() -> void:
 	_applied_sound_settings = sound_settings.duplicate(true)
 	_applied_display_settings = display_settings.duplicate(true)
 	_update_apply_button()
+
+
+func _on_reset_tutorial_button_pressed() -> void:
+	var error: int = TUTORIAL_MANAGER.reset_saved_state_flags()
+	if error != OK:
+		push_warning("Impossible de reinitialiser le tutoriel: %s" % error_string(error))
+		return
+
+	_show_reset_tutorial_feedback()
+
+
+func _show_reset_tutorial_feedback() -> void:
+	if _reset_tutorial_button == null:
+		return
+
+	var previous_label := _get_button_label(_reset_tutorial_button, "REINIT TUTO")
+	_set_button_label(_reset_tutorial_button, "TUTO OK")
+	_reset_tutorial_button.disabled = true
+	_sync_button_visual(_reset_tutorial_button)
+
+	var timer := get_tree().create_timer(1.2)
+	timer.timeout.connect(func() -> void:
+		if _reset_tutorial_button == null or not is_instance_valid(_reset_tutorial_button):
+			return
+		_set_button_label(_reset_tutorial_button, previous_label)
+		_reset_tutorial_button.disabled = false
+		_sync_button_visual(_reset_tutorial_button)
+	)
+
+
+func _get_button_label(button: BaseButton, fallback: String) -> String:
+	var label = button.get("label_text")
+	if label != null:
+		return str(label)
+	return button.text if button != null else fallback
+
+
+func _set_button_label(button: BaseButton, label: String) -> void:
+	if button == null:
+		return
+
+	if button.get("label_text") != null:
+		button.set("label_text", label)
+	else:
+		button.text = label
 
 
 func _on_back_button_pressed() -> void:

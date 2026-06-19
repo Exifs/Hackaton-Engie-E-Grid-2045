@@ -6,6 +6,7 @@ signal heatmap_mode_requested(mode: String)
 signal category_opened(category_id: String)
 
 const COLLAPSIBLE_CONTENT_PATHS := [
+	^"ContentMargin/PaletteStack/OverlayPanel",
 	^"ContentMargin/PaletteStack/CategoriesScroll",
 	^"ContentMargin/PaletteStack/GridOverview",
 ]
@@ -125,6 +126,8 @@ func get_tutorial_target_node(target_id: String) -> Control:
 			return get_node_or_null(CATEGORY_PATHS["energy"]) as Control
 		"build_menu.cooling_category":
 			return get_node_or_null(CATEGORY_PATHS["cooling"]) as Control
+		"build_menu.cooling_overlay_button":
+			return get_node_or_null(^"ContentMargin/PaletteStack/OverlayPanel/CongestionRow/CongestionCheck") as Control
 		"build_menu.research_category":
 			return get_node_or_null(CATEGORY_PATHS["research"]) as Control
 		"build_menu.wind_onshore_button":

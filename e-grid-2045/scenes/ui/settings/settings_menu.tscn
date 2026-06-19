@@ -101,6 +101,14 @@ layout_mode = 2
 theme_override_constants/separation = 8
 alignment = 2
 
+[node name="ResetTutorialButton" parent="Panel/Margin/VBox/Footer" instance=ExtResource("7_tab")]
+custom_minimum_size = Vector2(154, 40)
+layout_mode = 2
+toggle_mode = false
+fit_to_source_size = false
+stretch_to_bounds = true
+label_text = "REINIT TUTO"
+
 [node name="ApplyButton" parent="Panel/Margin/VBox/Footer" instance=ExtResource("7_tab")]
 layout_mode = 2
 disabled = true

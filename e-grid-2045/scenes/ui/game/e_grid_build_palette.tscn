@@ -1,10 +1,11 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=9 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/ui/game/e_grid_build_category.tscn" id="1_build_category"]
 [ext_resource type="PackedScene" path="res://scenes/ui/components/e_grid_panel.tscn" id="2_panel"]
 [ext_resource type="PackedScene" path="res://scenes/ui/components/e_grid_mini_button.tscn" id="3_mini_button"]
 [ext_resource type="PackedScene" path="res://scenes/ui/game/e_grid_grid_overview.tscn" id="4_grid_overview"]
 [ext_resource type="Script" path="res://scripts/ui/game/e_grid_build_palette.gd" id="5_build_palette"]
+[ext_resource type="PackedScene" path="res://scenes/ui/components/e_grid_checkbox.tscn" id="6_checkbox"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_title"]
 font_size = 16
@@ -62,6 +63,57 @@ vertical_alignment = 1
 [node name="CollapseButton" parent="ContentMargin/PaletteStack/HeaderRow" instance=ExtResource("3_mini_button")]
 layout_mode = 2
 label_text = "<"
+
+[node name="OverlayPanel" type="VBoxContainer" parent="ContentMargin/PaletteStack"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="OverlayTitle" type="Label" parent="ContentMargin/PaletteStack/OverlayPanel"]
+layout_mode = 2
+text = "OVERLAYS"
+label_settings = SubResource("LabelSettings_muted")
+
+[node name="PowerFlowRow" type="HBoxContainer" parent="ContentMargin/PaletteStack/OverlayPanel"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="PowerFlowCheck" parent="ContentMargin/PaletteStack/OverlayPanel/PowerFlowRow" instance=ExtResource("6_checkbox")]
+layout_mode = 2
+
+[node name="PowerFlowLabel" type="Label" parent="ContentMargin/PaletteStack/OverlayPanel/PowerFlowRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "ENERGIE"
+label_settings = SubResource("LabelSettings_muted")
+vertical_alignment = 1
+
+[node name="DataFlowRow" type="HBoxContainer" parent="ContentMargin/PaletteStack/OverlayPanel"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="DataFlowCheck" parent="ContentMargin/PaletteStack/OverlayPanel/DataFlowRow" instance=ExtResource("6_checkbox")]
+layout_mode = 2
+
+[node name="DataFlowLabel" type="Label" parent="ContentMargin/PaletteStack/OverlayPanel/DataFlowRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "RESEAU"
+label_settings = SubResource("LabelSettings_muted")
+vertical_alignment = 1
+
+[node name="CongestionRow" type="HBoxContainer" parent="ContentMargin/PaletteStack/OverlayPanel"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="CongestionCheck" parent="ContentMargin/PaletteStack/OverlayPanel/CongestionRow" instance=ExtResource("6_checkbox")]
+layout_mode = 2
+
+[node name="CongestionLabel" type="Label" parent="ContentMargin/PaletteStack/OverlayPanel/CongestionRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "FROID"
+label_settings = SubResource("LabelSettings_muted")
+vertical_alignment = 1
 
 [node name="CategoriesScroll" type="ScrollContainer" parent="ContentMargin/PaletteStack"]
 layout_mode = 2
