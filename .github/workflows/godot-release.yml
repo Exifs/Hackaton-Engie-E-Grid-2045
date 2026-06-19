@@ -242,8 +242,10 @@ jobs:
           set -euo pipefail
           SITE_DIR="_site"
           WEB_DIR="${SITE_DIR}/play"
+          EDITOR_DIR="${SITE_DIR}/region-editor"
           ROOT_URL="${FALLBACK_PAGES_URL%/}/"
           LANDING_URL="${ROOT_URL}landing/"
+          EDITOR_URL="${ROOT_URL}region-editor/"
           PREVIEW_IMAGE_URL="${ROOT_URL}Docs/Concept%20art%20-%20EU-Grid%202026-v2-1.png"
 
           rm -rf "${SITE_DIR}"
@@ -260,6 +262,16 @@ jobs:
 
           mkdir -p "${SITE_DIR}/egrid_region_editor_tool/assets/map"
           cp "egrid_region_editor_tool/assets/map/europe_map_backdrop_generated_clean_v1.png" "${SITE_DIR}/egrid_region_editor_tool/assets/map/europe_map_backdrop_generated_clean_v1.png"
+
+          mkdir -p "${EDITOR_DIR}"
+          cp "egrid_region_editor_tool/tools/region_editor/region_shape_editor.html" "${EDITOR_DIR}/index.html"
+          cp "egrid_region_editor_tool/tools/region_editor/style.css" "${EDITOR_DIR}/style.css"
+          cp "egrid_region_editor_tool/tools/region_editor/app.js" "${EDITOR_DIR}/app.js"
+          sed -i 's#../../assets/map/europe_map_backdrop_generated_clean_v1.png#../egrid_region_editor_tool/assets/map/europe_map_backdrop_generated_clean_v1.png#g' "${EDITOR_DIR}/index.html"
+          if grep -Fq '../../assets/map/europe_map_backdrop_generated_clean_v1.png' "${EDITOR_DIR}/index.html"; then
+            echo "Region editor index still references the source-only background path" >&2
+            exit 1
+          fi
 
           web_zip="$(find web-artifact -type f -name '*.zip' | sort | head -n 1)"
           if [[ -z "${web_zip}" ]]; then
@@ -288,12 +300,14 @@ jobs:
             --arg webArtifact "${web_zip_name}" \
             --arg releaseUrl "https://github.com/${GITHUB_REPOSITORY}/releases/tag/${GITHUB_REF_NAME}" \
             --arg playUrl "${ROOT_URL}play/" \
+            --arg editorUrl "${EDITOR_URL}" \
             '{
               tag: $tag,
               sha: $sha,
               web_artifact: $webArtifact,
               release_url: $releaseUrl,
-              play_url: $playUrl
+              play_url: $playUrl,
+              editor_url: $editorUrl
             }' > "${SITE_DIR}/build-manifest.json"
 
           cat > "${SITE_DIR}/index.html" <<HTML
@@ -325,7 +339,7 @@ jobs:
             <title>E-Grid 2045 — Hackathon Energie</title>
           </head>
           <body>
-            <p>Redirection vers <a href="./landing/">la landing E-Grid 2045</a>. La version Web jouable est disponible sur <a href="./play/">/play/</a>.</p>
+            <p>Redirection vers <a href="./landing/">la landing E-Grid 2045</a>. La version Web jouable est disponible sur <a href="./play/">/play/</a> et le Region Shape Editor sur <a href="./region-editor/">/region-editor/</a>.</p>
           </body>
           </html>
           HTML
@@ -351,18 +365,30 @@ jobs:
           set -euo pipefail
           WEBSITE_URL="${WEBSITE_URL:-${FALLBACK_PAGES_URL}}"
           GAME_URL="${WEBSITE_URL%/}/play/"
+          EDITOR_URL="${WEBSITE_URL%/}/region-editor/"
           current_notes="$(gh release view "${TAG_NAME}" --repo "${GITHUB_REPOSITORY}" --json body --jq '.body // ""')"
           website_line="🌐 Site web : ${WEBSITE_URL}"
           game_line="🎮 Version Web : ${GAME_URL}"
+          editor_line="Region Editor : ${EDITOR_URL}"
 
-          if printf '%s' "${current_notes}" | grep -Fq "${website_line}" && printf '%s' "${current_notes}" | grep -Fq "${game_line}"; then
+          missing_lines=()
+          if ! printf '%s' "${current_notes}" | grep -Fq "${website_line}"; then
+            missing_lines+=("${website_line}")
+          fi
+          if ! printf '%s' "${current_notes}" | grep -Fq "${game_line}"; then
+            missing_lines+=("${game_line}")
+          fi
+          if ! printf '%s' "${current_notes}" | grep -Fq "${editor_line}"; then
+            missing_lines+=("${editor_line}")
+          fi
+
+          if [[ "${#missing_lines[@]}" -eq 0 ]]; then
             echo "Release notes already contain the website URLs."
             exit 0
           fi
 
           {
-            echo "${website_line}"
-            echo "${game_line}"
+            printf '%s\n' "${missing_lines[@]}"
             echo
             printf '%s\n' "${current_notes}"
           } > release-notes.md

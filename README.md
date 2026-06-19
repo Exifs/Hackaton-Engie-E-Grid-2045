@@ -71,6 +71,6 @@ La CI exporte les versions Linux, Windows, macOS et Web depuis le projet `e-grid
 
 La version Web utilise le preset Godot `Web`, génère `e-grid-2045/build/web/index.html` comme point d'entrée et produit l'artefact `e-grid-2045-web`.
 
-Lorsqu'un tag est poussé, le workflow de release publie aussi la landing sur GitHub Pages et déploie la version Web jouable dans `/play/` à partir de l'artefact `e-grid-2045-web` déjà buildé.
+Lorsqu'un tag est poussé, le workflow de release publie aussi la landing dans `/landing/`, déploie la version Web jouable dans `/play/` à partir de l'artefact `e-grid-2045-web` déjà buildé, et met en ligne le Region Shape Editor dans `/region-editor/`.
 
 État actuel: prototype de hackathon, avec un scope P0 centré sur une première boucle jouable et une base technique suffisamment lisible pour contribuer rapidement.

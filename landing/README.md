@@ -50,16 +50,19 @@ https://exifs.github.io/Hackaton-Engie-E-Grid-2045/Docs/Concept%20art%20-%20EU-G
 
 ## Disponibilité web
 
-Le jeu est également disponible en version web sur GitHub Pages. Depuis la landing publiée, les liens `Jouer web` ciblent :
+Le jeu et le Region Shape Editor sont disponibles sur GitHub Pages. Depuis la landing publiée, les liens publics ciblent :
 
 ```text
 ../play/
+../region-editor/
 ```
 
-Ce chemin correspond à la même URL publique que la landing, avec `/play/` à la racine du site GitHub Pages. Exemple attendu après publication :
+Ces chemins correspondent à la même URL publique que la landing, avec `/play/` et `/region-editor/` à la racine du site GitHub Pages. Exemples attendus après publication :
 
 ```text
+https://exifs.github.io/Hackaton-Engie-E-Grid-2045/landing/
 https://exifs.github.io/Hackaton-Engie-E-Grid-2045/play/
+https://exifs.github.io/Hackaton-Engie-E-Grid-2045/region-editor/
 ```
 
 ## Message souveraineté IA
@@ -111,6 +114,8 @@ Ces préfixes viennent de `.github/workflows/godot-release.yml` et le suffixe `<
 Le workflow `.github/workflows/godot-release.yml` se déclenche à chaque tag. Après la création de la GitHub Release, il prépare un artefact GitHub Pages contenant :
 
 - le répertoire `landing/` ;
+- la version Web Godot dans `play/` ;
+- le Region Shape Editor dans `region-editor/` ;
 - les assets `Docs/` et `egrid_region_editor_tool/assets/map/` référencés par les pages HTML ;
 - un `index.html` racine qui redirige vers `./landing/`.
 
