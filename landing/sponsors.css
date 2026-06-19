@@ -203,6 +203,51 @@
   text-underline-offset: 3px;
 }
 
+/* Hero readability hotfix: keep the first-screen title fully visible.
+   The previous title used a very tight line-height/letter-spacing combo that could clip
+   glyphs or overflow the hero column on narrow and intermediate widths. */
+.hero-copy {
+  min-width: 0;
+  overflow: visible;
+}
+
+.hero h1 {
+  max-width: min(100%, 820px);
+  padding: 0.08em 0.08em 0.14em 0;
+  font-size: clamp(2.9rem, 6.6vw, 6.45rem);
+  line-height: 0.98;
+  letter-spacing: clamp(-0.055em, -0.65vw, -0.025em);
+  text-wrap: balance;
+  overflow-wrap: normal;
+}
+
+@media (max-width: 1060px) {
+  .hero h1 {
+    max-width: min(100%, 900px);
+    font-size: clamp(3rem, 9vw, 5.6rem);
+    line-height: 1;
+    letter-spacing: -0.045em;
+  }
+}
+
+@media (max-width: 760px) {
+  .hero h1 {
+    font-size: clamp(2.55rem, 12.5vw, 4.15rem);
+    line-height: 1.03;
+    letter-spacing: -0.035em;
+    padding-right: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero h1 {
+    font-size: clamp(2.35rem, 11.5vw, 3rem);
+    line-height: 1.06;
+    letter-spacing: -0.02em;
+    text-wrap: auto;
+  }
+}
+
 @media (max-width: 1060px) {
   .sponsor-shell {
     grid-template-columns: 1fr;
