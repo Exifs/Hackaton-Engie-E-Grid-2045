@@ -27,6 +27,8 @@ http://127.0.0.1:8080/landing/download.html
 ## Contenu
 
 - `index.html` : structure de la landing, sections pitch, souveraineté IA, partenaires/sponsors, captures, outil de régions, liens web play, lien GitHub discret et CTA de téléchargement.
+- `favicon.svg` : icône de page E-Grid 2045, utilisée par la landing et le manifeste web.
+- `site.webmanifest` : métadonnées d’application web pour les navigateurs.
 - `download.html` : page dédiée aux téléchargements Windows, macOS et Linux, avec texte centré sur le projet et les partenaires.
 - `styles.css` : DA premium commune, layout responsive, glass panels, cartes 3D, halos, ticker.
 - `sponsors.css` : styles de la section de remerciement, carte photo DefendIntelligence et cartes partenaires.
@@ -34,6 +36,17 @@ http://127.0.0.1:8080/landing/download.html
 - `download-polish.css` : correctifs de layout, notamment le conflit de classe Linux, plus les styles du bloc partenaires.
 - `main.js` : canvas de réseau énergétique, tilt 3D, parallax souris, magnetic buttons, reveal au scroll et barre de progression.
 - `download.js` : détection OS, résolution des assets de la dernière GitHub Release, mise en avant du build recommandé, terminal animé, overlay de téléchargement et confettis canvas.
+
+## Métadonnées de partage
+
+`index.html` contient les balises utiles aux cartes de prévisualisation dans les applications de discussion : Open Graph, Twitter Card, canonical URL, image de partage et alt text. L’image de partage utilise le concept art `Docs/Concept art - EU-Grid 2026-v2-1.png`, copié dans le site GitHub Pages par le workflow de release.
+
+URLs déclarées :
+
+```text
+https://exifs.github.io/Hackaton-Engie-E-Grid-2045/landing/
+https://exifs.github.io/Hackaton-Engie-E-Grid-2045/Docs/Concept%20art%20-%20EU-Grid%202026-v2-1.png
+```
 
 ## Disponibilité web
 
