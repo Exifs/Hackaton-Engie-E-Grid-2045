@@ -115,6 +115,71 @@
     });
   }
 
+  function setupScreenshotDeckLayout() {
+    if (!document.querySelector('.screenshot-deck')) return;
+    const style = document.createElement('style');
+    style.textContent = `
+      .screenshot-deck {
+        align-items: stretch;
+        gap: 28px;
+      }
+
+      .screenshot-card,
+      .screenshot-card:nth-child(2n) {
+        display: flex;
+        flex-direction: column;
+        margin-top: 0;
+        overflow: hidden;
+      }
+
+      .screenshot-card img {
+        flex: 0 0 auto;
+        transform: none;
+      }
+
+      .screenshot-card:hover img {
+        transform: scale(1.035);
+      }
+
+      .shot-caption {
+        position: relative;
+        left: auto;
+        right: auto;
+        bottom: auto;
+        margin: 0;
+        min-height: 136px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        border-left: 0;
+        border-right: 0;
+        border-bottom: 0;
+        border-radius: 0;
+        background: rgba(3, 10, 17, 0.84);
+      }
+
+      .shot-caption h3 {
+        margin-bottom: 8px;
+      }
+
+      .shot-caption p {
+        max-width: 60ch;
+      }
+
+      @media (max-width: 760px) {
+        .screenshot-deck {
+          gap: 18px;
+        }
+
+        .shot-caption {
+          min-height: auto;
+          padding: 16px;
+        }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
   function setupEnergyCanvas() {
     const canvas = document.getElementById('energy-canvas');
     if (!canvas || prefersReduced) return;
@@ -250,5 +315,6 @@
   setupTilt();
   setupParallax();
   setupSmoothAnchors();
+  setupScreenshotDeckLayout();
   setupEnergyCanvas();
 })();

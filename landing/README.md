@@ -32,7 +32,7 @@ http://127.0.0.1:8080/landing/download.html
 - `download.css` : effets spécifiques à la page de download : réacteur 3D, cartes OS, overlay de cérémonie, terminal et responsive.
 - `download-polish.css` : correctifs de layout, notamment le conflit de classe Linux, plus les styles du bloc partenaires.
 - `main.js` : canvas de réseau énergétique, tilt 3D, parallax souris, magnetic buttons, reveal au scroll et barre de progression.
-- `download.js` : détection OS, mise en avant du build recommandé, terminal animé, overlay de téléchargement et confettis canvas.
+- `download.js` : détection OS, résolution des assets de la dernière GitHub Release, mise en avant du build recommandé, terminal animé, overlay de téléchargement et confettis canvas.
 
 ## Partenaires affichés
 
@@ -64,15 +64,17 @@ Le lien GitHub public cible :
 https://github.com/Exifs/Hackaton-Engie-E-Grid-2045
 ```
 
-Les boutons de téléchargement ciblent les assets de la dernière release :
+Les boutons de téléchargement ne hardcodent plus un nom de fichier complet : ils résolvent l’asset correspondant dans la dernière GitHub Release via l’API publique GitHub. Si l’API n’est pas accessible, ils ouvrent la page `releases/latest` en fallback.
+
+Les assets générés par le workflow de release utilisent ces préfixes :
 
 ```text
-https://github.com/Exifs/Hackaton-Engie-E-Grid-2045/releases/latest/download/E-Grid-2045-Windows.zip
-https://github.com/Exifs/Hackaton-Engie-E-Grid-2045/releases/latest/download/E-Grid-2045-macOS.zip
-https://github.com/Exifs/Hackaton-Engie-E-Grid-2045/releases/latest/download/E-Grid-2045-Linux.zip
+e-grid-2045-windows-x86_64-<tag>.zip
+e-grid-2045-macos-universal-<tag>.zip
+e-grid-2045-linux-x86_64-<tag>.zip
 ```
 
-Pour activer les téléchargements directs, publier ces trois archives dans GitHub Releases avec exactement ces noms, ou modifier les `href` / `data-file` dans `download.html`.
+Ces préfixes viennent de `.github/workflows/godot-release.yml` et le suffixe `<tag>` correspond au tag GitHub qui déclenche la release.
 
 ## Notes
 
