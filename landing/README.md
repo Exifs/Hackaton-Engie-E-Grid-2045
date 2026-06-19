@@ -26,13 +26,17 @@ http://127.0.0.1:8080/landing/download.html
 
 ## Contenu
 
-- `index.html` : structure de la landing, sections pitch, captures, vidéo placeholder, outil de régions, lien GitHub discret et CTA de téléchargement.
+- `index.html` : structure de la landing, sections pitch, souveraineté IA, captures, vidéo placeholder, outil de régions, lien GitHub discret et CTA de téléchargement.
 - `download.html` : page dédiée aux téléchargements Windows, macOS et Linux, avec texte centré sur le projet et les partenaires.
 - `styles.css` : DA premium commune, layout responsive, glass panels, cartes 3D, halos, ticker, video shell.
 - `download.css` : effets spécifiques à la page de download : réacteur 3D, cartes OS, overlay de cérémonie, terminal et responsive.
 - `download-polish.css` : correctifs de layout, notamment le conflit de classe Linux, plus les styles du bloc partenaires.
 - `main.js` : canvas de réseau énergétique, tilt 3D, parallax souris, magnetic buttons, reveal au scroll et barre de progression.
 - `download.js` : détection OS, résolution des assets de la dernière GitHub Release, mise en avant du build recommandé, terminal animé, overlay de téléchargement et confettis canvas.
+
+## Message souveraineté IA
+
+La landing insiste sur le fait que l’IA n’est pas seulement un sujet logiciel. Elle dépend d’une chaîne matérielle et industrielle : énergie, refroidissement, datacenters, compute, chercheurs, maintenance et approvisionnement. La section `#sovereignty` sert à sensibiliser sur l’indépendance d’usage de l’IA et sur la souveraineté européenne de la chaîne nécessaire à son déploiement.
 
 ## Partenaires affichés
 
@@ -85,8 +89,6 @@ Le workflow `.github/workflows/godot-release.yml` se déclenche à chaque tag. A
 - un `index.html` racine qui redirige vers `./landing/`.
 
 Le site est publié sur GitHub Pages. Le workflow ajoute l’URL du site aux notes de release et tente de mettre à jour le champ **Website** du dépôt avec l’URL retournée par `actions/deploy-pages`.
-
-Si le `GITHUB_TOKEN` n’a pas assez de droits pour modifier les métadonnées du dépôt, ajouter un secret `REPO_ADMIN_TOKEN` autorisé à éditer le dépôt, puis relancer le workflow du tag.
 
 ## Notes
 
