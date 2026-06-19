@@ -8,6 +8,7 @@ signal construction_started(region_id: String, building_id: String)
 signal construction_completed(region_id: String, building_id: String)
 signal selected_region_changed(region_id: String)
 signal alerts_updated(alerts: Array)
+signal research_started(research_id: String)
 signal game_ended(result: String, score: Dictionary)
 
 const DATA_LOADER := preload("res://scripts/simulation/DataLoader.gd")
@@ -173,6 +174,7 @@ func start_research(technology_id: String) -> void:
 		return
 	state.active_research_id = technology_id
 	state.active_research_points = 0.0
+	research_started.emit(technology_id)
 	resources_updated.emit(get_summary())
 
 
