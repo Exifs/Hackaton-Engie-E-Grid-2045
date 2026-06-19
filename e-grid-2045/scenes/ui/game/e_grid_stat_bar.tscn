@@ -1,33 +1,61 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=7 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/game/e_grid_stat_bar.gd" id="1_stat_bar"]
-[ext_resource type="PackedScene" path="res://scenes/ui/components/e_grid_progress_bar.tscn" id="2_progress_bar"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_title"]
-font_size = 12
+font_size = 11
 font_color = Color(0.537255, 0.6, 0.611765, 1)
 
 [sub_resource type="LabelSettings" id="LabelSettings_value"]
-font_size = 12
+font_size = 11
 font_color = Color(0.878431, 0.909804, 0.909804, 1)
 
 [sub_resource type="LabelSettings" id="LabelSettings_detail"]
-font_size = 10
+font_size = 7
 font_color = Color(0.537255, 0.6, 0.611765, 0.92)
 
+[sub_resource type="LabelSettings" id="LabelSettings_detail_value"]
+font_size = 8
+font_color = Color(0.878431, 0.909804, 0.909804, 0.96)
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_meter_background"]
+bg_color = Color(0.0470588, 0.0784314, 0.0862745, 0.92)
+border_width_top = 1
+border_width_bottom = 1
+border_color = Color(0.211765, 0.286275, 0.298039, 0.52)
+corner_radius_top_left = 1
+corner_radius_top_right = 1
+corner_radius_bottom_right = 1
+corner_radius_bottom_left = 1
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_meter_fill"]
+bg_color = Color(0.298039, 0.890196, 0.541176, 1)
+corner_radius_top_left = 1
+corner_radius_top_right = 1
+corner_radius_bottom_right = 1
+corner_radius_bottom_left = 1
+
 [node name="EGridStatBar" type="VBoxContainer"]
-custom_minimum_size = Vector2(0, 62)
+custom_minimum_size = Vector2(0, 56)
 theme_override_constants/separation = 2
 script = ExtResource("1_stat_bar")
 
 [node name="Header" type="HBoxContainer" parent="."]
+custom_minimum_size = Vector2(0, 16)
 layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="Icon" type="TextureRect" parent="Header"]
+custom_minimum_size = Vector2(16, 16)
+layout_mode = 2
+stretch_mode = 5
 
 [node name="TitleLabel" type="Label" parent="Header"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "STAT"
 label_settings = SubResource("LabelSettings_title")
+vertical_alignment = 1
 clip_text = true
 
 [node name="ValueLabel" type="Label" parent="Header"]
@@ -35,16 +63,76 @@ layout_mode = 2
 text = "0%"
 label_settings = SubResource("LabelSettings_value")
 horizontal_alignment = 2
+vertical_alignment = 1
 
-[node name="ProgressBar" parent="." instance=ExtResource("2_progress_bar")]
-custom_minimum_size = Vector2(320, 26)
+[node name="ProgressBar" type="ProgressBar" parent="."]
+custom_minimum_size = Vector2(320, 6)
 layout_mode = 2
 size_flags_horizontal = 3
+max_value = 100.0
 value = 0.0
-show_value_label = false
+show_percentage = false
+theme_override_styles/background = SubResource("StyleBox_meter_background")
+theme_override_styles/fill = SubResource("StyleBox_meter_fill")
 
-[node name="DetailLabel" type="Label" parent="."]
+[node name="DetailColumns" type="HBoxContainer" parent="."]
+custom_minimum_size = Vector2(0, 16)
 layout_mode = 2
-text = "Details"
+theme_override_constants/separation = 12
+
+[node name="Column1" type="VBoxContainer" parent="DetailColumns"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 0
+
+[node name="KeyLabel" type="Label" parent="DetailColumns/Column1"]
+layout_mode = 2
+text = "LABEL"
 label_settings = SubResource("LabelSettings_detail")
+vertical_alignment = 1
+clip_text = true
+
+[node name="ValueLabel" type="Label" parent="DetailColumns/Column1"]
+layout_mode = 2
+text = "0.0"
+label_settings = SubResource("LabelSettings_detail_value")
+vertical_alignment = 1
+clip_text = true
+
+[node name="Column2" type="VBoxContainer" parent="DetailColumns"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 0
+
+[node name="KeyLabel" type="Label" parent="DetailColumns/Column2"]
+layout_mode = 2
+text = "LABEL"
+label_settings = SubResource("LabelSettings_detail")
+vertical_alignment = 1
+clip_text = true
+
+[node name="ValueLabel" type="Label" parent="DetailColumns/Column2"]
+layout_mode = 2
+text = "0.0"
+label_settings = SubResource("LabelSettings_detail_value")
+vertical_alignment = 1
+clip_text = true
+
+[node name="Column3" type="VBoxContainer" parent="DetailColumns"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 0
+
+[node name="KeyLabel" type="Label" parent="DetailColumns/Column3"]
+layout_mode = 2
+text = "LABEL"
+label_settings = SubResource("LabelSettings_detail")
+vertical_alignment = 1
+clip_text = true
+
+[node name="ValueLabel" type="Label" parent="DetailColumns/Column3"]
+layout_mode = 2
+text = "0.0"
+label_settings = SubResource("LabelSettings_detail_value")
+vertical_alignment = 1
 clip_text = true

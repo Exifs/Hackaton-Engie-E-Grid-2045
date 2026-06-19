@@ -1,55 +1,120 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/game/e_grid_build_category.gd" id="1_build_category"]
 [ext_resource type="PackedScene" path="res://scenes/ui/components/e_grid_icon_button.tscn" id="2_icon_button"]
+[ext_resource type="PackedScene" path="res://scenes/ui/components/e_grid_panel.tscn" id="3_panel"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_title"]
-font_size = 12
+font_size = 11
 font_color = Color(0.878431, 0.909804, 0.909804, 1)
 
 [sub_resource type="LabelSettings" id="LabelSettings_rule"]
 font_size = 9
 font_color = Color(0.121569, 0.815686, 0.886275, 0.78)
 
-[node name="EGridBuildCategory" type="VBoxContainer"]
-custom_minimum_size = Vector2(0, 102)
-theme_override_constants/separation = 4
+[node name="EGridBuildCategory" type="Control"]
+custom_minimum_size = Vector2(0, 82)
+size_flags_horizontal = 3
+clip_contents = true
 script = ExtResource("1_build_category")
 tool_icon_states = PackedStringArray("energy", "battery", "compute", "grid")
+slot_min_size = Vector2(40, 40)
+primary_button_size = Vector2(52, 52)
 
-[node name="Header" type="HBoxContainer" parent="."]
+[node name="BackgroundPanel" parent="." instance=ExtResource("3_panel")]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+fit_to_source_size = false
+stretch_to_bounds = true
+state_name = "focused_panel"
+nine_slice_margins = Vector4(18, 18, 18, 18)
+nine_slice_inner_fill_color = Color(0.0627451, 0.12549, 0.145098, 0.52)
+
+[node name="ContentMargin" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 8
+
+[node name="CategoryRow" type="HBoxContainer" parent="ContentMargin"]
 layout_mode = 2
+theme_override_constants/separation = 8
+alignment = 1
 
-[node name="TitleLabel" type="Label" parent="Header"]
+[node name="PrimaryButton" parent="ContentMargin/CategoryRow" instance=ExtResource("2_icon_button")]
+custom_minimum_size = Vector2(52, 52)
+layout_mode = 2
+toggle_mode = true
+button_pressed = true
+fit_to_source_size = false
+utility_icon_state = "energy"
+icon_size = Vector2(30, 30)
+
+[node name="ToolsStack" type="VBoxContainer" parent="ContentMargin/CategoryRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
+
+[node name="Header" type="HBoxContainer" parent="ContentMargin/CategoryRow/ToolsStack"]
+custom_minimum_size = Vector2(0, 16)
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="TitleLabel" type="Label" parent="ContentMargin/CategoryRow/ToolsStack/Header"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "CATEGORY"
 label_settings = SubResource("LabelSettings_title")
+vertical_alignment = 1
 clip_text = true
 
-[node name="RuleLabel" type="Label" parent="Header"]
+[node name="RuleLabel" type="Label" parent="ContentMargin/CategoryRow/ToolsStack/Header"]
 layout_mode = 2
 text = "////"
 label_settings = SubResource("LabelSettings_rule")
+vertical_alignment = 1
 
-[node name="SlotsGrid" type="GridContainer" parent="."]
+[node name="SlotsGrid" type="GridContainer" parent="ContentMargin/CategoryRow/ToolsStack"]
 layout_mode = 2
-theme_override_constants/h_separation = 6
-theme_override_constants/v_separation = 6
+theme_override_constants/h_separation = 5
+theme_override_constants/v_separation = 4
 columns = 4
 
-[node name="Slot1" parent="SlotsGrid" instance=ExtResource("2_icon_button")]
+[node name="Slot1" parent="ContentMargin/CategoryRow/ToolsStack/SlotsGrid" instance=ExtResource("2_icon_button")]
+custom_minimum_size = Vector2(40, 40)
 layout_mode = 2
+fit_to_source_size = false
 utility_icon_state = "energy"
+icon_size = Vector2(21, 21)
 
-[node name="Slot2" parent="SlotsGrid" instance=ExtResource("2_icon_button")]
+[node name="Slot2" parent="ContentMargin/CategoryRow/ToolsStack/SlotsGrid" instance=ExtResource("2_icon_button")]
+custom_minimum_size = Vector2(40, 40)
 layout_mode = 2
+fit_to_source_size = false
 utility_icon_state = "battery"
+icon_size = Vector2(21, 21)
 
-[node name="Slot3" parent="SlotsGrid" instance=ExtResource("2_icon_button")]
+[node name="Slot3" parent="ContentMargin/CategoryRow/ToolsStack/SlotsGrid" instance=ExtResource("2_icon_button")]
+custom_minimum_size = Vector2(40, 40)
 layout_mode = 2
+fit_to_source_size = false
 utility_icon_state = "compute"
+icon_size = Vector2(21, 21)
 
-[node name="Slot4" parent="SlotsGrid" instance=ExtResource("2_icon_button")]
+[node name="Slot4" parent="ContentMargin/CategoryRow/ToolsStack/SlotsGrid" instance=ExtResource("2_icon_button")]
+custom_minimum_size = Vector2(40, 40)
 layout_mode = 2
+fit_to_source_size = false
 utility_icon_state = "grid"
+icon_size = Vector2(21, 21)

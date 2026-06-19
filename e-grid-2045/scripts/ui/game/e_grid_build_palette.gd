@@ -6,7 +6,7 @@ signal heatmap_mode_requested(mode: String)
 
 const COLLAPSIBLE_CONTENT_PATHS := [
 	^"ContentMargin/PaletteStack/CategoriesScroll",
-	^"ContentMargin/PaletteStack/OverlayPanel",
+	^"ContentMargin/PaletteStack/GridOverview",
 ]
 
 const CATEGORY_PATHS := {
@@ -38,7 +38,7 @@ const CATEGORY_FAMILIES := {
 		collapsed = value
 		_sync_collapsed_state()
 
-@export_range(64.0, 420.0, 1.0) var expanded_width := 316.0:
+@export_range(64.0, 420.0, 1.0) var expanded_width := 348.0:
 	set(value):
 		expanded_width = value
 		_sync_collapsed_state()

@@ -14,12 +14,12 @@ const ALERT_ITEM_SCENE := preload("res://scenes/ui/game/e_grid_alert_item.tscn")
 		collapsed = value
 		_sync_collapsed_state()
 
-@export_range(42.0, 140.0, 1.0) var expanded_height := 84.0:
+@export_range(42.0, 140.0, 1.0) var expanded_height := 96.0:
 	set(value):
 		expanded_height = value
 		_sync_collapsed_state()
 
-@export_range(36.0, 80.0, 1.0) var collapsed_height := 48.0:
+@export_range(36.0, 80.0, 1.0) var collapsed_height := 52.0:
 	set(value):
 		collapsed_height = value
 		_sync_collapsed_state()

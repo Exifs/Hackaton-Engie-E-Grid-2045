@@ -1,0 +1,169 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/game/e_grid_overview_map.gd" id="1_overview_map"]
+[ext_resource type="PackedScene" path="res://scenes/ui/components/e_grid_panel.tscn" id="2_panel"]
+[ext_resource type="PackedScene" path="res://scenes/ui/components/e_grid_mini_button.tscn" id="3_mini_button"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_title"]
+font_size = 12
+font_color = Color(0.878431, 0.909804, 0.909804, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_legend"]
+font_size = 10
+font_color = Color(0.878431, 0.909804, 0.909804, 0.96)
+
+[sub_resource type="LabelSettings" id="LabelSettings_rule"]
+font_size = 9
+font_color = Color(0.121569, 0.815686, 0.886275, 0.78)
+
+[node name="EGridGridOverview" type="Control"]
+custom_minimum_size = Vector2(0, 154)
+clip_contents = true
+
+[node name="BackgroundPanel" parent="." instance=ExtResource("2_panel")]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+fit_to_source_size = false
+stretch_to_bounds = true
+state_name = "focused_panel"
+nine_slice_margins = Vector4(18, 18, 18, 18)
+nine_slice_inner_fill_color = Color(0.0431373, 0.0980392, 0.113725, 0.58)
+
+[node name="ContentMargin" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="OverviewStack" type="VBoxContainer" parent="ContentMargin"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="HeaderRow" type="HBoxContainer" parent="ContentMargin/OverviewStack"]
+custom_minimum_size = Vector2(0, 28)
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="TitleLabel" type="Label" parent="ContentMargin/OverviewStack/HeaderRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "GRID OVERVIEW"
+label_settings = SubResource("LabelSettings_title")
+vertical_alignment = 1
+clip_text = true
+
+[node name="RuleLabel" type="Label" parent="ContentMargin/OverviewStack/HeaderRow"]
+layout_mode = 2
+text = "////"
+label_settings = SubResource("LabelSettings_rule")
+vertical_alignment = 1
+
+[node name="ExpandButton" parent="ContentMargin/OverviewStack/HeaderRow" instance=ExtResource("3_mini_button")]
+custom_minimum_size = Vector2(36, 28)
+layout_mode = 2
+fit_to_source_size = false
+stretch_to_bounds = true
+nine_slice_enabled = true
+nine_slice_margins = Vector4(12, 12, 12, 12)
+nine_slice_tile_inner_regions = true
+label_text = "[]"
+
+[node name="BodyRow" type="HBoxContainer" parent="ContentMargin/OverviewStack"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 12
+
+[node name="LegendStack" type="VBoxContainer" parent="ContentMargin/OverviewStack/BodyRow"]
+custom_minimum_size = Vector2(118, 0)
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="PowerFlowRow" type="HBoxContainer" parent="ContentMargin/OverviewStack/BodyRow/LegendStack"]
+custom_minimum_size = Vector2(0, 18)
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="PowerFlowLine" type="ColorRect" parent="ContentMargin/OverviewStack/BodyRow/LegendStack/PowerFlowRow"]
+custom_minimum_size = Vector2(26, 3)
+layout_mode = 2
+color = Color(0.258824, 0.941176, 0.54902, 1)
+
+[node name="PowerFlowLabel" type="Label" parent="ContentMargin/OverviewStack/BodyRow/LegendStack/PowerFlowRow"]
+custom_minimum_size = Vector2(78, 18)
+layout_mode = 2
+text = "POWER FLOW"
+label_settings = SubResource("LabelSettings_legend")
+vertical_alignment = 1
+clip_text = true
+
+[node name="DataFlowRow" type="HBoxContainer" parent="ContentMargin/OverviewStack/BodyRow/LegendStack"]
+custom_minimum_size = Vector2(0, 18)
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="DataFlowLine" type="ColorRect" parent="ContentMargin/OverviewStack/BodyRow/LegendStack/DataFlowRow"]
+custom_minimum_size = Vector2(26, 3)
+layout_mode = 2
+color = Color(0.117647, 0.670588, 1, 1)
+
+[node name="DataFlowLabel" type="Label" parent="ContentMargin/OverviewStack/BodyRow/LegendStack/DataFlowRow"]
+custom_minimum_size = Vector2(78, 18)
+layout_mode = 2
+text = "DATA FLOW"
+label_settings = SubResource("LabelSettings_legend")
+vertical_alignment = 1
+clip_text = true
+
+[node name="CongestionRow" type="HBoxContainer" parent="ContentMargin/OverviewStack/BodyRow/LegendStack"]
+custom_minimum_size = Vector2(0, 18)
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="CongestionLine" type="ColorRect" parent="ContentMargin/OverviewStack/BodyRow/LegendStack/CongestionRow"]
+custom_minimum_size = Vector2(26, 3)
+layout_mode = 2
+color = Color(1, 0.290196, 0.0784314, 1)
+
+[node name="CongestionLabel" type="Label" parent="ContentMargin/OverviewStack/BodyRow/LegendStack/CongestionRow"]
+custom_minimum_size = Vector2(78, 18)
+layout_mode = 2
+text = "CONGESTION"
+label_settings = SubResource("LabelSettings_legend")
+vertical_alignment = 1
+clip_text = true
+
+[node name="PlannedRow" type="HBoxContainer" parent="ContentMargin/OverviewStack/BodyRow/LegendStack"]
+custom_minimum_size = Vector2(0, 18)
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="PlannedLine" type="ColorRect" parent="ContentMargin/OverviewStack/BodyRow/LegendStack/PlannedRow"]
+custom_minimum_size = Vector2(26, 3)
+layout_mode = 2
+color = Color(0.537255, 0.6, 0.611765, 0.8)
+
+[node name="PlannedLabel" type="Label" parent="ContentMargin/OverviewStack/BodyRow/LegendStack/PlannedRow"]
+custom_minimum_size = Vector2(78, 18)
+layout_mode = 2
+text = "PLANNED"
+label_settings = SubResource("LabelSettings_legend")
+vertical_alignment = 1
+clip_text = true
+
+[node name="MapPreview" type="Control" parent="ContentMargin/OverviewStack/BodyRow"]
+custom_minimum_size = Vector2(166, 104)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+script = ExtResource("1_overview_map")

@@ -3,7 +3,7 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/game/e_grid_build_category.tscn" id="1_build_category"]
 [ext_resource type="PackedScene" path="res://scenes/ui/components/e_grid_panel.tscn" id="2_panel"]
 [ext_resource type="PackedScene" path="res://scenes/ui/components/e_grid_mini_button.tscn" id="3_mini_button"]
-[ext_resource type="PackedScene" path="res://scenes/ui/components/e_grid_checkbox.tscn" id="4_checkbox"]
+[ext_resource type="PackedScene" path="res://scenes/ui/game/e_grid_grid_overview.tscn" id="4_grid_overview"]
 [ext_resource type="Script" path="res://scripts/ui/game/e_grid_build_palette.gd" id="5_build_palette"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_title"]
@@ -14,12 +14,8 @@ font_color = Color(0.878431, 0.909804, 0.909804, 1)
 font_size = 11
 font_color = Color(0.537255, 0.6, 0.611765, 0.94)
 
-[sub_resource type="LabelSettings" id="LabelSettings_overlay"]
-font_size = 12
-font_color = Color(0.878431, 0.909804, 0.909804, 1)
-
 [node name="EGridBuildPalette" type="Control"]
-custom_minimum_size = Vector2(316, 0)
+custom_minimum_size = Vector2(348, 0)
 clip_contents = true
 script = ExtResource("5_build_palette")
 
@@ -41,23 +37,27 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/margin_left = 10
-theme_override_constants/margin_top = 10
-theme_override_constants/margin_right = 10
-theme_override_constants/margin_bottom = 10
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 18
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 16
 
 [node name="PaletteStack" type="VBoxContainer" parent="ContentMargin"]
 layout_mode = 2
 theme_override_constants/separation = 8
 
 [node name="HeaderRow" type="HBoxContainer" parent="ContentMargin/PaletteStack"]
+custom_minimum_size = Vector2(0, 34)
 layout_mode = 2
+theme_override_constants/separation = 8
 
 [node name="TitleLabel" type="Label" parent="ContentMargin/PaletteStack/HeaderRow"]
+custom_minimum_size = Vector2(0, 32)
 layout_mode = 2
 size_flags_horizontal = 3
 text = "BUILD"
 label_settings = SubResource("LabelSettings_title")
+vertical_alignment = 1
 
 [node name="CollapseButton" parent="ContentMargin/PaletteStack/HeaderRow" instance=ExtResource("3_mini_button")]
 layout_mode = 2
@@ -71,7 +71,7 @@ horizontal_scroll_mode = 0
 [node name="CategoriesStack" type="VBoxContainer" parent="ContentMargin/PaletteStack/CategoriesScroll"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/separation = 8
+theme_override_constants/separation = 6
 
 [node name="EnergyCategory" parent="ContentMargin/PaletteStack/CategoriesScroll/CategoriesStack" instance=ExtResource("1_build_category")]
 layout_mode = 2
@@ -79,6 +79,8 @@ category_title = "ENERGY"
 tool_labels = PackedStringArray("Plant", "Wind", "Solar", "Battery")
 tool_icon_states = PackedStringArray("energy", "energy", "energy", "battery")
 button_family = "energy"
+slot_min_size = Vector2(40, 40)
+primary_button_size = Vector2(52, 52)
 
 [node name="DatacentersCategory" parent="ContentMargin/PaletteStack/CategoriesScroll/CategoriesStack" instance=ExtResource("1_build_category")]
 layout_mode = 2
@@ -86,6 +88,8 @@ category_title = "DATACENTERS"
 tool_labels = PackedStringArray("Compute", "Server", "Storage", "AI")
 tool_icon_states = PackedStringArray("datacenter", "compute", "compute", "science")
 button_family = "datacenter"
+slot_min_size = Vector2(40, 40)
+primary_button_size = Vector2(52, 52)
 
 [node name="CoolingCategory" parent="ContentMargin/PaletteStack/CategoriesScroll/CategoriesStack" instance=ExtResource("1_build_category")]
 layout_mode = 2
@@ -93,6 +97,8 @@ category_title = "COOLING"
 tool_labels = PackedStringArray("Air", "Liquid", "Heat", "Water")
 tool_icon_states = PackedStringArray("cooling", "snow", "gas", "cooling")
 button_family = "cooling"
+slot_min_size = Vector2(40, 40)
+primary_button_size = Vector2(52, 52)
 
 [node name="ResearchCategory" parent="ContentMargin/PaletteStack/CategoriesScroll/CategoriesStack" instance=ExtResource("1_build_category")]
 layout_mode = 2
@@ -100,6 +106,8 @@ category_title = "RESEARCH"
 tool_labels = PackedStringArray("Lab", "Uni", "Chips", "Policy")
 tool_icon_states = PackedStringArray("research", "science", "compute", "money")
 button_family = "research"
+slot_min_size = Vector2(40, 40)
+primary_button_size = Vector2(52, 52)
 
 [node name="GridNetworkCategory" parent="ContentMargin/PaletteStack/CategoriesScroll/CategoriesStack" instance=ExtResource("1_build_category")]
 layout_mode = 2
@@ -107,54 +115,8 @@ category_title = "GRID & NETWORK"
 tool_labels = PackedStringArray("Line", "Node", "HVDC", "Monitor")
 tool_icon_states = PackedStringArray("grid", "grid", "battery", "compute")
 button_family = "grid"
+slot_min_size = Vector2(40, 40)
+primary_button_size = Vector2(52, 52)
 
-[node name="OverlayPanel" type="VBoxContainer" parent="ContentMargin/PaletteStack"]
+[node name="GridOverview" parent="ContentMargin/PaletteStack" instance=ExtResource("4_grid_overview")]
 layout_mode = 2
-theme_override_constants/separation = 4
-
-[node name="OverlayTitleLabel" type="Label" parent="ContentMargin/PaletteStack/OverlayPanel"]
-layout_mode = 2
-text = "NETWORK OVERLAY"
-label_settings = SubResource("LabelSettings_muted")
-
-[node name="PowerFlowRow" type="HBoxContainer" parent="ContentMargin/PaletteStack/OverlayPanel"]
-layout_mode = 2
-theme_override_constants/separation = 6
-
-[node name="PowerFlowCheck" parent="ContentMargin/PaletteStack/OverlayPanel/PowerFlowRow" instance=ExtResource("4_checkbox")]
-layout_mode = 2
-button_pressed = true
-
-[node name="PowerFlowLabel" type="Label" parent="ContentMargin/PaletteStack/OverlayPanel/PowerFlowRow"]
-layout_mode = 2
-text = "Power flow"
-label_settings = SubResource("LabelSettings_overlay")
-vertical_alignment = 1
-
-[node name="DataFlowRow" type="HBoxContainer" parent="ContentMargin/PaletteStack/OverlayPanel"]
-layout_mode = 2
-theme_override_constants/separation = 6
-
-[node name="DataFlowCheck" parent="ContentMargin/PaletteStack/OverlayPanel/DataFlowRow" instance=ExtResource("4_checkbox")]
-layout_mode = 2
-button_pressed = true
-
-[node name="DataFlowLabel" type="Label" parent="ContentMargin/PaletteStack/OverlayPanel/DataFlowRow"]
-layout_mode = 2
-text = "Data flow"
-label_settings = SubResource("LabelSettings_overlay")
-vertical_alignment = 1
-
-[node name="CongestionRow" type="HBoxContainer" parent="ContentMargin/PaletteStack/OverlayPanel"]
-layout_mode = 2
-theme_override_constants/separation = 6
-
-[node name="CongestionCheck" parent="ContentMargin/PaletteStack/OverlayPanel/CongestionRow" instance=ExtResource("4_checkbox")]
-layout_mode = 2
-button_pressed = true
-
-[node name="CongestionLabel" type="Label" parent="ContentMargin/PaletteStack/OverlayPanel/CongestionRow"]
-layout_mode = 2
-text = "Congestion"
-label_settings = SubResource("LabelSettings_overlay")
-vertical_alignment = 1

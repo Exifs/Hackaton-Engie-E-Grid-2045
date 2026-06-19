@@ -1,0 +1,37 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/components/e_grid_sprite_button.gd" id="1_button"]
+
+[node name="EGridActionButton" type="Button"]
+custom_minimum_size = Vector2(0, 44)
+size_flags_horizontal = 3
+size_flags_vertical = 0
+offset_right = 340.0
+offset_bottom = 44.0
+script = ExtResource("1_button")
+component_name = "tab_states"
+label_text = "ACTION"
+fit_to_source_size = false
+stretch_to_bounds = true
+nine_slice_enabled = true
+nine_slice_margins = Vector4(18, 18, 18, 18)
+normal_state = "normal"
+hover_state = "hover"
+pressed_state = "selected"
+selected_state = "selected"
+selected_hover_state = "selected"
+disabled_state = "disabled"
+warning_state = "warning"
+critical_state = "critical"
+label_horizontal_alignment_override = "center"
+label_scale_px = 0.17
+
+[node name="Label" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+horizontal_alignment = 1
+vertical_alignment = 1

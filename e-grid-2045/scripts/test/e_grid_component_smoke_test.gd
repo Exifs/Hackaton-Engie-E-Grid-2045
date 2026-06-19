@@ -6,6 +6,7 @@ const BITMAP_FONT_MANIFEST_PATH := "res://assets/ui/menu/font/egrid_2045_menu_fo
 const BITMAP_FONT_CELL_HEIGHT := 112.0
 
 const COMPONENT_SCENES := [
+	"res://scenes/ui/components/e_grid_action_button.tscn",
 	"res://scenes/ui/components/e_grid_alert_toast.tscn",
 	"res://scenes/ui/components/e_grid_checkbox.tscn",
 	"res://scenes/ui/components/e_grid_dropdown.tscn",
@@ -278,7 +279,11 @@ func _test_static_textures() -> void:
 			_failures.append("Missing static texture node: %s" % node_name)
 			continue
 
-		if node.texture == null:
+		var resolved_texture = node.texture
+		if resolved_texture == null and node.has_method("get_resolved_texture"):
+			resolved_texture = node.call("get_resolved_texture")
+
+		if resolved_texture == null:
 			_failures.append("Static texture not resolved: %s" % node_name)
 
 

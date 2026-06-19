@@ -1,4 +1,4 @@
-﻿extends Control
+extends Control
 class_name EGridGameScene
 
 const E_GRID_SCENE_TRANSITION := preload("res://scripts/ui/e_grid_scene_transition.gd")
@@ -11,10 +11,11 @@ const DEFAULT_MENU_SCENE := "res://scenes/main_menu.tscn"
 @export_node_path("Control") var map_view_path: NodePath = ^"SafeArea/Root/MainRow/MapView"
 @export_node_path("Control") var region_panel_path: NodePath = ^"SafeArea/Root/MainRow/RegionPanel"
 @export_node_path("Control") var alert_bar_path: NodePath = ^"SafeArea/Root/AlertBar"
-@export_node_path("Button") var menu_button_path: NodePath = ^"SafeArea/Root/TopBar/ContentMargin/MainRow/MenuButton"
-@export_node_path("Button") var pause_button_path: NodePath = ^"SafeArea/Root/TopBar/ContentMargin/MainRow/SpeedBlock/SpeedControls/PauseButton"
-@export_node_path("Button") var play_button_path: NodePath = ^"SafeArea/Root/TopBar/ContentMargin/MainRow/SpeedBlock/SpeedControls/PlayButton"
-@export_node_path("Button") var fast_button_path: NodePath = ^"SafeArea/Root/TopBar/ContentMargin/MainRow/SpeedBlock/SpeedControls/FastButton"
+@export_node_path("Button") var menu_button_path: NodePath = ^"SafeArea/Root/TopBar/ContentMargin/MainRow/MenuSegment/MenuButton"
+@export_node_path("Button") var pause_button_path: NodePath = ^"SafeArea/Root/TopBar/ContentMargin/MainRow/SpeedSegment/SpeedBlock/SpeedControls/PauseButton"
+@export_node_path("Button") var play_button_path: NodePath = ^"SafeArea/Root/TopBar/ContentMargin/MainRow/SpeedSegment/SpeedBlock/SpeedControls/PlayButton"
+@export_node_path("Button") var fast_button_path: NodePath = ^"SafeArea/Root/TopBar/ContentMargin/MainRow/SpeedSegment/SpeedBlock/SpeedControls/FastButton"
+@export_node_path("Button") var faster_button_path: NodePath = ^"SafeArea/Root/TopBar/ContentMargin/MainRow/SpeedSegment/SpeedBlock/SpeedControls/FasterButton"
 @export_node_path("Node") var input_controller_path: NodePath = ^"InputController"
 
 var _top_bar: Control
@@ -112,6 +113,7 @@ func _wire_navigation() -> void:
 	_connect_button_once(pause_button_path, Callable(self, "_on_pause_button_pressed"))
 	_connect_button_once(play_button_path, Callable(self, "_on_play_button_pressed"))
 	_connect_button_once(fast_button_path, Callable(self, "_on_fast_button_pressed"))
+	_connect_button_once(faster_button_path, Callable(self, "_on_faster_button_pressed"))
 
 
 func _request_return_to_menu() -> void:
@@ -136,6 +138,10 @@ func _on_play_button_pressed() -> void:
 
 
 func _on_fast_button_pressed() -> void:
+	_simulation_core.set_simulation_speed(2.0)
+
+
+func _on_faster_button_pressed() -> void:
 	_simulation_core.set_simulation_speed(4.0)
 
 
@@ -264,7 +270,7 @@ func _sync_top_bar(summary: Dictionary) -> void:
 
 	var paused := bool(summary.get("paused", false))
 	var speed := float(summary.get("simulation_speed", 0.0))
-	var speed_text := "PAUSED" if paused else "%.0fx" % speed
+	var speed_text := "PAUSED" if paused else "%.1fx" % speed
 	var co2_tier := str(summary.get("co2_tier", "low")).to_upper()
 
 	_top_bar.set("title_text", "E-GRID 2045")
@@ -287,10 +293,12 @@ func _sync_top_bar(summary: Dictionary) -> void:
 	_top_bar.set("speed_text", speed_text)
 	_top_bar.set("pause_button_text", "II")
 	_top_bar.set("play_button_text", "1X")
-	_top_bar.set("fast_button_text", "4X")
+	_top_bar.set("fast_button_text", "2X")
+	_top_bar.set("faster_button_text", "4X")
 	_top_bar.set("pause_active", paused)
 	_top_bar.set("play_active", not paused and speed <= 1.0)
-	_top_bar.set("fast_active", not paused and speed > 1.0)
+	_top_bar.set("fast_active", not paused and speed > 1.0 and speed <= 2.0)
+	_top_bar.set("faster_active", not paused and speed > 2.0)
 
 
 func _on_game_ended(result: String, score: Dictionary) -> void:
