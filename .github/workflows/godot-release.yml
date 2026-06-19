@@ -195,7 +195,7 @@ jobs:
               echo "\`\`\`"
             } >> "${GITHUB_STEP_SUMMARY}"
 
-            echo "::error::GitHub Pages is not enabled for ${GITHUB_REPOSITORY}. Enable Pages with Source = GitHub Actions, or add a REPO_ADMIN_TOKEN secret that can manage Pages settings."
+            echo "::error::GitHub Pages is not enabled for ${GITHUB_REPOSITORY}. Enable Pages with Source = GitHub Actions, or add REPO_ADMIN_TOKEN secret that can manage Pages settings."
             exit 1
           fi
 
@@ -242,10 +242,15 @@ jobs:
           set -euo pipefail
           SITE_DIR="_site"
           WEB_DIR="${SITE_DIR}/play"
+          ROOT_URL="${FALLBACK_PAGES_URL%/}/"
+          LANDING_URL="${ROOT_URL}landing/"
+          PREVIEW_IMAGE_URL="${ROOT_URL}Docs/Concept%20art%20-%20EU-Grid%202026-v2-1.png"
 
           rm -rf "${SITE_DIR}"
           mkdir -p "${SITE_DIR}/landing"
           cp -R landing/. "${SITE_DIR}/landing/"
+          cp "landing/favicon.svg" "${SITE_DIR}/favicon.svg"
+          cp "landing/site.webmanifest" "${SITE_DIR}/site.webmanifest"
 
           mkdir -p "${SITE_DIR}/Docs"
           cp "Docs/menu.png" "${SITE_DIR}/Docs/menu.png"
@@ -271,14 +276,32 @@ jobs:
             fi
           done
 
-          cat > "${SITE_DIR}/index.html" <<'HTML'
+          cat > "${SITE_DIR}/index.html" <<HTML
           <!doctype html>
           <html lang="fr">
           <head>
             <meta charset="utf-8">
             <meta name="viewport" content="width=device-width, initial-scale=1">
+            <meta name="theme-color" content="#06131d">
+            <meta name="description" content="E-Grid 2045 est un jeu de stratégie énergétique sur la souveraineté IA européenne, jouable sur le web et disponible en builds desktop.">
             <meta http-equiv="refresh" content="0; url=./landing/">
-            <link rel="canonical" href="./landing/">
+            <link rel="canonical" href="${LANDING_URL}">
+            <link rel="icon" href="./favicon.svg" type="image/svg+xml">
+            <link rel="manifest" href="./site.webmanifest">
+            <meta property="og:type" content="website">
+            <meta property="og:locale" content="fr_FR">
+            <meta property="og:site_name" content="E-Grid 2045">
+            <meta property="og:title" content="E-Grid 2045 — Pilote l’Europe énergétique dans la course à l’AGI">
+            <meta property="og:description" content="Prototype hackathon jouable sur le web : énergie, datacenters, refroidissement, compute et souveraineté IA européenne.">
+            <meta property="og:url" content="${LANDING_URL}">
+            <meta property="og:image" content="${PREVIEW_IMAGE_URL}">
+            <meta property="og:image:secure_url" content="${PREVIEW_IMAGE_URL}">
+            <meta property="og:image:type" content="image/png">
+            <meta property="og:image:alt" content="Carte stratégique E-Grid 2045 montrant le réseau énergétique européen.">
+            <meta name="twitter:card" content="summary_large_image">
+            <meta name="twitter:title" content="E-Grid 2045 — Pilote l’Europe énergétique">
+            <meta name="twitter:description" content="Jeu de stratégie énergétique sur la souveraineté IA européenne, jouable sur le web et disponible en builds desktop.">
+            <meta name="twitter:image" content="${PREVIEW_IMAGE_URL}">
             <title>E-Grid 2045 — Hackathon Energie</title>
           </head>
           <body>
