@@ -8,6 +8,7 @@
   <title>Télécharger E-Grid 2045 — Hackathon Energie</title>
   <link rel='stylesheet' href='./styles.css'>
   <link rel='stylesheet' href='./download.css'>
+  <link rel='stylesheet' href='./download-polish.css'>
   <script src='./main.js' defer></script>
   <script src='./download.js' defer></script>
 </head>
@@ -37,19 +38,18 @@
   <main>
     <section class='download-hero section-shell'>
       <div class='download-hero-copy reveal'>
-        <div class='eyebrow'>Prototype desktop · Windows · macOS · Linux</div>
-        <h1>Choisis ton build. Mets le réseau sous tension.</h1>
-        <p class='hero-lead'>Le téléchargement devient une mini-cérémonie : sélectionne ta plateforme, charge le cœur énergétique, récupère l’archive et lance E-Grid 2045 sur ta machine.</p>
+        <div class='eyebrow'>Hackathon Energie · ENGIE · OpenAI · DefendIntelligence</div>
+        <h1>Télécharge le prototype. Sauve le réseau européen.</h1>
+        <p class='hero-lead'>E-Grid 2045 est né pendant le hackathon avec ENGIE, OpenAI et DefendIntelligence, streamer Twitch. Choisis ton système, lance la partie et pilote l’énergie, le compute et le refroidissement jusqu’à l’AGI européenne.</p>
         <div class='hero-actions'>
-          <a class='btn btn-primary magnetic' href='#builds'>Télécharger maintenant</a>
-          <a class='btn btn-ghost magnetic' href='https://github.com/Exifs/Hackaton-Engie-E-Grid-2045' target='_blank' rel='noreferrer'>Voir le GitHub public</a>
-          <a class='btn btn-ghost magnetic' href='./index.html'>Retour landing</a>
+          <a class='btn btn-primary magnetic' href='#builds'>Choisir mon système</a>
+          <a class='btn btn-ghost magnetic' href='./index.html'>Retour au pitch</a>
         </div>
-        <div class='download-flags' aria-label='Informations rapides'>
-          <span>Build desktop</span>
-          <span>Godot 4</span>
-          <span>Prototype hackathon</span>
-          <span>Release-ready links</span>
+        <div class='download-flags' aria-label='Partenaires et contexte'>
+          <span>DefendIntelligence</span>
+          <span>ENGIE</span>
+          <span>OpenAI</span>
+          <span>Prototype desktop</span>
         </div>
       </div>
 
@@ -76,8 +76,8 @@
 
     <section id='builds' class='section-shell download-builds'>
       <div class='section-heading centered reveal'>
-        <div class='section-kicker'>Choisir une plateforme</div>
-        <h2>Trois builds. Un même objectif : alimenter l’Europe sans la griller.</h2>
+        <div class='section-kicker'>Builds desktop</div>
+        <h2>Windows, macOS ou Linux : entre dans la course.</h2>
         <p id='detected-platform'>Détection de la plateforme en cours…</p>
       </div>
 
@@ -86,13 +86,8 @@
           <div class='card-glow'></div>
           <div class='platform-badge'>Windows</div>
           <div class='platform-symbol'>⊞</div>
-          <h3>Windows build</h3>
-          <p>Archive prête pour le demo day, pensée pour lancer vite sur une machine de présentation.</p>
-          <ul>
-            <li>Format attendu : `.zip`</li>
-            <li>Clavier / souris</li>
-            <li>Desktop export Godot</li>
-          </ul>
+          <h3>Windows</h3>
+          <p>Version desktop pour lancer rapidement la démo sur une machine de présentation.</p>
           <a class='btn btn-primary magnetic download-button' href='https://github.com/Exifs/Hackaton-Engie-E-Grid-2045/releases/latest/download/E-Grid-2045-Windows.zip' data-platform='Windows' data-file='E-Grid-2045-Windows.zip'>Télécharger Windows</a>
         </article>
 
@@ -100,13 +95,8 @@
           <div class='card-glow'></div>
           <div class='platform-badge'>macOS</div>
           <div class='platform-symbol'>⌘</div>
-          <h3>macOS build</h3>
-          <p>Build Mac pour tester le prototype sur portable, branché à l’écran ou en présentation rapide.</p>
-          <ul>
-            <li>Format attendu : `.zip`</li>
-            <li>Apple Silicon / Intel selon export</li>
-            <li>Desktop export Godot</li>
-          </ul>
+          <h3>macOS</h3>
+          <p>Version desktop pour jouer et présenter E-Grid 2045 sur Mac.</p>
           <a class='btn btn-primary magnetic download-button' href='https://github.com/Exifs/Hackaton-Engie-E-Grid-2045/releases/latest/download/E-Grid-2045-macOS.zip' data-platform='macOS' data-file='E-Grid-2045-macOS.zip'>Télécharger macOS</a>
         </article>
 
@@ -114,47 +104,47 @@
           <div class='card-glow'></div>
           <div class='platform-badge'>Linux</div>
           <div class='platform-symbol'>λ</div>
-          <h3>Linux build</h3>
-          <p>Build Linux pour les machines de dev, les stations de démo et les setups hackathon rapides.</p>
-          <ul>
-            <li>Format attendu : `.zip`</li>
-            <li>Exécutable desktop</li>
-            <li>Desktop export Godot</li>
-          </ul>
+          <h3>Linux</h3>
+          <p>Version desktop pour les machines de dev, les stations de démo et les setups hackathon.</p>
           <a class='btn btn-primary magnetic download-button' href='https://github.com/Exifs/Hackaton-Engie-E-Grid-2045/releases/latest/download/E-Grid-2045-Linux.zip' data-platform='Linux' data-file='E-Grid-2045-Linux.zip'>Télécharger Linux</a>
         </article>
       </div>
 
-      <p class='release-note reveal'>Les boutons pointent vers les assets de la dernière GitHub Release. Quand le dépôt sera public, il suffira de publier les archives avec les noms indiqués pour activer les téléchargements directs.</p>
+      <p class='release-note reveal'>Les fichiers seront disponibles dans la dernière GitHub Release du projet.</p>
     </section>
 
     <section class='section-shell reward-section'>
       <div class='reward-panel reveal' data-tilt>
         <div class='reward-copy'>
-          <div class='section-kicker'>Récompense de téléchargement</div>
-          <h2>Chaque clic charge le cœur et déclenche la séquence.</h2>
-          <p>Au clic sur un build, la page affiche un overlay de lancement avec charge énergétique, confettis de particules et redirection vers l’archive. Le téléchargement devient un moment de démo, pas juste un bouton.</p>
+          <div class='section-kicker'>Une fois téléchargé</div>
+          <h2>2025 démarre maintenant. L’Europe attend tes arbitrages.</h2>
+          <p>Décompresse l’archive, lance le prototype, puis trouve l’équilibre entre énergie, datacenters, refroidissement, CO₂ et vitesse de recherche. Chaque décision rapproche l’Europe de l’AGI… ou du blackout.</p>
         </div>
-        <div class='reward-terminal' aria-label='Journal de build'>
-          <div class='terminal-top'><span></span><span></span><span></span><strong>egrid-download-bus</strong></div>
-          <pre id='download-log'>booting download bus...
-checking platform matrix...
-arming release channels...
-waiting for player input...</pre>
+        <div class='reward-terminal' aria-label='Journal de mission'>
+          <div class='terminal-top'><span></span><span></span><span></span><strong>egrid-mission</strong></div>
+          <pre id='download-log'>initialisation du réseau européen...
+chargement des régions...
+synchronisation AGI Europe / USA...
+choisis un build pour démarrer...</pre>
         </div>
       </div>
     </section>
 
     <section class='section-shell source-section'>
-      <div class='source-card reveal'>
+      <div class='source-card reveal partners-card'>
         <div>
-          <div class='section-kicker'>Code source</div>
-          <h2>Le GitHub sera la vitrine publique du prototype.</h2>
-          <p>Le lien est déjà posé pour le passage en public : landing, outil d’édition des régions, données data-driven et projet Godot restent accessibles depuis un seul repo.</p>
+          <div class='section-kicker'>Partenaires</div>
+          <h2>Un prototype porté par l’énergie du hackathon.</h2>
+          <p>DefendIntelligence, streamer Twitch, porte la démo et l’élan communautaire. ENGIE apporte le cadre énergie. OpenAI accompagne l’accélération créative et technique.</p>
         </div>
-        <div class='source-actions'>
-          <a class='btn btn-primary magnetic' href='https://github.com/Exifs/Hackaton-Engie-E-Grid-2045' target='_blank' rel='noreferrer'>Ouvrir le GitHub</a>
-          <a class='btn btn-ghost magnetic' href='https://github.com/Exifs/Hackaton-Engie-E-Grid-2045/releases/latest' target='_blank' rel='noreferrer'>Voir les Releases</a>
+        <div class='partner-pills' aria-label='Partenaires du projet'>
+          <span><strong>DefendIntelligence</strong><small>Streamer Twitch</small></span>
+          <span><strong>ENGIE</strong><small>Cadre énergie</small></span>
+          <span><strong>OpenAI</strong><small>Accélération IA</small></span>
+        </div>
+        <div class='source-actions discreet-source-actions'>
+          <a class='btn btn-ghost magnetic' href='https://github.com/Exifs/Hackaton-Engie-E-Grid-2045' target='_blank' rel='noreferrer'>GitHub</a>
+          <a class='btn btn-ghost magnetic' href='https://github.com/Exifs/Hackaton-Engie-E-Grid-2045/releases/latest' target='_blank' rel='noreferrer'>Releases</a>
         </div>
       </div>
     </section>
@@ -172,7 +162,7 @@ waiting for player input...</pre>
       <h2 id='ceremony-title'>Build déverrouillé</h2>
       <p id='ceremony-copy'>Préparation du téléchargement…</p>
       <div class='ceremony-progress'><span></span></div>
-      <small>Si un asset n’est pas encore publié, ouvrir « Voir les Releases » pour vérifier les fichiers disponibles.</small>
+      <small>Si un asset n’est pas encore publié, ouvrir « Releases » pour vérifier les fichiers disponibles.</small>
     </div>
   </div>
 
