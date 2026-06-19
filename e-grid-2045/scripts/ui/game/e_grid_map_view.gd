@@ -3,8 +3,16 @@ extends Control
 class_name EGridMapView
 
 signal map_pressed(position: Vector2)
+signal region_hovered(region_id: int, slug: String, display_name: String)
+signal region_pressed(region_id: int, slug: String, display_name: String)
+
+const E_GRID_MAP_ASSETS := preload("res://scripts/ui/game/e_grid_map_assets.gd")
 
 @export var accept_map_input := true
+@export_file("*.png") var backdrop_texture_path := "res://assets/map/europe_map_backdrop_generated_clean_v1.png"
+@export_file("*.json") var contours_path := "res://assets/map/generated/regions_contours.json"
+@export_file("*.png") var region_mask_path := "res://assets/map/generated/region_id_mask.png"
+
 @export var map_title_text := "EUROPE GRID OPS":
 	set(value):
 		map_title_text = value
@@ -40,54 +48,90 @@ signal map_pressed(position: Vector2)
 		major_grid_color = value
 		queue_redraw()
 
-@export var network_color := Color("#1fd0e2c8"):
+@export var backdrop_modulate := Color("#d7e8e8ff"):
 	set(value):
-		network_color = value
+		backdrop_modulate = value
 		queue_redraw()
 
-@export var warning_color := Color("#ee5824d8"):
+@export var normal_region_fill_color := Color("#06171924"):
 	set(value):
-		warning_color = value
+		normal_region_fill_color = value
 		queue_redraw()
 
-@export var region_points := PackedVector2Array([
-	Vector2(0.22, 0.36),
-	Vector2(0.34, 0.30),
-	Vector2(0.47, 0.39),
-	Vector2(0.58, 0.28),
-	Vector2(0.69, 0.43),
-	Vector2(0.42, 0.58),
-	Vector2(0.56, 0.64),
-	Vector2(0.74, 0.62),
-]):
+@export var normal_border_color := Color("#6fb9bf55"):
 	set(value):
-		region_points = value
+		normal_border_color = value
 		queue_redraw()
 
-@export var stressed_region_indices := PackedInt32Array([2, 6]):
+@export var hover_fill_color := Color("#1fd0e22e"):
 	set(value):
-		stressed_region_indices = value
+		hover_fill_color = value
 		queue_redraw()
+
+@export var hover_border_color := Color("#5ff1fff0"):
+	set(value):
+		hover_border_color = value
+		queue_redraw()
+
+@export var selected_fill_color := Color("#eea34a26"):
+	set(value):
+		selected_fill_color = value
+		queue_redraw()
+
+@export var selected_border_color := Color("#f5c979e4"):
+	set(value):
+		selected_border_color = value
+		queue_redraw()
+
+@export var selected_region_id := 0:
+	set(value):
+		selected_region_id = maxi(int(value), 0)
+		queue_redraw()
+
+var _assets: EGridMapAssets
+var _map_rect := Rect2()
+var _screen_regions: Array[Dictionary] = []
+var _screen_cache_dirty := true
+var _hover_region_id := 0
 
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_STOP
+	_load_map_assets()
 	_sync_labels()
 
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_RESIZED:
+		_screen_cache_dirty = true
 		queue_redraw()
+	elif what == NOTIFICATION_MOUSE_EXIT:
+		_set_hover_region_id(0)
 
 
 func _gui_input(event: InputEvent) -> void:
 	if not accept_map_input:
+		_set_hover_region_id(0)
+		return
+
+	if event is InputEventMouseMotion:
+		var motion_event := event as InputEventMouseMotion
+		_set_hover_region_id(_pick_region_id_at_view_position(motion_event.position))
 		return
 
 	if event is InputEventMouseButton:
 		var mouse_event := event as InputEventMouseButton
 		if mouse_event.button_index == MOUSE_BUTTON_LEFT and mouse_event.pressed:
 			map_pressed.emit(mouse_event.position)
+			var region_id := _pick_region_id_at_view_position(mouse_event.position)
+			selected_region_id = region_id
+			if region_id > 0:
+				var region := _get_region(region_id)
+				region_pressed.emit(
+					region_id,
+					str(region.get("slug", "")),
+					str(region.get("display_name", ""))
+				)
 			accept_event()
 
 
@@ -95,8 +139,17 @@ func _draw() -> void:
 	var rect := Rect2(Vector2.ZERO, size)
 	draw_rect(rect, background_color, true)
 	_draw_grid(rect)
-	_draw_map_plate(rect)
-	_draw_network(rect)
+
+	if _assets == null or not _assets.is_valid():
+		return
+
+	if _screen_cache_dirty:
+		_rebuild_screen_cache()
+
+	_draw_map_backdrop()
+	_draw_region_layer(normal_region_fill_color, normal_border_color, 1.0)
+	_draw_region_state(selected_region_id, selected_fill_color, selected_border_color, 1.5, true)
+	_draw_region_state(_hover_region_id, hover_fill_color, hover_border_color, 1.4, true)
 
 
 func _draw_grid(rect: Rect2) -> void:
@@ -122,51 +175,189 @@ func _draw_grid(rect: Rect2) -> void:
 		draw_line(start, end, Color("#1461743a"), 1.0)
 
 
-func _draw_map_plate(rect: Rect2) -> void:
-	var center := rect.size * 0.5
-	var plate_size := Vector2(rect.size.x * 0.58, rect.size.y * 0.62)
-	var points := PackedVector2Array([
-		center + Vector2(-plate_size.x * 0.45, -plate_size.y * 0.10),
-		center + Vector2(-plate_size.x * 0.24, -plate_size.y * 0.38),
-		center + Vector2(plate_size.x * 0.18, -plate_size.y * 0.42),
-		center + Vector2(plate_size.x * 0.42, -plate_size.y * 0.16),
-		center + Vector2(plate_size.x * 0.34, plate_size.y * 0.34),
-		center + Vector2(plate_size.x * 0.06, plate_size.y * 0.46),
-		center + Vector2(-plate_size.x * 0.32, plate_size.y * 0.28),
-	])
-
-	draw_colored_polygon(points, Color("#0b171bd0"))
-	for index in range(points.size()):
-		draw_line(points[index], points[(index + 1) % points.size()], Color("#37484da8"), 2.0)
-
-
-func _draw_network(rect: Rect2) -> void:
-	if region_points.is_empty():
+func _draw_map_backdrop() -> void:
+	if _assets.backdrop_texture == null:
 		return
 
-	var absolute_points: Array[Vector2] = []
-	for point in region_points:
-		absolute_points.append(Vector2(point.x * rect.size.x, point.y * rect.size.y))
+	var shadow_rect := _map_rect.grow(10.0)
+	draw_rect(shadow_rect, Color("#0205078a"), true)
+	draw_texture_rect(_assets.backdrop_texture, _map_rect, false, backdrop_modulate)
 
-	for index in range(absolute_points.size() - 1):
-		var from_point := absolute_points[index]
-		var to_point := absolute_points[index + 1]
-		var color := warning_color if stressed_region_indices.has(index) else Color("#1fd0e272")
-		draw_line(from_point, to_point, color, 2.0)
 
-	if absolute_points.size() > 4:
-		draw_line(absolute_points[0], absolute_points[4], Color("#1fd0e252"), 1.0)
-	if absolute_points.size() > 6:
-		draw_line(absolute_points[2], absolute_points[6], warning_color, 2.0)
+func _draw_region_layer(fill_color: Color, border_color: Color, border_width: float) -> void:
+	for region in _screen_regions:
+		_draw_region_fill(region, fill_color)
 
-	for index in range(absolute_points.size()):
-		var point := absolute_points[index]
-		var stressed := stressed_region_indices.has(index)
-		var radius := 6.0 if stressed else 4.5
-		var color := warning_color if stressed else network_color
-		draw_circle(point, radius + 4.0, Color(color, 0.16))
-		draw_circle(point, radius, color)
-		draw_circle(point, maxf(radius - 2.0, 1.5), Color("#e0e8e8"))
+	for region in _screen_regions:
+		_draw_region_border(region, border_color, border_width)
+
+
+func _draw_region_state(region_id: int, fill_color: Color, border_color: Color, border_width: float, glow: bool) -> void:
+	if region_id <= 0:
+		return
+
+	var region := _get_screen_region(region_id)
+	if region.is_empty():
+		return
+
+	_draw_region_fill(region, fill_color)
+	if glow:
+		_draw_region_border(region, Color(border_color, 0.16), border_width + 8.0)
+		_draw_region_border(region, Color(border_color, 0.24), border_width + 4.0)
+	_draw_region_border(region, border_color, border_width)
+
+
+func _draw_region_fill(region: Dictionary, fill_color: Color) -> void:
+	var components = region.get("components", [])
+	if typeof(components) != TYPE_ARRAY:
+		return
+
+	for component in components:
+		if component is PackedVector2Array and component.size() >= 3:
+			draw_colored_polygon(component, fill_color)
+
+
+func _draw_region_border(region: Dictionary, color: Color, width: float) -> void:
+	var closed_components = region.get("closed_components", [])
+	if typeof(closed_components) != TYPE_ARRAY:
+		return
+
+	for component in closed_components:
+		if component is PackedVector2Array and component.size() >= 4:
+			draw_polyline(component, color, width, true)
+
+
+func _load_map_assets() -> void:
+	_assets = E_GRID_MAP_ASSETS.load_from_paths(backdrop_texture_path, contours_path, region_mask_path)
+	_screen_cache_dirty = true
+	queue_redraw()
+
+
+func _rebuild_screen_cache() -> void:
+	_screen_cache_dirty = false
+	_screen_regions.clear()
+
+	if _assets == null or not _assets.is_valid():
+		_map_rect = Rect2(Vector2.ZERO, size)
+		return
+
+	_map_rect = _get_aspect_fit_rect(size, _assets.image_size)
+	for region in _assets.regions:
+		var screen_components: Array[PackedVector2Array] = []
+		var closed_screen_components: Array[PackedVector2Array] = []
+		var source_components = region.get("components", [])
+
+		if typeof(source_components) != TYPE_ARRAY:
+			continue
+
+		for source_component in source_components:
+			if not (source_component is PackedVector2Array):
+				continue
+
+			var transformed := _transform_component(source_component)
+			if transformed.size() < 3:
+				continue
+
+			screen_components.append(transformed)
+			closed_screen_components.append(_closed_component(transformed))
+
+		if screen_components.is_empty():
+			continue
+
+		_screen_regions.append({
+			"id": int(region.get("id", 0)),
+			"slug": str(region.get("slug", "")),
+			"display_name": str(region.get("display_name", "")),
+			"components": screen_components,
+			"closed_components": closed_screen_components,
+		})
+
+
+func _get_aspect_fit_rect(target_size: Vector2, source_size: Vector2) -> Rect2:
+	if target_size.x <= 0.0 or target_size.y <= 0.0 or source_size.x <= 0.0 or source_size.y <= 0.0:
+		return Rect2(Vector2.ZERO, target_size)
+
+	var scale := minf(target_size.x / source_size.x, target_size.y / source_size.y)
+	var fitted_size := source_size * scale
+	return Rect2((target_size - fitted_size) * 0.5, fitted_size)
+
+
+func _transform_component(component: PackedVector2Array) -> PackedVector2Array:
+	var transformed := PackedVector2Array()
+	transformed.resize(component.size())
+
+	for index in range(component.size()):
+		transformed[index] = _image_to_view_position(component[index])
+
+	return transformed
+
+
+func _closed_component(component: PackedVector2Array) -> PackedVector2Array:
+	var closed := PackedVector2Array(component)
+	if closed.size() > 0:
+		closed.append(closed[0])
+	return closed
+
+
+func _image_to_view_position(image_position: Vector2) -> Vector2:
+	if _assets == null or _assets.image_size == Vector2.ZERO:
+		return image_position
+
+	return _map_rect.position + Vector2(
+		(image_position.x / _assets.image_size.x) * _map_rect.size.x,
+		(image_position.y / _assets.image_size.y) * _map_rect.size.y
+	)
+
+
+func _view_to_image_position(view_position: Vector2) -> Vector2:
+	if _assets == null or _assets.image_size == Vector2.ZERO or _map_rect.size.x <= 0.0 or _map_rect.size.y <= 0.0:
+		return Vector2(-1.0, -1.0)
+
+	if not _map_rect.has_point(view_position):
+		return Vector2(-1.0, -1.0)
+
+	var local_position := view_position - _map_rect.position
+	return Vector2(
+		(local_position.x / _map_rect.size.x) * _assets.image_size.x,
+		(local_position.y / _map_rect.size.y) * _assets.image_size.y
+	)
+
+
+func _pick_region_id_at_view_position(view_position: Vector2) -> int:
+	if _screen_cache_dirty:
+		_rebuild_screen_cache()
+
+	if _assets == null:
+		return 0
+
+	return _assets.pick_region_id(_view_to_image_position(view_position))
+
+
+func _set_hover_region_id(region_id: int) -> void:
+	if _hover_region_id == region_id:
+		return
+
+	_hover_region_id = region_id
+	var region := _get_region(region_id)
+	region_hovered.emit(
+		region_id,
+		str(region.get("slug", "")),
+		str(region.get("display_name", ""))
+	)
+	queue_redraw()
+
+
+func _get_region(region_id: int) -> Dictionary:
+	if _assets == null:
+		return {}
+	return _assets.get_region(region_id)
+
+
+func _get_screen_region(region_id: int) -> Dictionary:
+	for region in _screen_regions:
+		if int(region.get("id", 0)) == region_id:
+			return region
+	return {}
 
 
 func _sync_labels() -> void:
