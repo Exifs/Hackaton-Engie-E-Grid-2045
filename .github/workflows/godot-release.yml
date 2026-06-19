@@ -126,6 +126,46 @@ jobs:
               --silent
           fi
 
+      - name: Allow release tags on github-pages environment
+        if: ${{ env.HAS_REPO_ADMIN_TOKEN == 'true' }}
+        env:
+          GH_TOKEN: ${{ secrets.REPO_ADMIN_TOKEN }}
+        run: |
+          set -euo pipefail
+          ENVIRONMENT_NAME="github-pages"
+          ENVIRONMENT_PATH="repos/${GITHUB_REPOSITORY}/environments/${ENVIRONMENT_NAME}"
+          TAG_POLICY="v*"
+
+          gh api \
+            --method PUT \
+            -H "Accept: application/vnd.github+json" \
+            "${ENVIRONMENT_PATH}" \
+            --input - <<'JSON'
+          {
+            "deployment_branch_policy": {
+              "protected_branches": false,
+              "custom_branch_policies": true
+            }
+          }
+          JSON
+
+          policies="$(gh api "${ENVIRONMENT_PATH}/deployment-branch-policies" --paginate)"
+          if jq -e --arg name "${TAG_POLICY}" '.branch_policies[]? | select(.name == $name)' <<< "${policies}" >/dev/null; then
+            echo "Environment ${ENVIRONMENT_NAME} already allows release tags matching ${TAG_POLICY}."
+          else
+            gh api \
+              --method POST \
+              -H "Accept: application/vnd.github+json" \
+              "${ENVIRONMENT_PATH}/deployment-branch-policies" \
+              --input - <<JSON
+          {
+            "name": "${TAG_POLICY}",
+            "type": "tag"
+          }
+          JSON
+            echo "Environment ${ENVIRONMENT_NAME} now allows release tags matching ${TAG_POLICY}."
+          fi
+
       - name: Validate GitHub Pages setup
         env:
           GH_TOKEN: ${{ secrets.REPO_ADMIN_TOKEN || github.token }}
@@ -163,6 +203,28 @@ jobs:
           if [[ "${HAS_REPO_ADMIN_TOKEN}" != "true" && "${build_type}" != "workflow" && -n "${source_branch}" ]]; then
             echo "::error::GitHub Pages is configured from branch ${source_branch}${source_path}. Switch Settings → Pages → Source to GitHub Actions, or add REPO_ADMIN_TOKEN so the workflow can set build_type=workflow."
             exit 1
+          fi
+
+          environment_json="$(gh api "repos/${GITHUB_REPOSITORY}/environments/github-pages" 2>/tmp/environment-error.log || true)"
+          if [[ -n "${environment_json}" && "${GITHUB_REF_TYPE}" == "tag" && "${HAS_REPO_ADMIN_TOKEN}" != "true" ]]; then
+            protected_branches="$(jq -r '.deployment_branch_policy.protected_branches // false' <<< "${environment_json}")"
+            custom_branch_policies="$(jq -r '.deployment_branch_policy.custom_branch_policies // false' <<< "${environment_json}")"
+
+            if [[ "${protected_branches}" == "true" ]]; then
+              echo "::error::The github-pages environment only allows protected branches. Open Settings → Environments → github-pages → Deployment branches and tags, then allow tags matching ${GITHUB_REF_NAME} or add a REPO_ADMIN_TOKEN secret so the workflow can add the v* tag policy."
+              exit 1
+            fi
+
+            if [[ "${custom_branch_policies}" == "true" ]]; then
+              policies="$(gh api "repos/${GITHUB_REPOSITORY}/environments/github-pages/deployment-branch-policies" --paginate)"
+              echo "Configured github-pages deployment branch/tag policies:"
+              jq -r '.branch_policies[]? | "- " + (.type // "branch-or-tag") + ": " + .name' <<< "${policies}" || true
+
+              if ! jq -e --arg tag "${GITHUB_REF_NAME}" '.branch_policies[]? | select(.name == $tag or .name == "v*" or .name == "*")' <<< "${policies}" >/dev/null; then
+                echo "::error::Tag ${GITHUB_REF_NAME} is not allowed by the github-pages environment. Open Settings → Environments → github-pages → Deployment branches and tags, then add a Tag rule named v* or add a REPO_ADMIN_TOKEN secret so the workflow can create it."
+                exit 1
+              fi
+            fi
           fi
 
       - name: Prepare landing static website
