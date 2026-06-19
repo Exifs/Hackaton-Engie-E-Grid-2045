@@ -88,7 +88,7 @@ Le workflow `.github/workflows/godot-release.yml` se déclenche à chaque tag. A
 - les assets `Docs/` et `egrid_region_editor_tool/assets/map/` référencés par les pages HTML ;
 - un `index.html` racine qui redirige vers `./landing/`.
 
-Le site est publié sur GitHub Pages. Le workflow ajoute l’URL du site aux notes de release et tente de mettre à jour le champ **Website** du dépôt avec l’URL retournée par `actions/deploy-pages`.
+Le site est publié sur GitHub Pages via `actions/upload-pages-artifact@v4` et `actions/deploy-pages@v5`.
 
 ## Notes
 

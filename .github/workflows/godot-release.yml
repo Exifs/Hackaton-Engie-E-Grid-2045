@@ -98,12 +98,72 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     env:
       FALLBACK_PAGES_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/
+      HAS_REPO_ADMIN_TOKEN: ${{ secrets.REPO_ADMIN_TOKEN != '' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Configure GitHub Pages
-        uses: actions/configure-pages@v5
+      - name: Enable GitHub Pages for Actions
+        if: ${{ env.HAS_REPO_ADMIN_TOKEN == 'true' }}
+        env:
+          GH_TOKEN: ${{ secrets.REPO_ADMIN_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          if gh api "repos/${GITHUB_REPOSITORY}/pages" --silent >/dev/null 2>&1; then
+            gh api \
+              --method PUT \
+              -H "Accept: application/vnd.github+json" \
+              "repos/${GITHUB_REPOSITORY}/pages" \
+              -f build_type=workflow \
+              --silent
+          else
+            gh api \
+              --method POST \
+              -H "Accept: application/vnd.github+json" \
+              "repos/${GITHUB_REPOSITORY}/pages" \
+              -f build_type=workflow \
+              --silent
+          fi
+
+      - name: Validate GitHub Pages setup
+        env:
+          GH_TOKEN: ${{ secrets.REPO_ADMIN_TOKEN || github.token }}
+        run: |
+          set -euo pipefail
+
+          if ! pages_json="$(gh api "repos/${GITHUB_REPOSITORY}/pages" 2>/tmp/pages-error.log)"; then
+            {
+              echo "## GitHub Pages is not enabled"
+              echo
+              echo "Enable GitHub Pages once in **Settings → Pages → Build and deployment → Source → GitHub Actions**."
+              echo
+              echo "For a fully automated tag workflow, add a \`REPO_ADMIN_TOKEN\` repository secret with permission to manage GitHub Pages settings."
+              echo
+              echo "\`\`\`text"
+              cat /tmp/pages-error.log
+              echo "\`\`\`"
+            } >> "${GITHUB_STEP_SUMMARY}"
+
+            echo "::error::GitHub Pages is not enabled for ${GITHUB_REPOSITORY}. Enable Pages with Source = GitHub Actions, or add a REPO_ADMIN_TOKEN secret that can manage Pages settings."
+            exit 1
+          fi
+
+          html_url="$(jq -r '.html_url // empty' <<< "${pages_json}")"
+          build_type="$(jq -r '.build_type // empty' <<< "${pages_json}")"
+          source_branch="$(jq -r '.source.branch // empty' <<< "${pages_json}")"
+          source_path="$(jq -r '.source.path // empty' <<< "${pages_json}")"
+
+          echo "GitHub Pages URL: ${html_url:-unknown}"
+          echo "GitHub Pages build type: ${build_type:-unknown}"
+          if [[ -n "${source_branch}" ]]; then
+            echo "GitHub Pages source branch: ${source_branch}${source_path}"
+          fi
+
+          if [[ "${HAS_REPO_ADMIN_TOKEN}" != "true" && "${build_type}" != "workflow" && -n "${source_branch}" ]]; then
+            echo "::error::GitHub Pages is configured from branch ${source_branch}${source_path}. Switch Settings → Pages → Source to GitHub Actions, or add REPO_ADMIN_TOKEN so the workflow can set build_type=workflow."
+            exit 1
+          fi
 
       - name: Prepare landing static website
         run: |
@@ -143,13 +203,13 @@ jobs:
           find "${SITE_DIR}" -maxdepth 3 -type f | sort
 
       - name: Upload GitHub Pages artifact
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v4
         with:
           path: _site
 
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
 
       - name: Add website URL to release notes
         env:
