@@ -103,7 +103,7 @@
   }
 
   function setupSmoothAnchors() {
-    document.querySelectorAll('a[href^=#]').forEach((link) => {
+    document.querySelectorAll(`a[href^='#']`).forEach((link) => {
       link.addEventListener('click', (event) => {
         const id = link.getAttribute('href');
         if (!id || id === '#') return;
