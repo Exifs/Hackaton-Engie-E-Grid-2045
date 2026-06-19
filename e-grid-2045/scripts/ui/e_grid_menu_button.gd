@@ -28,6 +28,9 @@ var _normal_font_atlas: Texture2D
 var _active_font_atlas: Texture2D
 var _text_layer: Control
 
+static var _texture_cache: Dictionary = {}
+static var _frame_cache: Dictionary = {}
+
 
 func _ready() -> void:
 	text = ""
@@ -73,7 +76,7 @@ func _install_empty_button_styles() -> void:
 
 
 func _load_sprite_frames() -> void:
-	var sheet := load(spritesheet_path) as Texture2D
+	var sheet := _load_texture_from_png(spritesheet_path)
 
 	if sheet == null:
 		push_error("Impossible de charger la spritesheet de bouton: %s" % spritesheet_path)
@@ -94,19 +97,28 @@ func _load_font_atlases() -> void:
 
 
 func _load_texture_from_png(path: String) -> Texture2D:
+	if _texture_cache.has(path):
+		return _texture_cache[path]
+
 	var texture := load(path) as Texture2D
 
 	if texture == null:
 		push_error("Impossible de charger la texture UI: %s" % path)
 		return null
 
+	_texture_cache[path] = texture
 	return texture
 
 
 func _create_frame_texture(sheet: Texture2D, frame_index: int, frame_height: int) -> Texture2D:
+	var cache_key := "%s|%d|%d" % [sheet.resource_path, frame_index, frame_height]
+	if _frame_cache.has(cache_key):
+		return _frame_cache[cache_key]
+
 	var frame := AtlasTexture.new()
 	frame.atlas = sheet
 	frame.region = Rect2(0, frame_index * frame_height, sheet.get_width(), frame_height)
+	_frame_cache[cache_key] = frame
 	return frame
 
 

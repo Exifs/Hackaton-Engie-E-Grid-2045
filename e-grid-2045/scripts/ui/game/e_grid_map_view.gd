@@ -400,8 +400,7 @@ func _draw_region_border(region: Dictionary, color: Color, width: float) -> void
 
 
 func _load_map_assets() -> void:
-	_assets = E_GRID_MAP_ASSETS.new()
-	_assets.call("load_from_paths", backdrop_texture_path, contours_path, region_mask_path)
+	_assets = E_GRID_MAP_ASSETS.load_cached(backdrop_texture_path, contours_path, region_mask_path)
 	_screen_cache_dirty = true
 	queue_redraw()
 
