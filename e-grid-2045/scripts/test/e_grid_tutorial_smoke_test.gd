@@ -3,10 +3,12 @@ extends SceneTree
 const DATA_LOADER := preload("res://scripts/simulation/DataLoader.gd")
 const BUILD_PALETTE_SCENE := preload("res://scenes/ui/game/e_grid_build_palette.tscn")
 const GAME_SCENE := preload("res://scenes/game/game_scene.tscn")
+const TUTORIAL_OVERLAY_SCENE := preload("res://scenes/ui/tutorial/TutorialOverlay.tscn")
 const TUTORIAL_MANAGER := preload("res://scripts/tutorial/TutorialManager.gd")
 const TUTORIAL_PATH := "res://data/tutorial_first_loop.json"
 const TEST_CONFIG_PATH := "user://tutorial_state_reset_test.cfg"
 const TEST_CONFIG_FILE := "tutorial_state_reset_test.cfg"
+const TUTORIAL_LAYOUT_TEST_SIZE := Vector2(1228.0, 915.0)
 const REQUIRED_STEP_KEYS := ["id", "title", "body", "objective", "required_event"]
 const NEW_BUILD_TARGETS := [
 	"build_menu.cooling_overlay_button",
@@ -53,6 +55,7 @@ func _run() -> void:
 	_validate_cooling_heatmap_step(steps)
 	_validate_final_completion_step(steps)
 	_validate_tutorial_state_flags()
+	await _validate_tutorial_overlay_layout(steps)
 	await _validate_palette_targets_resolve()
 	await _validate_game_scene_build_targets_resolve()
 	_report()
@@ -202,6 +205,82 @@ func _delete_test_config() -> void:
 	var user_dir := DirAccess.open("user://")
 	if user_dir != null and user_dir.file_exists(TEST_CONFIG_FILE):
 		user_dir.remove(TEST_CONFIG_FILE)
+
+
+func _validate_tutorial_overlay_layout(steps: Array) -> void:
+	var first_step_variant = steps[0]
+	if typeof(first_step_variant) != TYPE_DICTIONARY:
+		return
+
+	var first_step: Dictionary = first_step_variant
+	await _validate_tutorial_overlay_layout_case(
+		first_step,
+		"top-bar target",
+		Rect2(Vector2(322.0, 18.0), Vector2(410.0, 96.0)),
+		false
+	)
+	await _validate_tutorial_overlay_layout_case(
+		first_step,
+		"lower-screen target",
+		Rect2(Vector2(580.0, 740.0), Vector2(96.0, 96.0)),
+		true
+	)
+
+
+func _validate_tutorial_overlay_layout_case(step: Dictionary, case_name: String, target_rect: Rect2, should_flip_top: bool) -> void:
+	var host := Control.new()
+	host.name = "TutorialOverlayLayoutHost"
+	host.size = TUTORIAL_LAYOUT_TEST_SIZE
+	root.add_child(host)
+
+	var overlay := TUTORIAL_OVERLAY_SCENE.instantiate() as Control
+	if overlay == null:
+		_failures.append("Unable to instantiate tutorial overlay for layout smoke test")
+		root.remove_child(host)
+		host.free()
+		await process_frame
+		return
+
+	host.add_child(overlay)
+	overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
+	overlay.offset_left = 0.0
+	overlay.offset_top = 0.0
+	overlay.offset_right = 0.0
+	overlay.offset_bottom = 0.0
+	await process_frame
+
+	overlay.call("show_step", step, 1, 12, target_rect)
+	for _index in range(4):
+		await process_frame
+
+	var text_panel := overlay.get_node_or_null("TextPanel") as Control
+	if text_panel == null:
+		_failures.append("Tutorial overlay layout test has no TextPanel: %s" % case_name)
+	else:
+		_validate_tutorial_text_panel_rect(case_name, text_panel.get_global_rect(), should_flip_top)
+
+	root.remove_child(host)
+	host.free()
+	await process_frame
+
+
+func _validate_tutorial_text_panel_rect(case_name: String, panel_rect: Rect2, should_flip_top: bool) -> void:
+	if panel_rect.size.x <= 0.0 or panel_rect.size.y <= 0.0:
+		_failures.append("Tutorial TextPanel has non-positive bounds in layout case: %s" % case_name)
+		return
+
+	if panel_rect.size.x > 440.5:
+		_failures.append("Tutorial TextPanel is wider than the desktop cap in layout case %s: %.1f" % [case_name, panel_rect.size.x])
+
+	if panel_rect.size.y > 360.5:
+		_failures.append("Tutorial TextPanel is taller than the viewport-safe cap in layout case %s: %.1f" % [case_name, panel_rect.size.y])
+
+	var viewport_rect := Rect2(Vector2.ZERO, TUTORIAL_LAYOUT_TEST_SIZE).grow(0.5)
+	if not _rect_contains(viewport_rect, panel_rect):
+		_failures.append("Tutorial TextPanel exceeds viewport in layout case %s: %s" % [case_name, str(panel_rect)])
+
+	if should_flip_top and panel_rect.position.y > 20.0:
+		_failures.append("Tutorial TextPanel must flip to the top for lower-screen targets in layout case %s: y=%.1f" % [case_name, panel_rect.position.y])
 
 
 func _validate_palette_targets_resolve() -> void:

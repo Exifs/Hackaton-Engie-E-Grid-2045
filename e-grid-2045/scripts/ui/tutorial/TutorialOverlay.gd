@@ -92,10 +92,25 @@ func _position_text_panel() -> void:
 		return
 
 	var viewport_size := size
-	var panel_size := Vector2(440.0, 0.0)
-	if viewport_size.x < 760.0:
-		panel_size.x = maxf(viewport_size.x - 32.0, 320.0)
-	_text_panel.custom_minimum_size = Vector2(panel_size.x, 0.0)
+	if viewport_size.x <= 0.0 or viewport_size.y <= 0.0:
+		var viewport := get_viewport()
+		if viewport != null:
+			viewport_size = viewport.get_visible_rect().size
+
+	if viewport_size.x <= 0.0 or viewport_size.y <= 0.0:
+		return
+
+	var margin := 18.0
+	var available_size := Vector2(
+		maxf(viewport_size.x - margin * 2.0, 1.0),
+		maxf(viewport_size.y - margin * 2.0, 1.0)
+	)
+	var panel_width := minf(440.0, available_size.x)
+
+	_text_panel.set_anchors_preset(Control.PRESET_TOP_LEFT)
+	_text_panel.custom_minimum_size = Vector2(panel_width, 0.0)
+	_text_panel.position = Vector2.ZERO
+	_text_panel.size = Vector2(panel_width, 0.0)
 
 	await get_tree().process_frame
 	if _text_panel == null or not is_instance_valid(_text_panel):
@@ -105,18 +120,24 @@ func _position_text_panel() -> void:
 		_highlighter.call("refresh_target_rect")
 		_target = _highlighter.target_rect
 
-	panel_size = _text_panel.size
-	if panel_size.y <= 0.0:
-		panel_size.y = 210.0
+	var panel_height := _text_panel.get_combined_minimum_size().y
+	if panel_height <= 0.0:
+		panel_height = _text_panel.size.y
+	if panel_height <= 0.0:
+		panel_height = 210.0
+	panel_height = minf(panel_height, minf(360.0, available_size.y))
 
-	var margin := 18.0
+	var panel_size := Vector2(panel_width, panel_height)
 	var target_center := _target.get_center()
 	var panel_position := Vector2((viewport_size.x - panel_size.x) * 0.5, viewport_size.y - panel_size.y - margin)
 	if _target.size != Vector2.ZERO and target_center.y > viewport_size.y * 0.5:
 		panel_position.y = margin
 	if _target.size != Vector2.ZERO:
-		panel_position.x = clampf(target_center.x - panel_size.x * 0.5, margin, maxf(margin, viewport_size.x - panel_size.x - margin))
+		panel_position.x = target_center.x - panel_size.x * 0.5
 
+	panel_position.x = clampf(panel_position.x, margin, maxf(margin, viewport_size.x - panel_size.x - margin))
+	panel_position.y = clampf(panel_position.y, margin, maxf(margin, viewport_size.y - panel_size.y - margin))
+	_text_panel.size = panel_size
 	_text_panel.position = panel_position
 
 
