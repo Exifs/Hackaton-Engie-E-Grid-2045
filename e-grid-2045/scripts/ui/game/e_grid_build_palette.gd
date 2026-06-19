@@ -1,5 +1,4 @@
-﻿@tool
-extends Control
+﻿extends Control
 class_name EGridBuildPalette
 
 signal build_requested(building_id: String)
@@ -175,15 +174,29 @@ func _sync_build_options() -> void:
 			if building_id == _selected_building_id:
 				selected_index = index
 
-		category_node.set("category_title", str(CATEGORY_TITLES.get(category, category.to_upper())))
-		category_node.set("button_family", str(CATEGORY_FAMILIES.get(category, category)))
-		category_node.set("tool_labels", labels)
-		category_node.set("tool_ids", ids)
-		category_node.set("tool_icon_states", icons)
-		category_node.set("tool_detail_lines", details)
-		category_node.set("disabled_reasons", disabled_reasons)
-		category_node.set("disabled_tool_indices", disabled_indices)
-		category_node.set("selected_tool_index", selected_index)
+		if category_node.has_method("configure_runtime"):
+			category_node.call(
+				"configure_runtime",
+				str(CATEGORY_TITLES.get(category, category.to_upper())),
+				str(CATEGORY_FAMILIES.get(category, category)),
+				labels,
+				ids,
+				icons,
+				details,
+				disabled_reasons,
+				disabled_indices,
+				selected_index
+			)
+		else:
+			category_node.set("category_title", str(CATEGORY_TITLES.get(category, category.to_upper())))
+			category_node.set("button_family", str(CATEGORY_FAMILIES.get(category, category)))
+			category_node.set("tool_labels", labels)
+			category_node.set("tool_ids", ids)
+			category_node.set("tool_icon_states", icons)
+			category_node.set("tool_detail_lines", details)
+			category_node.set("disabled_reasons", disabled_reasons)
+			category_node.set("disabled_tool_indices", disabled_indices)
+			category_node.set("selected_tool_index", selected_index)
 
 
 func _group_buildings_by_category() -> Dictionary:
@@ -247,3 +260,4 @@ func _set_property_if_available(target: Object, property_name: String, property_
 		if str(property.get("name", "")) == property_name:
 			target.set(property_name, property_value)
 			return
+

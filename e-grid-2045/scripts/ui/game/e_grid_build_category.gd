@@ -1,5 +1,4 @@
-﻿@tool
-extends VBoxContainer
+﻿extends VBoxContainer
 class_name EGridBuildCategory
 
 signal tool_requested(tool_id: String)
@@ -16,67 +15,105 @@ const BUTTON_FAMILY_SELECTED_STATE := {
 @export var category_title := "CATEGORY":
 	set(value):
 		category_title = value
-		_sync_title()
+		_request_title_sync()
 
 @export var tool_labels := PackedStringArray(["Tool A", "Tool B", "Tool C", "Tool D"]):
 	set(value):
 		tool_labels = value
-		_sync_slots()
+		_request_slots_sync()
 
 @export var tool_ids := PackedStringArray():
 	set(value):
 		tool_ids = value
-		_sync_slots()
+		_request_slots_sync()
 
 @export var tool_icon_states := PackedStringArray(["energy", "battery", "compute", "grid"]):
 	set(value):
 		tool_icon_states = value
-		_sync_slots()
+		_request_slots_sync()
 
 @export_enum("energy", "datacenter", "cooling", "research", "grid") var button_family := "energy":
 	set(value):
 		button_family = value
-		_sync_slots()
+		_request_slots_sync()
 
 @export_range(-1, 7, 1) var selected_tool_index := -1:
 	set(value):
 		selected_tool_index = value
-		_sync_slots()
+		_request_slots_sync()
 
 @export var disabled_tool_indices := PackedInt32Array():
 	set(value):
 		disabled_tool_indices = value
-		_sync_slots()
+		_request_slots_sync()
 
 @export var tool_detail_lines := PackedStringArray():
 	set(value):
 		tool_detail_lines = value
-		_sync_slots()
+		_request_slots_sync()
 
 @export var disabled_reasons := PackedStringArray():
 	set(value):
 		disabled_reasons = value
-		_sync_slots()
+		_request_slots_sync()
 
 @export_range(1, 6, 1) var columns := 4:
 	set(value):
 		columns = value
-		_sync_slots()
+		_request_slots_sync()
 
 @export var slot_min_size := Vector2(68.0, 68.0):
 	set(value):
 		slot_min_size = value
-		_sync_slots()
+		_request_slots_sync()
 
 @export var auto_build_slots := true:
 	set(value):
 		auto_build_slots = value
-		_sync_slots()
+		_request_slots_sync()
+
+var _sync_suspended := false
 
 
 func _ready() -> void:
 	_sync_title()
 	_sync_slots()
+
+
+func configure_runtime(
+	next_title: String,
+	next_family: String,
+	next_labels: PackedStringArray,
+	next_ids: PackedStringArray,
+	next_icons: PackedStringArray,
+	next_details: PackedStringArray,
+	next_disabled_reasons: PackedStringArray,
+	next_disabled_indices: PackedInt32Array,
+	next_selected_index: int
+) -> void:
+	_sync_suspended = true
+	category_title = next_title
+	button_family = next_family
+	tool_labels = next_labels
+	tool_ids = next_ids
+	tool_icon_states = next_icons
+	tool_detail_lines = next_details
+	disabled_reasons = next_disabled_reasons
+	disabled_tool_indices = next_disabled_indices
+	selected_tool_index = next_selected_index
+	_sync_suspended = false
+	_sync_title()
+	_sync_slots()
+
+
+func _request_title_sync() -> void:
+	if not _sync_suspended:
+		_sync_title()
+
+
+func _request_slots_sync() -> void:
+	if not _sync_suspended:
+		_sync_slots()
 
 
 func _sync_title() -> void:
@@ -208,3 +245,4 @@ func _set_property_if_available(target: Object, property_name: String, property_
 		if str(property.get("name", "")) == property_name:
 			target.set(property_name, property_value)
 			return
+

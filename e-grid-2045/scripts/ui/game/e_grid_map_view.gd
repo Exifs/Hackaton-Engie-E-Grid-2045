@@ -1,5 +1,4 @@
-﻿@tool
-extends Control
+﻿extends Control
 class_name EGridMapView
 
 signal map_pressed(position: Vector2)
@@ -89,54 +88,84 @@ const NETWORK_FLOW_LAYER := preload("res://scripts/presentation/NetworkFlowLayer
 	set(value):
 		selected_region_id = maxi(int(value), 0)
 		queue_redraw()
+@export var animate_network_flows := false:
+	set(value):
+		animate_network_flows = value
+		_sync_processing()
+@export_range(1.0, 30.0, 1.0) var flow_animation_fps := 8.0
+@export_range(0.0, 32.0, 1.0) var hover_pick_step_pixels := 6.0
 
 var _assets: RefCounted
 var _map_rect := Rect2()
 var _screen_regions: Array[Dictionary] = []
+var _screen_regions_by_id := {}
+var _region_ids_by_slug := {}
+var _layout_positions := {}
+var _layout_positions_dirty := true
 var _screen_cache_dirty := true
 var _hover_region_id := 0
 var _regions_state := {}
 var _region_layout := {}
 var _network_flows := []
+var _visible_network_flows := []
 var _selected_region_slug := ""
 var _heatmap_mode := "energy"
 var _flow_phase := 0.0
+var _flow_redraw_accumulator := 0.0
+var _last_hover_pick_position := Vector2.INF
 
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_STOP
-	set_process(true)
+	set_process(false)
 	_load_map_assets()
 	_sync_labels()
+	_sync_processing()
 
 
 func _process(delta: float) -> void:
-	if not _network_flows.is_empty() and is_visible_in_tree():
-		_flow_phase = fposmod(_flow_phase + delta * 0.38, 1.0)
-		queue_redraw()
+	if not animate_network_flows or _visible_network_flows.is_empty() or not is_visible_in_tree():
+		return
+
+	_flow_redraw_accumulator += delta
+	var redraw_interval := 1.0 / maxf(flow_animation_fps, 1.0)
+	if _flow_redraw_accumulator < redraw_interval:
+		return
+
+	_flow_redraw_accumulator = fposmod(_flow_redraw_accumulator, redraw_interval)
+	_flow_phase = fposmod(_flow_phase + redraw_interval * 0.38, 1.0)
+	queue_redraw()
 
 
 func set_simulation_overlay(regions_state: Dictionary, region_layout: Dictionary, network_flows: Array, selected_region_slug: String, heatmap_mode: String) -> void:
 	_regions_state = regions_state
-	_region_layout = region_layout
+	if _region_layout != region_layout:
+		_region_layout = region_layout
+		_layout_positions_dirty = true
 	_network_flows = network_flows
 	_selected_region_slug = selected_region_slug
 	_heatmap_mode = heatmap_mode
 	selected_region_id = _region_id_for_slug(selected_region_slug)
+	_refresh_visible_network_flows()
+	_sync_processing()
 	queue_redraw()
 
 
 func set_selected_region_slug(region_slug: String) -> void:
 	_selected_region_slug = region_slug
 	selected_region_id = _region_id_for_slug(region_slug)
+	_refresh_visible_network_flows()
+	_sync_processing()
 	queue_redraw()
 
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_RESIZED:
 		_screen_cache_dirty = true
+		_layout_positions_dirty = true
 		queue_redraw()
 	elif what == NOTIFICATION_MOUSE_EXIT:
+		_last_hover_pick_position = Vector2.INF
 		_set_hover_region_id(0)
 
 
@@ -147,6 +176,9 @@ func _gui_input(event: InputEvent) -> void:
 
 	if event is InputEventMouseMotion:
 		var motion_event := event as InputEventMouseMotion
+		if _should_skip_hover_pick(motion_event.position):
+			return
+		_last_hover_pick_position = motion_event.position
 		_set_hover_region_id(_pick_region_id_at_view_position(motion_event.position))
 		return
 
@@ -241,11 +273,10 @@ func _draw_heatmap_layer() -> void:
 
 
 func _draw_network_flows() -> void:
-	if _network_flows.is_empty():
+	if _visible_network_flows.is_empty():
 		return
 
-	var flows := NETWORK_FLOW_LAYER.visible_flows(_network_flows, _selected_region_slug, 10)
-	for flow_variant in flows:
+	for flow_variant in _visible_network_flows:
 		var flow: Dictionary = flow_variant
 		var source_id := str(flow.get("source_region_id", ""))
 		var target_id := str(flow.get("target_region_id", ""))
@@ -259,22 +290,23 @@ func _draw_network_flows() -> void:
 		var width := NETWORK_FLOW_LAYER.width_for_flow(flow, selected)
 		draw_line(source, target, color, width, true)
 
-		var dot_position := source.lerp(target, _flow_phase)
-		draw_circle(dot_position, maxf(width * 0.75, 2.0), Color(color, minf(color.a + 0.2, 1.0)))
+		if animate_network_flows:
+			var dot_position := source.lerp(target, _flow_phase)
+			draw_circle(dot_position, maxf(width * 0.75, 2.0), Color(color, minf(color.a + 0.2, 1.0)))
 
 
 func _draw_region_markers() -> void:
 	for region_id in _region_layout.keys():
-		var position := _layout_position(str(region_id))
-		if position == Vector2.INF:
+		var marker_position := _layout_position(str(region_id))
+		if marker_position == Vector2.INF:
 			continue
 		var cached := _cached_for_region(str(region_id))
 		var state := HEATMAP_LAYER.semantic_state_for_region(cached)
 		var color := _marker_color(state)
 		var radius := 5.0 if str(region_id) != _selected_region_slug else 7.5
-		draw_circle(position, radius + 4.0, Color(color, 0.16))
-		draw_circle(position, radius, color)
-		draw_arc(position, radius + 6.0, 0.0, TAU, 24, Color(color, 0.55), 1.2)
+		draw_circle(marker_position, radius + 4.0, Color(color, 0.16))
+		draw_circle(marker_position, radius, color)
+		draw_arc(marker_position, radius + 6.0, 0.0, TAU, 24, Color(color, 0.55), 1.2)
 
 
 func _draw_selected_region_slots() -> void:
@@ -296,14 +328,14 @@ func _draw_selected_region_slots() -> void:
 	var radius := clampf(minf(_map_rect.size.x, _map_rect.size.y) * 0.055, 28.0, 52.0)
 	for index in range(visible_slots):
 		var angle := -PI * 0.5 + (TAU * float(index) / float(visible_slots))
-		var position := center + Vector2(cos(angle), sin(angle)) * radius
+		var slot_position := center + Vector2(cos(angle), sin(angle)) * radius
 		var color := Color("#233137e6")
 		if index < slots_used:
 			color = Color("#42d4cbdc")
 		if index >= max(0, slots_used - constructions.size()) and index < slots_used:
 			color = Color("#f4a23fdc")
-		draw_circle(position, 5.8, Color("#02090bdd"))
-		draw_circle(position, 4.4, color)
+		draw_circle(slot_position, 5.8, Color("#02090bdd"))
+		draw_circle(slot_position, 4.4, color)
 
 	if slots_max > visible_slots:
 		var font := get_theme_default_font()
@@ -356,7 +388,10 @@ func _load_map_assets() -> void:
 
 func _rebuild_screen_cache() -> void:
 	_screen_cache_dirty = false
+	_layout_positions_dirty = true
 	_screen_regions.clear()
+	_screen_regions_by_id.clear()
+	_region_ids_by_slug.clear()
 
 	if _assets == null or not _assets.is_valid():
 		_map_rect = Rect2(Vector2.ZERO, size)
@@ -385,21 +420,24 @@ func _rebuild_screen_cache() -> void:
 		if screen_components.is_empty():
 			continue
 
-		_screen_regions.append({
+		var screen_region := {
 			"id": int(region.get("id", 0)),
 			"slug": str(region.get("slug", "")),
 			"display_name": str(region.get("display_name", "")),
 			"components": screen_components,
 			"closed_components": closed_screen_components,
-		})
+		}
+		_screen_regions.append(screen_region)
+		_screen_regions_by_id[int(screen_region.get("id", 0))] = screen_region
+		_region_ids_by_slug[str(screen_region.get("slug", ""))] = int(screen_region.get("id", 0))
 
 
 func _get_aspect_fit_rect(target_size: Vector2, source_size: Vector2) -> Rect2:
 	if target_size.x <= 0.0 or target_size.y <= 0.0 or source_size.x <= 0.0 or source_size.y <= 0.0:
 		return Rect2(Vector2.ZERO, target_size)
 
-	var scale := minf(target_size.x / source_size.x, target_size.y / source_size.y)
-	var fitted_size := source_size * scale
+	var fit_scale := minf(target_size.x / source_size.x, target_size.y / source_size.y)
+	var fitted_size := source_size * fit_scale
 	return Rect2((target_size - fitted_size) * 0.5, fitted_size)
 
 
@@ -479,14 +517,17 @@ func _get_region(region_id: int) -> Dictionary:
 
 
 func _get_screen_region(region_id: int) -> Dictionary:
-	for region in _screen_regions:
-		if int(region.get("id", 0)) == region_id:
-			return region
-	return {}
+	var region = _screen_regions_by_id.get(region_id, {})
+	return region if typeof(region) == TYPE_DICTIONARY else {}
 
 
 func _region_id_for_slug(slug: String) -> int:
-	if slug.is_empty() or _assets == null:
+	if slug.is_empty():
+		return 0
+	var cached_id := int(_region_ids_by_slug.get(slug, 0))
+	if cached_id > 0:
+		return cached_id
+	if _assets == null:
 		return 0
 	for region in _assets.regions:
 		if str(region.get("slug", "")) == slug:
@@ -495,10 +536,35 @@ func _region_id_for_slug(slug: String) -> int:
 
 
 func _layout_position(region_id: String) -> Vector2:
-	var layout: Dictionary = _region_layout.get(region_id, {})
-	if layout.is_empty():
-		return Vector2.INF
-	return _normalized_to_view_position(Vector2(float(layout.get("x", 0.5)), float(layout.get("y", 0.5))))
+	if _layout_positions_dirty:
+		_rebuild_layout_position_cache()
+	var cached_position = _layout_positions.get(region_id, Vector2.INF)
+	return cached_position if cached_position is Vector2 else Vector2.INF
+
+
+func _rebuild_layout_position_cache() -> void:
+	_layout_positions_dirty = false
+	_layout_positions.clear()
+	for region_id_variant in _region_layout.keys():
+		var region_id := str(region_id_variant)
+		var layout: Dictionary = _region_layout.get(region_id, {})
+		if layout.is_empty():
+			continue
+		_layout_positions[region_id] = _normalized_to_view_position(Vector2(float(layout.get("x", 0.5)), float(layout.get("y", 0.5))))
+
+
+func _refresh_visible_network_flows() -> void:
+	_visible_network_flows = NETWORK_FLOW_LAYER.visible_flows(_network_flows, _selected_region_slug, 10)
+
+
+func _sync_processing() -> void:
+	set_process(animate_network_flows and not _visible_network_flows.is_empty())
+
+
+func _should_skip_hover_pick(view_position: Vector2) -> bool:
+	if hover_pick_step_pixels <= 0.0 or _last_hover_pick_position == Vector2.INF:
+		return false
+	return _last_hover_pick_position.distance_squared_to(view_position) < hover_pick_step_pixels * hover_pick_step_pixels
 
 
 func _cached_for_region(region_id: String) -> Dictionary:
@@ -535,6 +601,3 @@ func _sync_labels() -> void:
 		title_label.text = map_title_text
 	if status_label != null:
 		status_label.text = map_status_text
-
-
-

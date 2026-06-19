@@ -1,5 +1,4 @@
-﻿@tool
-extends Control
+﻿extends Control
 class_name EGridRegionPanel
 
 signal cancel_construction_requested(region_id: String, queue_index: int)
@@ -44,70 +43,71 @@ const COLLAPSIBLE_CONTENT_PATHS := [
 @export var region_name := "NO REGION":
 	set(value):
 		region_name = value
-		_sync()
+		_request_sync()
 
 @export var level_text := "SELECT A REGION":
 	set(value):
 		level_text = value
-		_sync()
+		_request_sync()
 
 @export var xp_text := "0 / 0 SLOTS":
 	set(value):
 		xp_text = value
-		_sync()
+		_request_sync()
 
 @export_range(0.0, 100.0, 0.1) var xp_progress := 0.0:
 	set(value):
 		xp_progress = clampf(value, 0.0, 100.0)
-		_sync()
+		_request_sync()
 
 @export_enum("normal", "warning", "critical", "success", "disabled") var xp_semantic_state := "success":
 	set(value):
 		xp_semantic_state = value
-		_sync()
+		_request_sync()
 
 @export_enum("overview", "buildings", "stats") var active_tab := "overview":
 	set(value):
 		active_tab = value
-		_sync_tabs()
+		_request_tabs_sync()
 
 @export var building_slot_labels := PackedStringArray():
 	set(value):
 		building_slot_labels = value
-		_sync_slots()
+		_request_slots_sync()
 
 @export var building_slot_locked_indices := PackedInt32Array():
 	set(value):
 		building_slot_locked_indices = value
-		_sync_slots()
+		_request_slots_sync()
 
 @export var building_slot_pips := PackedInt32Array():
 	set(value):
 		building_slot_pips = value
-		_sync_slots()
+		_request_slots_sync()
 
 @export var building_slot_semantic_states := PackedStringArray():
 	set(value):
 		building_slot_semantic_states = value
-		_sync_slots()
+		_request_slots_sync()
 
 @export var module_slot_labels := PackedStringArray():
 	set(value):
 		module_slot_labels = value
-		_sync_slots()
+		_request_slots_sync()
 
 @export var module_slot_locked_indices := PackedInt32Array():
 	set(value):
 		module_slot_locked_indices = value
-		_sync_slots()
+		_request_slots_sync()
 
 @export var module_slot_pips := PackedInt32Array():
 	set(value):
 		module_slot_pips = value
-		_sync_slots()
+		_request_slots_sync()
 
 var _region_id := ""
 var _construction_count := 0
+var _sync_suspended := false
 
 
 func _ready() -> void:
@@ -121,7 +121,23 @@ func _ready() -> void:
 	_sync_collapsed_state()
 
 
+func _request_sync() -> void:
+	if not _sync_suspended:
+		_sync()
+
+
+func _request_tabs_sync() -> void:
+	if not _sync_suspended:
+		_sync_tabs()
+
+
+func _request_slots_sync() -> void:
+	if not _sync_suspended:
+		_sync_slots()
+
+
 func display_region(region: Dictionary, building_definitions: Dictionary, summary: Dictionary) -> void:
+	_sync_suspended = true
 	if region.is_empty():
 		_region_id = ""
 		region_name = "NO REGION"
@@ -131,6 +147,9 @@ func display_region(region: Dictionary, building_definitions: Dictionary, summar
 		xp_semantic_state = "disabled"
 		building_slot_labels = PackedStringArray()
 		module_slot_labels = PackedStringArray()
+		_sync_suspended = false
+		_sync()
+		_sync_slots()
 		_update_stats({}, summary)
 		_sync_footer_button()
 		return
@@ -145,6 +164,9 @@ func display_region(region: Dictionary, building_definitions: Dictionary, summar
 	xp_progress = clampf(float(slots_used) / maxf(float(slots_max), 1.0) * 100.0, 0.0, 100.0)
 	xp_semantic_state = _efficiency_state(float(cached.get("regional_efficiency", 1.0)))
 	_update_slot_views(region, building_definitions)
+	_sync_suspended = false
+	_sync()
+	_sync_slots()
 	_update_stats(cached, summary)
 	_sync_footer_button()
 
@@ -482,3 +504,4 @@ func _set_property_if_available(target: Object, property_name: String, property_
 		if str(property.get("name", "")) == property_name:
 			target.set(property_name, property_value)
 			return
+

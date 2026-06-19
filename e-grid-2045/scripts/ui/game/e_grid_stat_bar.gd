@@ -1,5 +1,4 @@
-@tool
-extends VBoxContainer
+﻿extends VBoxContainer
 class_name EGridStatBar
 
 @export var title_text := "STAT":

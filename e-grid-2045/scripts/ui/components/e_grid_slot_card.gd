@@ -1,4 +1,4 @@
-@tool
+﻿@tool
 class_name EGridSlotCard
 extends Button
 
@@ -154,7 +154,7 @@ func _ready() -> void:
 	_cache_layers()
 	_connect_state_signals()
 	_sync_visuals()
-	set_process(true)
+	set_process(false)
 
 
 func _notification(what: int) -> void:

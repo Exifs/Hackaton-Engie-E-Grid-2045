@@ -1,5 +1,4 @@
-@tool
-extends Control
+﻿extends Control
 class_name EGridGameTopBar
 
 const RESOURCE_CHIP_STATES := "energy,cooling,compute,co2_warning,money,research,usa_warning,energy_critical,disabled"

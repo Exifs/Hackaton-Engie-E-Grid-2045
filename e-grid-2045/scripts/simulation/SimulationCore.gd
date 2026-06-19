@@ -21,6 +21,8 @@ const ECONOMY_SYSTEM := preload("res://scripts/simulation/EconomySystem.gd")
 const EVENT_SYSTEM := preload("res://scripts/simulation/EventSystem.gd")
 const SCORING_SYSTEM := preload("res://scripts/simulation/ScoringSystem.gd")
 
+const MAX_MONTHS_PER_FRAME := 2
+
 @export_range(0.2, 10.0, 0.1) var seconds_per_month := 1.6
 
 var state = GAME_STATE.new()
@@ -50,9 +52,13 @@ func _process(delta: float) -> void:
 		return
 
 	_tick_accumulator += delta * maxf(state.simulation_speed, 0.0)
-	while _tick_accumulator >= seconds_per_month:
+	var advanced_months := 0
+	while _tick_accumulator >= seconds_per_month and advanced_months < MAX_MONTHS_PER_FRAME:
 		_tick_accumulator -= seconds_per_month
+		advanced_months += 1
 		advance_month()
+	if _tick_accumulator >= seconds_per_month:
+		_tick_accumulator = fposmod(_tick_accumulator, seconds_per_month)
 
 
 func new_game() -> void:
@@ -177,7 +183,15 @@ func get_summary() -> Dictionary:
 func get_regions_snapshot() -> Dictionary:
 	var snapshots := {}
 	for region_id in regions.keys():
-		snapshots[region_id] = _region_system.region_snapshot(regions[region_id], building_definitions)
+		var region: Dictionary = regions[region_id]
+		snapshots[region_id] = {
+			"id": region_id,
+			"display_name": str(region.get("display_name", region_id)),
+			"slots_max": int(region.get("slots_max", 0)),
+			"slots_used": _region_system.slots_used(region, building_definitions),
+			"construction_queue": region.get("construction_queue", []),
+			"cached": region.get("cached", {}),
+		}
 	return snapshots
 
 
@@ -439,11 +453,11 @@ func _variation_multiplier(region_id: String, definition: Dictionary) -> float:
 			min_value = 0.9
 			max_value = 1.1
 
-	var seed: int = absi(("%s:%s" % [region_id, profile]).hash())
-	var phase := (float(seed % 1000) / 1000.0) * TAU
+	var region_variation_seed: int = absi(("%s:%s" % [region_id, profile]).hash())
+	var phase := (float(region_variation_seed % 1000) / 1000.0) * TAU
 	var wave := (sin((float(state.month_index) / 18.0) * TAU + phase) + 1.0) * 0.5
-	var noise_seed: int = absi(("%s:%s:%d" % [region_id, profile, state.month_index]).hash())
-	var noise := ((float(noise_seed % 100) / 100.0) - 0.5) * 0.04
+	var variation_noise_seed: int = absi(("%s:%s:%d" % [region_id, profile, state.month_index]).hash())
+	var noise := ((float(variation_noise_seed % 100) / 100.0) - 0.5) * 0.04
 	return clampf(lerpf(min_value, max_value, wave) + noise, min_value, max_value)
 
 
@@ -549,11 +563,11 @@ func _check_endgame() -> void:
 
 
 func _emit_refresh() -> void:
-	var summary := get_summary()
+	var summary: Dictionary = get_summary()
 	resources_updated.emit(summary)
 	alerts_updated.emit(state.alerts)
-	for region_id in regions.keys():
-		region_updated.emit(region_id)
+	if not state.selected_region_id.is_empty():
+		region_updated.emit(state.selected_region_id)
 
 
 func _global_researchers_available(metrics: Dictionary) -> float:
@@ -578,5 +592,3 @@ func _first_key(dictionary: Dictionary) -> String:
 	for key in dictionary.keys():
 		return str(key)
 	return ""
-
-

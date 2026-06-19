@@ -1,5 +1,4 @@
-﻿@tool
-extends Control
+﻿extends Control
 class_name EGridAlertBar
 
 signal alert_action_requested(action_name: String)
@@ -26,6 +25,7 @@ const ALERT_ITEM_SCENE := preload("res://scenes/ui/game/e_grid_alert_item.tscn")
 		_sync_collapsed_state()
 
 var _alerts := []
+var _alerts_signature := ""
 
 
 func _ready() -> void:
@@ -36,8 +36,25 @@ func _ready() -> void:
 
 
 func set_alerts(alerts: Array) -> void:
+	var next_signature := _signature_for_alerts(alerts)
+	if next_signature == _alerts_signature:
+		return
+	_alerts_signature = next_signature
 	_alerts = alerts
 	_sync_alerts()
+
+
+func _signature_for_alerts(alerts: Array) -> String:
+	var parts := PackedStringArray()
+	for alert_variant in alerts:
+		var alert: Dictionary = alert_variant
+		parts.append("%s|%s|%s|%s" % [
+			str(alert.get("title", "")),
+			str(alert.get("body", "")),
+			str(alert.get("region_id", "")),
+			str(alert.get("state", "")),
+		])
+	return "~".join(parts)
 
 
 func _sync_alerts() -> void:
@@ -122,3 +139,4 @@ func _set_property_if_available(target: Object, property_name: String, property_
 		if str(property.get("name", "")) == property_name:
 			target.set(property_name, property_value)
 			return
+

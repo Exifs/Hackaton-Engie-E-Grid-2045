@@ -23,12 +23,13 @@ var _map_view: Control
 var _region_panel: Control
 var _alert_bar: Control
 var _input_controller: Node
-var _simulation_core: Node
+var _simulation_core: EGridSimulationCore
 var _is_changing_scene := false
 var _selected_building_id := ""
 var _heatmap_mode := "energy"
 var _last_feedback := ""
 var _endgame_panel: Control
+var _refresh_pending := false
 
 
 func _ready() -> void:
@@ -73,9 +74,9 @@ func _setup_simulation() -> void:
 
 
 func _start_new_game() -> void:
-	_simulation_core.call("new_game")
-	_simulation_core.call("set_simulation_speed", 1.0)
-	_refresh_game_ui()
+	_simulation_core.new_game()
+	_simulation_core.set_simulation_speed(1.0)
+	_request_refresh_game_ui()
 
 
 func _wire_gameplay_ui() -> void:
@@ -122,36 +123,36 @@ func _request_return_to_menu() -> void:
 
 
 func _on_pause_toggle_requested() -> void:
-	var summary: Dictionary = _simulation_core.call("get_summary")
-	_simulation_core.call("set_paused", not bool(summary.get("paused", false)))
+	var summary: Dictionary = _simulation_core.get_summary()
+	_simulation_core.set_paused(not bool(summary.get("paused", false)))
 
 
 func _on_pause_button_pressed() -> void:
-	_simulation_core.call("set_paused", true)
+	_simulation_core.set_paused(true)
 
 
 func _on_play_button_pressed() -> void:
-	_simulation_core.call("set_simulation_speed", 1.0)
+	_simulation_core.set_simulation_speed(1.0)
 
 
 func _on_fast_button_pressed() -> void:
-	_simulation_core.call("set_simulation_speed", 4.0)
+	_simulation_core.set_simulation_speed(4.0)
 
 
 func _on_speed_requested(speed_multiplier: float) -> void:
-	_simulation_core.call("set_simulation_speed", speed_multiplier)
+	_simulation_core.set_simulation_speed(speed_multiplier)
 
 
 func _on_map_region_pressed(_region_id: int, slug: String, _display_name: String) -> void:
-	_simulation_core.call("select_region", slug)
+	_simulation_core.select_region(slug)
 	_last_feedback = "Selected %s" % slug
-	_refresh_game_ui()
+	_request_refresh_game_ui()
 
 
 func _on_map_region_hovered(_region_id: int, _slug: String, display_name: String) -> void:
 	if _map_view == null:
 		return
-	var selected := str(_simulation_core.call("get_summary").get("selected_region_id", ""))
+	var selected := str(_simulation_core.get_summary().get("selected_region_id", ""))
 	if display_name.is_empty():
 		_map_view.set("map_status_text", "SELECTED %s" % selected.to_upper())
 	else:
@@ -160,45 +161,47 @@ func _on_map_region_hovered(_region_id: int, _slug: String, display_name: String
 
 func _on_build_requested(building_id: String) -> void:
 	_selected_building_id = building_id
-	var result: Dictionary = _simulation_core.call("request_building", "", building_id)
+	var result: Dictionary = _simulation_core.request_building("", building_id)
 	if bool(result.get("ok", false)):
 		_last_feedback = "Construction started: %s" % building_id
 	else:
 		_last_feedback = str(result.get("reason", "Cannot build here."))
-	_refresh_game_ui()
+	_request_refresh_game_ui()
 
 
 func _on_cancel_construction_requested(region_id: String, queue_index: int) -> void:
-	var result: Dictionary = _simulation_core.call("cancel_construction", region_id, queue_index)
+	var result: Dictionary = _simulation_core.cancel_construction(region_id, queue_index)
 	if bool(result.get("ok", false)):
 		_last_feedback = "Construction cancelled, EUR %.0f refunded" % float(result.get("refund", 0.0))
 	else:
 		_last_feedback = str(result.get("reason", "Cannot cancel construction."))
-	_refresh_game_ui()
+	_request_refresh_game_ui()
 
 
 func _on_heatmap_mode_requested(mode: String) -> void:
 	_heatmap_mode = mode
-	_refresh_game_ui()
+	_request_refresh_game_ui()
 
 
 func _on_alert_region_requested(region_id: String) -> void:
-	_simulation_core.call("select_region", region_id)
-	_refresh_game_ui()
+	_simulation_core.select_region(region_id)
+	_request_refresh_game_ui()
 
 
 func _on_resources_updated(_summary: Dictionary) -> void:
-	_refresh_game_ui()
+	_request_refresh_game_ui()
 
 
-func _on_region_updated(_region_id: String) -> void:
-	_refresh_game_ui()
+func _on_region_updated(region_id: String) -> void:
+	var selected_region := str(_simulation_core.get_summary().get("selected_region_id", ""))
+	if region_id == selected_region:
+		_request_refresh_game_ui()
 
 
 func _on_selected_region_changed(region_id: String) -> void:
 	if _map_view != null and _map_view.has_method("set_selected_region_slug"):
 		_map_view.call("set_selected_region_slug", region_id)
-	_refresh_game_ui()
+	_request_refresh_game_ui()
 
 
 func _on_alerts_updated(alerts: Array) -> void:
@@ -208,11 +211,23 @@ func _on_alerts_updated(alerts: Array) -> void:
 
 func _on_construction_started(region_id: String, building_id: String) -> void:
 	_last_feedback = "%s started in %s" % [building_id, region_id]
-	_refresh_game_ui()
+	_request_refresh_game_ui()
 
 
 func _on_construction_completed(region_id: String, building_id: String) -> void:
 	_last_feedback = "%s online in %s" % [building_id, region_id]
+	_request_refresh_game_ui()
+
+
+func _request_refresh_game_ui() -> void:
+	if _refresh_pending:
+		return
+	_refresh_pending = true
+	call_deferred("_flush_refresh_game_ui")
+
+
+func _flush_refresh_game_ui() -> void:
+	_refresh_pending = false
 	_refresh_game_ui()
 
 
@@ -220,22 +235,22 @@ func _refresh_game_ui() -> void:
 	if _simulation_core == null:
 		return
 
-	var summary: Dictionary = _simulation_core.call("get_summary")
+	var summary: Dictionary = _simulation_core.get_summary()
 	_sync_top_bar(summary)
 
 	var selected_region := str(summary.get("selected_region_id", ""))
-	var building_definitions: Dictionary = _simulation_core.call("get_building_definitions")
-	var regions_snapshot: Dictionary = _simulation_core.call("get_regions_snapshot")
+	var building_definitions: Dictionary = _simulation_core.get_building_definitions()
+	var regions_snapshot: Dictionary = _simulation_core.get_regions_snapshot()
 
 	if _build_palette != null and _build_palette.has_method("set_build_context"):
-		_build_palette.call("set_build_context", building_definitions, _simulation_core.call("get_build_availability", selected_region), _selected_building_id)
+		_build_palette.call("set_build_context", building_definitions, _simulation_core.get_build_availability(selected_region), _selected_building_id)
 		_build_palette.call("set_active_heatmap_mode", _heatmap_mode)
 
 	if _region_panel != null and _region_panel.has_method("display_region"):
-		_region_panel.call("display_region", _simulation_core.call("get_region_snapshot", selected_region), building_definitions, summary)
+		_region_panel.call("display_region", _simulation_core.get_region_snapshot(selected_region), building_definitions, summary)
 
 	if _map_view != null and _map_view.has_method("set_simulation_overlay"):
-		_map_view.call("set_simulation_overlay", regions_snapshot, _simulation_core.call("get_region_layout"), summary.get("network_flows", []), selected_region, _heatmap_mode)
+		_map_view.call("set_simulation_overlay", regions_snapshot, _simulation_core.get_region_layout(), summary.get("network_flows", []), selected_region, _heatmap_mode)
 		if not _last_feedback.is_empty():
 			_map_view.set("map_status_text", _last_feedback.to_upper())
 
@@ -376,5 +391,6 @@ func _connect_button_once(path: NodePath, callback: Callable) -> void:
 
 	if not button.pressed.is_connected(callback):
 		button.pressed.connect(callback)
+
 
 

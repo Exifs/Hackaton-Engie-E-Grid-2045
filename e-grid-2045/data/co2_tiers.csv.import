@@ -1,0 +1,19 @@
+[remap]
+
+importer="csv_translation"
+type="Translation"
+uid="uid://dqoajfkaqtvmc"
+
+[deps]
+
+files=["res://data/co2_tiers.min.translation", "res://data/co2_tiers.max.translation", "res://data/co2_tiers.income.translation", "res://data/co2_tiers.event.translation", "res://data/co2_tiers.cooling.translation", "res://data/co2_tiers.notes.translation"]
+
+source_file="res://data/co2_tiers.csv"
+dest_files=["res://data/co2_tiers.min.translation", "res://data/co2_tiers.max.translation", "res://data/co2_tiers.income.translation", "res://data/co2_tiers.event.translation", "res://data/co2_tiers.cooling.translation", "res://data/co2_tiers.notes.translation"]
+
+[params]
+
+compress=1
+delimiter=0
+unescape_keys=false
+unescape_translations=true

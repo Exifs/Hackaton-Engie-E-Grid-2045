@@ -1,0 +1,19 @@
+[remap]
+
+importer="csv_translation"
+type="Translation"
+uid="uid://crrdb4a4lq7l"
+
+[deps]
+
+files=["res://data/buildings.display.translation", "res://data/buildings.category.translation", "res://data/buildings.slots.translation", "res://data/buildings.cost.translation", "res://data/buildings.construction.translation", "res://data/buildings.output.translation", "res://data/buildings.output.translation", "res://data/buildings.energy.translation", "res://data/buildings.cooling.translation", "res://data/buildings.compute.translation", "res://data/buildings.storage.translation", "res://data/buildings.consumes.translation", "res://data/buildings.consumes.translation", "res://data/buildings.consumes.translation", "res://data/buildings.required.translation", "res://data/buildings.co2.translation", "res://data/buildings.availability.translation", "res://data/buildings.unlock.translation", "res://data/buildings.required.translation", "res://data/buildings.required.translation", "res://data/buildings.required.translation", "res://data/buildings.scaling.translation", "res://data/buildings.scaling.translation", "res://data/buildings.variation.translation", "res://data/buildings.maintenance.translation", "res://data/buildings.notes.translation"]
+
+source_file="res://data/buildings.csv"
+dest_files=["res://data/buildings.display.translation", "res://data/buildings.category.translation", "res://data/buildings.slots.translation", "res://data/buildings.cost.translation", "res://data/buildings.construction.translation", "res://data/buildings.output.translation", "res://data/buildings.output.translation", "res://data/buildings.energy.translation", "res://data/buildings.cooling.translation", "res://data/buildings.compute.translation", "res://data/buildings.storage.translation", "res://data/buildings.consumes.translation", "res://data/buildings.consumes.translation", "res://data/buildings.consumes.translation", "res://data/buildings.required.translation", "res://data/buildings.co2.translation", "res://data/buildings.availability.translation", "res://data/buildings.unlock.translation", "res://data/buildings.required.translation", "res://data/buildings.required.translation", "res://data/buildings.required.translation", "res://data/buildings.scaling.translation", "res://data/buildings.scaling.translation", "res://data/buildings.variation.translation", "res://data/buildings.maintenance.translation", "res://data/buildings.notes.translation"]
+
+[params]
+
+compress=1
+delimiter=0
+unescape_keys=false
+unescape_translations=true

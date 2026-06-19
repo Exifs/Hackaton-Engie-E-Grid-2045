@@ -1,5 +1,4 @@
-﻿@tool
-extends RefCounted
+﻿extends RefCounted
 class_name EGridMapAssets
 
 const E_GRID_RUNTIME_TEXTURE_LOADER := preload("res://scripts/ui/components/e_grid_runtime_texture_loader.gd")
@@ -31,11 +30,11 @@ func get_region(region_id: int) -> Dictionary:
 
 
 func pick_region_id(image_position: Vector2) -> int:
-	var contour_region_id := _pick_region_id_from_contours(image_position)
-	if contour_region_id != EMPTY_REGION_ID:
-		return contour_region_id
+	var mask_region_id := _pick_region_id_from_mask(image_position)
+	if mask_region_id != EMPTY_REGION_ID:
+		return mask_region_id
 
-	return _pick_region_id_from_mask(image_position)
+	return _pick_region_id_from_contours(image_position)
 
 
 func _pick_region_id_from_contours(image_position: Vector2) -> int:

@@ -1,5 +1,4 @@
-@tool
-extends Control
+﻿extends Control
 class_name EGridAlertItem
 
 signal action_requested(action_name: String)
