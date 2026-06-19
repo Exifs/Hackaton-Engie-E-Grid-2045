@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang='fr'>
+<head>
+  <meta charset='utf-8'>
+  <meta name='viewport' content='width=device-width, initial-scale=1'>
+  <meta name='theme-color' content='#06131d'>
+  <meta name='description' content='Landing page hackathon pour E-Grid 2045, jeu de stratégie énergétique où l’Europe doit alimenter la course à l’AGI sans blackouts ni dérive carbone.'>
+  <title>E-Grid 2045 — Hackathon Energie</title>
+  <link rel='stylesheet' href='./styles.css'>
+  <script src='./main.js' defer></script>
+</head>
+<body>
+  <canvas id='energy-canvas' aria-hidden='true'></canvas>
+  <div class='noise' aria-hidden='true'></div>
+  <div class='aurora aurora-a' aria-hidden='true'></div>
+  <div class='aurora aurora-b' aria-hidden='true'></div>
+  <div class='scanline' aria-hidden='true'></div>
+  <div class='scroll-progress' aria-hidden='true'></div>
+
+  <header class='site-header' data-parallax-root>
+    <a class='brand' href='#top' aria-label='Retour au début'>
+      <span class='brand-mark'>E</span>
+      <span class='brand-text'>E-GRID 2045</span>
+    </a>
+    <nav class='nav-links' aria-label='Navigation principale'>
+      <a href='#pitch'>Pitch</a>
+      <a href='#screens'>Captures</a>
+      <a href='#tooling'>Outils</a>
+      <a href='#video'>Vidéo</a>
+    </nav>
+    <a class='nav-cta' href='#video'>Voir le teaser</a>
+  </header>
+
+  <main id='top'>
+    <section class='hero section-shell' aria-labelledby='hero-title'>
+      <div class='hero-copy reveal'>
+        <div class='eyebrow'>Hackathon Energie 2026 · DefendIntelligence · ENGIE · OpenAI</div>
+        <h1 id='hero-title'>Pilote l’Europe énergétique dans la course à l’AGI.</h1>
+        <p class='hero-lead'>E-Grid 2045 transforme les arbitrages énergie, compute, refroidissement et CO₂ en une carte stratégique vivante. Construis vite, optimise mieux, et évite que la transition numérique ne fasse disjoncter le continent.</p>
+        <div class='hero-actions'>
+          <a class='btn btn-primary magnetic' href='#video'>Réserver l’emplacement vidéo</a>
+          <a class='btn btn-ghost magnetic' href='#screens'>Voir les captures</a>
+        </div>
+        <div class='hero-stats' aria-label='Indicateurs clés du projet'>
+          <div class='stat-card'>
+            <span class='stat-value'>2025→2045</span>
+            <span class='stat-label'>20 ans sous pression</span>
+          </div>
+          <div class='stat-card'>
+            <span class='stat-value'>30</span>
+            <span class='stat-label'>régions jouables</span>
+          </div>
+          <div class='stat-card'>
+            <span class='stat-value'>100%</span>
+            <span class='stat-label'>objectif AGI Europe</span>
+          </div>
+        </div>
+      </div>
+
+      <div class='hero-visual reveal' data-depth='0.16'>
+        <div class='holo-stage' data-tilt>
+          <div class='stage-ring ring-one'></div>
+          <div class='stage-ring ring-two'></div>
+          <div class='screen-card main-screen' data-depth='0.25'>
+            <div class='screen-topbar'>
+              <span></span><span></span><span></span>
+              <strong>EUROPE ENERGY OPS</strong>
+            </div>
+            <img src='../Docs/Concept%20art%20-%20EU-Grid%202026-v2-1.png' alt='Capture conceptuelle de la carte énergétique E-Grid 2045' fetchpriority='high'>
+            <div class='screen-glow'></div>
+          </div>
+          <div class='floating-chip chip-agi' data-depth='0.38'>
+            <span>AGI EU</span>
+            <strong>63%</strong>
+            <small>+2.8/mois</small>
+          </div>
+          <div class='floating-chip chip-grid' data-depth='0.31'>
+            <span>SUPERGRID</span>
+            <strong>ONLINE</strong>
+            <small>pertes −15%</small>
+          </div>
+          <div class='floating-chip chip-co2' data-depth='0.46'>
+            <span>CO₂</span>
+            <strong>MODÉRÉ</strong>
+            <small>palier stable</small>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class='signal-strip' aria-label='Thèmes du jeu'>
+      <div class='ticker'>
+        <span>ÉNERGIE</span><span>REFROIDISSEMENT</span><span>DATACENTERS</span><span>SUPERGRID</span><span>BLACKOUTS</span><span>CO₂</span><span>RECHERCHE IA</span><span>SOUVERAINETÉ NUMÉRIQUE</span>
+      </div>
+      <div class='ticker ticker-clone' aria-hidden='true'>
+        <span>ÉNERGIE</span><span>REFROIDISSEMENT</span><span>DATACENTERS</span><span>SUPERGRID</span><span>BLACKOUTS</span><span>CO₂</span><span>RECHERCHE IA</span><span>SOUVERAINETÉ NUMÉRIQUE</span>
+      </div>
+    </section>
+
+    <section id='pitch' class='section-shell split-section'>
+      <div class='section-kicker reveal'>Le pitch</div>
+      <div class='section-heading reveal'>
+        <h2>Construire est facile. Alimenter durablement, beaucoup moins.</h2>
+        <p>Le joueur pense lancer des datacenters. Il découvre vite qu’un datacenter est un système complet : énergie locale, pertes réseau, chercheurs, refroidissement, CO₂ et temps industriel.</p>
+      </div>
+      <div class='feature-grid'>
+        <article class='feature-card reveal' data-tilt>
+          <span class='feature-icon'>⚡</span>
+          <h3>Réseau européen</h3>
+          <p>Mutualise l’énergie, mais paie les pertes de distance et la congestion quand les imports deviennent massifs.</p>
+        </article>
+        <article class='feature-card reveal' data-tilt>
+          <span class='feature-icon'>❄</span>
+          <h3>Froid stratégique</h3>
+          <p>Place les datacenters près du froid, des fleuves, de la mer ou de technologies avancées de refroidissement.</p>
+        </article>
+        <article class='feature-card reveal' data-tilt>
+          <span class='feature-icon'>◈</span>
+          <h3>Compute & recherche</h3>
+          <p>La progression AGI dépend du compute exploitable, des chercheurs disponibles et de la stabilité du réseau.</p>
+        </article>
+        <article class='feature-card reveal' data-tilt>
+          <span class='feature-icon'>☁</span>
+          <h3>Dette carbone</h3>
+          <p>Le gaz sauve le court terme, mais les paliers CO₂ déclenchent coûts, canicules, sécheresses et malus de score.</p>
+        </article>
+      </div>
+    </section>
+
+    <section id='video' class='section-shell video-section'>
+      <div class='section-heading centered reveal'>
+        <div class='section-kicker'>Vidéo de présentation</div>
+        <h2>Un emplacement premium prêt pour le trailer.</h2>
+        <p>La page garde une zone 16:9 spectaculaire pour intégrer la vidéo de pitch dès qu’elle sera disponible.</p>
+      </div>
+      <div class='video-shell reveal' data-tilt>
+        <div class='video-grid-overlay'></div>
+        <div class='video-placeholder'>
+          <button class='play-button' type='button' aria-label='Vidéo bientôt disponible'>▶</button>
+          <h3>Trailer hackathon bientôt disponible</h3>
+          <p>Dépose ici la vidéo finale, un embed ou un fichier local. Le cadre est déjà dimensionné pour une présentation projecteur.</p>
+        </div>
+        <div class='video-meta'>
+          <span>FORMAT 16:9</span>
+          <span>PLACEHOLDER</span>
+          <span>READY FOR DEMO DAY</span>
+        </div>
+      </div>
+    </section>
+
+    <section id='screens' class='section-shell screens-section'>
+      <div class='section-heading reveal'>
+        <div class='section-kicker'>Captures intégrées</div>
+        <h2>Une DA de carte stratégique vivante, déjà lisible en images.</h2>
+        <p>Les captures existantes servent de matière forte pour vendre l’ambiance : bleu nuit, cyan électrique, violet compute, alertes chaudes et interface de stratégie moderne.</p>
+      </div>
+      <div class='screenshot-deck'>
+        <article class='screenshot-card reveal' data-tilt>
+          <img src='../Docs/menu.png' alt='Menu principal E-Grid 2045'>
+          <div class='shot-caption'>
+            <span>01</span>
+            <h3>Menu principal</h3>
+            <p>Signature visuelle techno, glow cyan et ton premium dès l’entrée.</p>
+          </div>
+        </article>
+        <article class='screenshot-card reveal' data-tilt>
+          <img src='../Docs/Concept%20art%20-%20EU-Grid%202026-v2-1.png' alt='Carte du réseau énergétique européen'>
+          <div class='shot-caption'>
+            <span>02</span>
+            <h3>Réseau énergétique</h3>
+            <p>Flux, régions et tensions visibles sans transformer le jeu en dashboard.</p>
+          </div>
+        </article>
+        <article class='screenshot-card reveal' data-tilt>
+          <img src='../Docs/Concept%20art%20-%20EU-Grid%202026-v2-2.png' alt='Datacenters et refroidissement sur la carte européenne'>
+          <div class='shot-caption'>
+            <span>03</span>
+            <h3>Datacenters & cooling</h3>
+            <p>Le compute devient territorial, lumineux et dépendant du froid.</p>
+          </div>
+        </article>
+        <article class='screenshot-card reveal' data-tilt>
+          <img src='../Docs/Concept%20art%20-%20EU-Grid%202026-v2-0.png' alt='Concept visuel de gameplay E-Grid 2045'>
+          <div class='shot-caption'>
+            <span>04</span>
+            <h3>Vision gameplay</h3>
+            <p>Une Europe stylisée qui se densifie avec les choix du joueur.</p>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class='section-shell loop-section'>
+      <div class='section-heading centered reveal'>
+        <div class='section-kicker'>Boucle de jeu</div>
+        <h2>Une course contre les États-Unis, le CO₂ et l’inertie industrielle.</h2>
+      </div>
+      <div class='timeline'>
+        <div class='timeline-line' aria-hidden='true'></div>
+        <article class='timeline-step reveal'>
+          <span>01</span>
+          <h3>Déployer</h3>
+          <p>Universités, gaz de démarrage, renouvelables et premiers datacenters.</p>
+        </article>
+        <article class='timeline-step reveal'>
+          <span>02</span>
+          <h3>Stabiliser</h3>
+          <p>Anticiper nucléaire, stockage, refroidissement et pertes réseau.</p>
+        </article>
+        <article class='timeline-step reveal'>
+          <span>03</span>
+          <h3>Accélérer</h3>
+          <p>Convertir compute et chercheurs en progression AGI européenne.</p>
+        </article>
+        <article class='timeline-step reveal'>
+          <span>04</span>
+          <h3>Encaisser</h3>
+          <p>Survivre aux blackouts, sécheresses, canicules et hausses du gaz.</p>
+        </article>
+      </div>
+    </section>
+
+    <section id='tooling' class='section-shell tooling-section'>
+      <div class='tooling-visual reveal' data-tilt>
+        <img src='../egrid_region_editor_tool/assets/map/europe_map_backdrop_generated_clean_v1.png' alt='Fond de carte utilisé par l’éditeur de régions'>
+        <div class='tooling-overlay'>
+          <span>Browser tool</span>
+          <strong>Region Shape Editor</strong>
+          <small>édition des frontières gameplay · exports JSON/SVG · assets Godot</small>
+        </div>
+      </div>
+      <div class='tooling-copy reveal'>
+        <div class='section-kicker'>Outils créés pendant le hackathon</div>
+        <h2>On ne vend pas seulement un jeu. On vend aussi la chaîne de production.</h2>
+        <p>Le repo embarque un éditeur web pour découper et affiner les 30 régions de gameplay directement dans le navigateur. Résultat : un pipeline court, designer-friendly et exploitable par Godot.</p>
+        <div class='tool-list'>
+          <div><strong>Édition visuelle</strong><span>sommets, îles, pan, zoom, undo, labels.</span></div>
+          <div><strong>Exports runtime</strong><span>JSON éditeur, contours, SVG master.</span></div>
+          <div><strong>Intégration Godot</strong><span>mask d’IDs, LUT, overlay debug, validation.</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class='section-shell closing-section reveal'>
+      <div class='closing-card'>
+        <div class='closing-orbit' aria-hidden='true'></div>
+        <h2>Build. Optimize. Power Europe.</h2>
+        <p>E-Grid 2045 est un prototype hackathon pensé pour être compris vite, montré fort, et prolongé facilement : data-driven, lisible, spectaculaire, mais faisable.</p>
+        <a class='btn btn-primary magnetic' href='#top'>Revenir au début</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class='site-footer'>
+    <span>E-Grid 2045 · Hackathon Energie</span>
+    <span>Prototype Godot · Landing statique sans dépendance externe</span>
+  </footer>
+</body>
+</html>
