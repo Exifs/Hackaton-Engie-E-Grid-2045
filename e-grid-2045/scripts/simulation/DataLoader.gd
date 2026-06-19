@@ -1,12 +1,13 @@
 ﻿extends RefCounted
 class_name EGridDataLoader
 
+const EXPORT_DIAGNOSTICS := preload("res://scripts/debug/EGridExportDiagnostics.gd")
 const DATA_ROOT := "res://data/"
 
 
 func load_game_data() -> Dictionary:
 	var constants: Dictionary = _load_constants()
-	return {
+	var data := {
 		"constants": constants,
 		"regions": _load_regions(),
 		"buildings": _load_buildings(),
@@ -18,6 +19,8 @@ func load_game_data() -> Dictionary:
 		"distance_efficiency": _load_distance_efficiency(),
 		"volume_efficiency_tiers": _load_volume_efficiency_tiers(),
 	}
+	EXPORT_DIAGNOSTICS.log_data_snapshot(data)
+	return data
 
 
 func _load_constants() -> Dictionary:
@@ -314,4 +317,3 @@ func _icon_key_for_building(building_id: String, category: String) -> String:
 	if category == "grid":
 		return "grid"
 	return category
-

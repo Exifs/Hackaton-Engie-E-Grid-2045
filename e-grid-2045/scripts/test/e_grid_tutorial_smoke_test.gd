@@ -16,6 +16,14 @@ const NEW_BUILD_TARGETS := [
 	"build_menu.datacenter_button",
 	"build_menu.ai_research_center_button",
 ]
+const EXPECTED_BUILD_TARGET_IDS := {
+	"build_menu.university_button": "university",
+	"build_menu.wind_onshore_button": "wind_onshore",
+	"build_menu.river_cooling_button": "river_cooling",
+	"build_menu.datacenter_button": "datacenter_standard",
+	"build_menu.ai_research_center_button": "ai_research_center",
+}
+const COOLING_OVERLAY_PATH_SUFFIX := "ContentMargin/PaletteStack/OverlayPanel/CongestionRow/CongestionCheck"
 const BUILD_CATEGORY_PATHS := {
 	"energy": "ContentMargin/PaletteStack/CategoriesScroll/CategoriesStack/EnergyCategory",
 	"compute": "ContentMargin/PaletteStack/CategoriesScroll/CategoriesStack/DatacentersCategory",
@@ -289,6 +297,8 @@ func _validate_game_scene_build_target(target_id: String, palette: Control, targ
 	if not _rect_contains(palette_rect, target_rect):
 		_failures.append("Game scene build tutorial target is outside build palette bounds after reveal: %s" % target_id)
 
+	_validate_expected_build_target_identity(control, target_id, "Game scene")
+
 	var scroll := palette.get_node_or_null(CATEGORIES_SCROLL_PATH) as ScrollContainer
 	if scroll != null and scroll.is_ancestor_of(control):
 		var scroll_rect := scroll.get_global_rect().grow(1.0)
@@ -407,6 +417,18 @@ func _validate_build_button_target(target: Variant, target_id: String) -> void:
 		_failures.append("Build tutorial target must be visible: %s" % target_id)
 	if button.size.x <= 0.0 or button.size.y <= 0.0:
 		_failures.append("Build tutorial target must have a non-zero size: %s" % target_id)
+	_validate_expected_build_target_identity(button, target_id, "Build palette")
+
+
+func _validate_expected_build_target_identity(control: Control, target_id: String, context: String) -> void:
+	if EXPECTED_BUILD_TARGET_IDS.has(target_id):
+		var expected_building_id := str(EXPECTED_BUILD_TARGET_IDS[target_id])
+		var actual_building_id := str(control.get_meta("tutorial_building_id", ""))
+		if actual_building_id != expected_building_id:
+			_failures.append("%s target %s resolved to %s instead of %s" % [context, target_id, actual_building_id, expected_building_id])
+
+	if target_id == "build_menu.cooling_overlay_button" and not str(control.get_path()).ends_with(COOLING_OVERLAY_PATH_SUFFIX):
+		_failures.append("%s cooling overlay target resolved to unexpected path: %s" % [context, str(control.get_path())])
 
 
 func _report() -> void:

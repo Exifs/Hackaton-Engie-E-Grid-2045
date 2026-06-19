@@ -2,6 +2,7 @@ extends Control
 class_name EGridGameScene
 
 const E_GRID_SCENE_TRANSITION := preload("res://scripts/ui/e_grid_scene_transition.gd")
+const EXPORT_DIAGNOSTICS := preload("res://scripts/debug/EGridExportDiagnostics.gd")
 const SIMULATION_CORE := preload("res://scripts/simulation/SimulationCore.gd")
 const TUTORIAL_MANAGER := preload("res://scripts/tutorial/TutorialManager.gd")
 const DEFAULT_MENU_SCENE := "res://scenes/main_menu.tscn"
@@ -33,6 +34,7 @@ var _heatmap_mode := "energy"
 var _last_feedback := ""
 var _endgame_panel: Control
 var _refresh_pending := false
+var _export_diagnostics_logged := false
 
 
 func _ready() -> void:
@@ -247,6 +249,9 @@ func _request_refresh_game_ui() -> void:
 func _flush_refresh_game_ui() -> void:
 	_refresh_pending = false
 	_refresh_game_ui()
+	if not _export_diagnostics_logged:
+		_export_diagnostics_logged = true
+		EXPORT_DIAGNOSTICS.log_game_scene(self, _simulation_core, _build_palette)
 
 
 func _refresh_game_ui() -> void:
