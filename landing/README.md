@@ -26,7 +26,7 @@ http://127.0.0.1:8080/landing/download.html
 
 ## Contenu
 
-- `index.html` : structure de la landing, sections pitch, souveraineté IA, partenaires/sponsors, captures, outil de régions, lien GitHub discret et CTA de téléchargement.
+- `index.html` : structure de la landing, sections pitch, souveraineté IA, partenaires/sponsors, captures, outil de régions, liens web play, lien GitHub discret et CTA de téléchargement.
 - `download.html` : page dédiée aux téléchargements Windows, macOS et Linux, avec texte centré sur le projet et les partenaires.
 - `styles.css` : DA premium commune, layout responsive, glass panels, cartes 3D, halos, ticker.
 - `sponsors.css` : styles de la section de remerciement, carte photo DefendIntelligence et cartes partenaires.
@@ -34,6 +34,20 @@ http://127.0.0.1:8080/landing/download.html
 - `download-polish.css` : correctifs de layout, notamment le conflit de classe Linux, plus les styles du bloc partenaires.
 - `main.js` : canvas de réseau énergétique, tilt 3D, parallax souris, magnetic buttons, reveal au scroll et barre de progression.
 - `download.js` : détection OS, résolution des assets de la dernière GitHub Release, mise en avant du build recommandé, terminal animé, overlay de téléchargement et confettis canvas.
+
+## Disponibilité web
+
+Le jeu est également disponible en version web sur GitHub Pages. Depuis la landing publiée, les liens `Jouer web` ciblent :
+
+```text
+../play/
+```
+
+Ce chemin correspond à la même URL publique que la landing, avec `/play/` à la racine du site GitHub Pages. Exemple attendu après publication :
+
+```text
+https://exifs.github.io/Hackaton-Engie-E-Grid-2045/play/
+```
 
 ## Message souveraineté IA
 
