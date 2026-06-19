@@ -218,9 +218,9 @@ jobs:
             if [[ "${custom_branch_policies}" == "true" ]]; then
               policies="$(gh api "repos/${GITHUB_REPOSITORY}/environments/github-pages/deployment-branch-policies" --paginate)"
               echo "Configured github-pages deployment branch/tag policies:"
-              jq -r '.branch_policies[]? | "- " + (.type // "branch") + ": " + .name' <<< "${policies}" || true
+              jq -r '.branch_policies[]? | "- " + (.type // "branch-or-tag") + ": " + .name' <<< "${policies}" || true
 
-              if ! jq -e --arg tag "${GITHUB_REF_NAME}" '.branch_policies[]? | select((.type // "branch") == "tag") | select(.name == $tag or .name == "v*" or .name == "*")' <<< "${policies}" >/dev/null; then
+              if ! jq -e --arg tag "${GITHUB_REF_NAME}" '.branch_policies[]? | select(.name == $tag or .name == "v*" or .name == "*")' <<< "${policies}" >/dev/null; then
                 echo "::error::Tag ${GITHUB_REF_NAME} is not allowed by the github-pages environment. Open Settings → Environments → github-pages → Deployment branches and tags, then add a Tag rule named v* or add a REPO_ADMIN_TOKEN secret so the workflow can create it."
                 exit 1
               fi
