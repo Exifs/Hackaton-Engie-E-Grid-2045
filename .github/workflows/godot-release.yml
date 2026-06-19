@@ -6,7 +6,7 @@ on:
       - '*'
 
 permissions:
-  contents: write
+  contents: read
 
 env:
   PROJECT_PATH: e-grid-2045
@@ -63,6 +63,8 @@ jobs:
     name: Create GitHub Release
     runs-on: ubuntu-24.04
     needs: build
+    permissions:
+      contents: write
     steps:
       - name: Download build artifacts
         uses: actions/download-artifact@v4
