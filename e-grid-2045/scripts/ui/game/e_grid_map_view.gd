@@ -1,4 +1,4 @@
-@tool
+﻿@tool
 extends Control
 class_name EGridMapView
 
@@ -7,6 +7,8 @@ signal region_hovered(region_id: int, slug: String, display_name: String)
 signal region_pressed(region_id: int, slug: String, display_name: String)
 
 const E_GRID_MAP_ASSETS := preload("res://scripts/ui/game/e_grid_map_assets.gd")
+const HEATMAP_LAYER := preload("res://scripts/presentation/HeatmapLayer.gd")
+const NETWORK_FLOW_LAYER := preload("res://scripts/presentation/NetworkFlowLayer.gd")
 
 @export var accept_map_input := true
 @export_file("*.png") var backdrop_texture_path := "res://assets/map/europe_map_backdrop_generated_clean_v1.png"
@@ -88,17 +90,46 @@ const E_GRID_MAP_ASSETS := preload("res://scripts/ui/game/e_grid_map_assets.gd")
 		selected_region_id = maxi(int(value), 0)
 		queue_redraw()
 
-var _assets: EGridMapAssets
+var _assets: RefCounted
 var _map_rect := Rect2()
 var _screen_regions: Array[Dictionary] = []
 var _screen_cache_dirty := true
 var _hover_region_id := 0
+var _regions_state := {}
+var _region_layout := {}
+var _network_flows := []
+var _selected_region_slug := ""
+var _heatmap_mode := "energy"
+var _flow_phase := 0.0
 
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_STOP
+	set_process(true)
 	_load_map_assets()
 	_sync_labels()
+
+
+func _process(delta: float) -> void:
+	if not _network_flows.is_empty() and is_visible_in_tree():
+		_flow_phase = fposmod(_flow_phase + delta * 0.38, 1.0)
+		queue_redraw()
+
+
+func set_simulation_overlay(regions_state: Dictionary, region_layout: Dictionary, network_flows: Array, selected_region_slug: String, heatmap_mode: String) -> void:
+	_regions_state = regions_state
+	_region_layout = region_layout
+	_network_flows = network_flows
+	_selected_region_slug = selected_region_slug
+	_heatmap_mode = heatmap_mode
+	selected_region_id = _region_id_for_slug(selected_region_slug)
+	queue_redraw()
+
+
+func set_selected_region_slug(region_slug: String) -> void:
+	_selected_region_slug = region_slug
+	selected_region_id = _region_id_for_slug(region_slug)
+	queue_redraw()
 
 
 func _notification(what: int) -> void:
@@ -127,6 +158,7 @@ func _gui_input(event: InputEvent) -> void:
 			selected_region_id = region_id
 			if region_id > 0:
 				var region := _get_region(region_id)
+				_selected_region_slug = str(region.get("slug", ""))
 				region_pressed.emit(
 					region_id,
 					str(region.get("slug", "")),
@@ -148,8 +180,12 @@ func _draw() -> void:
 
 	_draw_map_backdrop()
 	_draw_region_layer(normal_region_fill_color, normal_border_color, 1.0)
+	_draw_heatmap_layer()
+	_draw_network_flows()
+	_draw_region_markers()
 	_draw_region_state(selected_region_id, selected_fill_color, selected_border_color, 1.5, true)
 	_draw_region_state(_hover_region_id, hover_fill_color, hover_border_color, 1.4, true)
+	_draw_selected_region_slots()
 
 
 func _draw_grid(rect: Rect2) -> void:
@@ -192,6 +228,90 @@ func _draw_region_layer(fill_color: Color, border_color: Color, border_width: fl
 		_draw_region_border(region, border_color, border_width)
 
 
+func _draw_heatmap_layer() -> void:
+	if _heatmap_mode.is_empty() or _heatmap_mode == "none":
+		return
+
+	for region in _screen_regions:
+		var slug := str(region.get("slug", ""))
+		var cached := _cached_for_region(slug)
+		var color := HEATMAP_LAYER.color_for_region(_heatmap_mode, cached)
+		if color.a > 0.0:
+			_draw_region_fill(region, color)
+
+
+func _draw_network_flows() -> void:
+	if _network_flows.is_empty():
+		return
+
+	var flows := NETWORK_FLOW_LAYER.visible_flows(_network_flows, _selected_region_slug, 10)
+	for flow_variant in flows:
+		var flow: Dictionary = flow_variant
+		var source_id := str(flow.get("source_region_id", ""))
+		var target_id := str(flow.get("target_region_id", ""))
+		var source := _layout_position(source_id)
+		var target := _layout_position(target_id)
+		if source == Vector2.INF or target == Vector2.INF:
+			continue
+
+		var selected := source_id == _selected_region_slug or target_id == _selected_region_slug
+		var color := NETWORK_FLOW_LAYER.color_for_flow(flow, selected)
+		var width := NETWORK_FLOW_LAYER.width_for_flow(flow, selected)
+		draw_line(source, target, color, width, true)
+
+		var dot_position := source.lerp(target, _flow_phase)
+		draw_circle(dot_position, maxf(width * 0.75, 2.0), Color(color, minf(color.a + 0.2, 1.0)))
+
+
+func _draw_region_markers() -> void:
+	for region_id in _region_layout.keys():
+		var position := _layout_position(str(region_id))
+		if position == Vector2.INF:
+			continue
+		var cached := _cached_for_region(str(region_id))
+		var state := HEATMAP_LAYER.semantic_state_for_region(cached)
+		var color := _marker_color(state)
+		var radius := 5.0 if str(region_id) != _selected_region_slug else 7.5
+		draw_circle(position, radius + 4.0, Color(color, 0.16))
+		draw_circle(position, radius, color)
+		draw_arc(position, radius + 6.0, 0.0, TAU, 24, Color(color, 0.55), 1.2)
+
+
+func _draw_selected_region_slots() -> void:
+	if _selected_region_slug.is_empty() or not _regions_state.has(_selected_region_slug):
+		return
+
+	var region: Dictionary = _regions_state.get(_selected_region_slug, {})
+	var center := _layout_position(_selected_region_slug)
+	if center == Vector2.INF:
+		return
+
+	var slots_max := int(region.get("slots_max", 0))
+	var slots_used := int(region.get("slots_used", 0))
+	var constructions: Array = region.get("construction_queue", [])
+	var visible_slots := mini(slots_max, 12)
+	if visible_slots <= 0:
+		return
+
+	var radius := clampf(minf(_map_rect.size.x, _map_rect.size.y) * 0.055, 28.0, 52.0)
+	for index in range(visible_slots):
+		var angle := -PI * 0.5 + (TAU * float(index) / float(visible_slots))
+		var position := center + Vector2(cos(angle), sin(angle)) * radius
+		var color := Color("#233137e6")
+		if index < slots_used:
+			color = Color("#42d4cbdc")
+		if index >= max(0, slots_used - constructions.size()) and index < slots_used:
+			color = Color("#f4a23fdc")
+		draw_circle(position, 5.8, Color("#02090bdd"))
+		draw_circle(position, 4.4, color)
+
+	if slots_max > visible_slots:
+		var font := get_theme_default_font()
+		var font_size := 12
+		var text := "+%d" % (slots_max - visible_slots)
+		draw_string(font, center + Vector2(radius + 8.0, 4.0), text, HORIZONTAL_ALIGNMENT_LEFT, -1.0, font_size, Color("#dfe8e8"))
+
+
 func _draw_region_state(region_id: int, fill_color: Color, border_color: Color, border_width: float, glow: bool) -> void:
 	if region_id <= 0:
 		return
@@ -228,7 +348,8 @@ func _draw_region_border(region: Dictionary, color: Color, width: float) -> void
 
 
 func _load_map_assets() -> void:
-	_assets = E_GRID_MAP_ASSETS.load_from_paths(backdrop_texture_path, contours_path, region_mask_path)
+	_assets = E_GRID_MAP_ASSETS.new()
+	_assets.call("load_from_paths", backdrop_texture_path, contours_path, region_mask_path)
 	_screen_cache_dirty = true
 	queue_redraw()
 
@@ -309,6 +430,10 @@ func _image_to_view_position(image_position: Vector2) -> Vector2:
 	)
 
 
+func _normalized_to_view_position(normalized_position: Vector2) -> Vector2:
+	return _map_rect.position + Vector2(normalized_position.x * _map_rect.size.x, normalized_position.y * _map_rect.size.y)
+
+
 func _view_to_image_position(view_position: Vector2) -> Vector2:
 	if _assets == null or _assets.image_size == Vector2.ZERO or _map_rect.size.x <= 0.0 or _map_rect.size.y <= 0.0:
 		return Vector2(-1.0, -1.0)
@@ -360,6 +485,45 @@ func _get_screen_region(region_id: int) -> Dictionary:
 	return {}
 
 
+func _region_id_for_slug(slug: String) -> int:
+	if slug.is_empty() or _assets == null:
+		return 0
+	for region in _assets.regions:
+		if str(region.get("slug", "")) == slug:
+			return int(region.get("id", 0))
+	return 0
+
+
+func _layout_position(region_id: String) -> Vector2:
+	var layout: Dictionary = _region_layout.get(region_id, {})
+	if layout.is_empty():
+		return Vector2.INF
+	return _normalized_to_view_position(Vector2(float(layout.get("x", 0.5)), float(layout.get("y", 0.5))))
+
+
+func _cached_for_region(region_id: String) -> Dictionary:
+	var region: Dictionary = _regions_state.get(region_id, {})
+	return region.get("cached", {})
+
+
+func _marker_color(state_name: String) -> Color:
+	match state_name:
+		"blackout":
+			return Color("#2d3338f0")
+		"energy_deficit":
+			return Color("#ff6b38f0")
+		"cooling_low":
+			return Color("#7ca4fff0")
+		"network_saturated":
+			return Color("#f2aa42f0")
+		"surplus":
+			return Color("#37e0a5f0")
+		"compute_high":
+			return Color("#9d7bfff0")
+		_:
+			return Color("#50d8e5d8")
+
+
 func _sync_labels() -> void:
 	if not is_inside_tree():
 		return
@@ -371,3 +535,6 @@ func _sync_labels() -> void:
 		title_label.text = map_title_text
 	if status_label != null:
 		status_label.text = map_status_text
+
+
+

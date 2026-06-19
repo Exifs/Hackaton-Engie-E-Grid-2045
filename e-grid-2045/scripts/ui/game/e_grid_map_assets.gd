@@ -1,4 +1,4 @@
-@tool
+﻿@tool
 extends RefCounted
 class_name EGridMapAssets
 
@@ -13,13 +13,12 @@ var regions: Array[Dictionary] = []
 var regions_by_id: Dictionary = {}
 
 
-static func load_from_paths(backdrop_path: String, contours_path: String, mask_path: String) -> EGridMapAssets:
-	var assets := EGridMapAssets.new()
-	assets.backdrop_texture = E_GRID_RUNTIME_TEXTURE_LOADER.load_texture(backdrop_path)
-	assets._load_mask(mask_path)
-	assets._load_contours(contours_path)
-	assets._resolve_image_size()
-	return assets
+func load_from_paths(backdrop_path: String, contours_path: String, mask_path: String) -> RefCounted:
+	backdrop_texture = E_GRID_RUNTIME_TEXTURE_LOADER.load_texture(backdrop_path)
+	_load_mask(mask_path)
+	_load_contours(contours_path)
+	_resolve_image_size()
+	return self
 
 
 func is_valid() -> bool:
@@ -244,3 +243,4 @@ func _parse_point(raw_point: Variant) -> Vector2:
 		return Vector2.ZERO
 
 	return Vector2(float(raw_point[0]), float(raw_point[1]))
+

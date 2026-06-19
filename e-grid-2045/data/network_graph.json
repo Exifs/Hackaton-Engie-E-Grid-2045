@@ -1,0 +1,188 @@
+{
+  "fr_nord": [
+    "fr_sud",
+    "de_west",
+    "benelux",
+    "ie",
+    "lux_saarlorlux"
+  ],
+  "fr_sud": [
+    "fr_nord",
+    "es_north",
+    "it_north",
+    "lux_saarlorlux",
+    "med_islands"
+  ],
+  "de_west": [
+    "fr_nord",
+    "de_east",
+    "benelux",
+    "at",
+    "cz",
+    "lux_saarlorlux",
+    "de_north"
+  ],
+  "de_east": [
+    "de_west",
+    "pl",
+    "cz",
+    "de_north"
+  ],
+  "benelux": [
+    "fr_nord",
+    "de_west",
+    "dk",
+    "ie",
+    "lux_saarlorlux",
+    "de_north"
+  ],
+  "dk": [
+    "benelux",
+    "se_south",
+    "baltic_south",
+    "de_north"
+  ],
+  "se_south": [
+    "dk",
+    "se_north",
+    "fi",
+    "baltic_north",
+    "baltic_south"
+  ],
+  "se_north": [
+    "se_south",
+    "fi"
+  ],
+  "fi": [
+    "se_south",
+    "se_north",
+    "baltic_north"
+  ],
+  "ie": [
+    "fr_nord",
+    "benelux"
+  ],
+  "es_north": [
+    "fr_sud",
+    "es_south",
+    "pt"
+  ],
+  "es_south": [
+    "es_north",
+    "pt",
+    "med_islands"
+  ],
+  "pt": [
+    "es_north",
+    "es_south"
+  ],
+  "it_north": [
+    "fr_sud",
+    "it_south_islands",
+    "at",
+    "si_hr"
+  ],
+  "it_south_islands": [
+    "it_north",
+    "gr",
+    "si_hr",
+    "med_islands"
+  ],
+  "at": [
+    "de_west",
+    "it_north",
+    "cz",
+    "sk",
+    "hu",
+    "si_hr"
+  ],
+  "pl": [
+    "de_east",
+    "cz",
+    "sk",
+    "baltic_south",
+    "de_north"
+  ],
+  "cz": [
+    "de_west",
+    "de_east",
+    "at",
+    "pl",
+    "sk"
+  ],
+  "sk": [
+    "at",
+    "pl",
+    "cz",
+    "hu"
+  ],
+  "hu": [
+    "at",
+    "sk",
+    "ro",
+    "eu_north_balkans",
+    "si_hr"
+  ],
+  "ro": [
+    "hu",
+    "bg",
+    "eu_north_balkans"
+  ],
+  "bg": [
+    "ro",
+    "gr",
+    "eu_north_balkans"
+  ],
+  "gr": [
+    "it_south_islands",
+    "bg",
+    "eu_north_balkans",
+    "med_islands"
+  ],
+  "eu_north_balkans": [
+    "hu",
+    "ro",
+    "bg",
+    "gr",
+    "si_hr"
+  ],
+  "baltic_north": [
+    "se_south",
+    "fi",
+    "baltic_south"
+  ],
+  "baltic_south": [
+    "dk",
+    "se_south",
+    "pl",
+    "baltic_north",
+    "de_north"
+  ],
+  "si_hr": [
+    "it_north",
+    "it_south_islands",
+    "at",
+    "hu",
+    "eu_north_balkans"
+  ],
+  "lux_saarlorlux": [
+    "fr_nord",
+    "fr_sud",
+    "de_west",
+    "benelux"
+  ],
+  "med_islands": [
+    "fr_sud",
+    "es_south",
+    "it_south_islands",
+    "gr"
+  ],
+  "de_north": [
+    "de_west",
+    "de_east",
+    "benelux",
+    "dk",
+    "pl",
+    "baltic_south"
+  ]
+}

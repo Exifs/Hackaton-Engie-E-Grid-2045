@@ -1,0 +1,13 @@
+﻿event_id,display_name,event_type,weight,min_month,max_month,min_co2_tier,cooldown_months,duration_months,effect_key,effect_value,target_scope,is_positive,alert_template
+harsh_winter,Hiver rigoureux,climate,12,0,240,low,24,3,energy_demand_pct,20,global,False,Demande énergétique - Europe -> hiver rigoureux -> temporiser datacenters ou construire production rapide
+heatwave,Canicule,climate,10,12,240,moderate,18,2,cooling_demand_pct;renewable_output_pct,15;-5,global,False,Refroidissement sous tension - Europe -> canicule -> prioriser refroidissement local
+drought,Sécheresse,climate,8,24,240,elevated,30,4,river_cooling_pct;hydro_output_pct,-30;-20,regions_with_fleuve_or_hydro,False,Eau limitée - {region} -> sécheresse -> réduire dépendance fluviale/hydro
+storm,Tempête,climate,8,6,240,low,12,1,wind_variance_pct;offshore_availability_pct,35;-10,coastal_and_windy_regions,False,Production variable - {region} -> tempête -> utiliser batteries/imports proches
+new_gpu,Nouveau GPU,tech_global,6,18,180,low,36,999,compute_efficiency_pct,10,global_eu_and_usa,True,Compute amélioré - Europe -> nouveau GPU -> exploiter davantage les datacenters
+eu_ai_breakthrough,Percée IA européenne,tech_eu,6,24,200,low,36,6,eu_agi_gain_pct,15,eu,True,Percée IA - Europe -> bonus temporaire -> convertir compute en AGI maintenant
+us_algorithmic_revolution,Révolution algorithmique américaine,tech_usa,6,36,220,low,42,6,usa_agi_gain_pct,25,usa,False,Pression USA - Global -> accélération américaine -> accélérer recherche IA ou compute
+gas_price_spike,Hausse du gaz,economy,7,12,240,low,24,6,gas_cost_pct;gas_maintenance_pct,30;20,global,False,Gaz plus cher - Europe -> marché tendu -> diversifier production propre
+nuclear_industrial_delay,Retard industriel nucléaire,industry,5,24,180,low,36,1,active_nuclear_construction_remaining_pct,25,nuclear_projects,False,Retard nucléaire - {region} -> chaîne industrielle -> sécuriser alternatives temporaires
+eu_nuclear_agreement,Accord nucléaire européen,policy,4,36,180,low,999,999,nuclear_cost_pct;nuclear_construction_pct,-15;-10,eu,True,Accord nucléaire - Europe -> coûts réduits -> planifier socle long terme
+grid_maintenance_incident,Incident réseau majeur,network,4,18,240,low,24,2,network_efficiency_pct,-10,random_high_import_region,False,Réseau instable - {region} -> incident -> réduire imports lointains
+public_funding_wave,Financement public énergie,economy,5,24,180,low,36,1,money_flat,180,eu,True,Financement énergie - Europe -> budget exceptionnel -> lancer infrastructure longue

@@ -1,11 +1,38 @@
-@tool
+﻿@tool
 extends Control
 class_name EGridBuildPalette
+
+signal build_requested(building_id: String)
+signal heatmap_mode_requested(mode: String)
 
 const COLLAPSIBLE_CONTENT_PATHS := [
 	^"ContentMargin/PaletteStack/CategoriesScroll",
 	^"ContentMargin/PaletteStack/OverlayPanel",
 ]
+
+const CATEGORY_PATHS := {
+	"energy": "ContentMargin/PaletteStack/CategoriesScroll/CategoriesStack/EnergyCategory",
+	"compute": "ContentMargin/PaletteStack/CategoriesScroll/CategoriesStack/DatacentersCategory",
+	"cooling": "ContentMargin/PaletteStack/CategoriesScroll/CategoriesStack/CoolingCategory",
+	"research": "ContentMargin/PaletteStack/CategoriesScroll/CategoriesStack/ResearchCategory",
+	"grid": "ContentMargin/PaletteStack/CategoriesScroll/CategoriesStack/GridNetworkCategory",
+}
+
+const CATEGORY_TITLES := {
+	"energy": "ENERGY",
+	"compute": "IA / COMPUTE",
+	"cooling": "COOLING",
+	"research": "RESEARCH",
+	"grid": "GRID / STORAGE",
+}
+
+const CATEGORY_FAMILIES := {
+	"energy": "energy",
+	"compute": "datacenter",
+	"cooling": "cooling",
+	"research": "research",
+	"grid": "grid",
+}
 
 @export var collapsed := false:
 	set(value):
@@ -24,11 +51,31 @@ const COLLAPSIBLE_CONTENT_PATHS := [
 
 @export_node_path("BaseButton") var collapse_button_path: NodePath = ^"ContentMargin/PaletteStack/HeaderRow/CollapseButton"
 
+var _building_definitions := {}
+var _availability := {}
+var _selected_building_id := ""
+var _active_heatmap_mode := "energy"
+
 
 func _ready() -> void:
 	clip_contents = true
 	_wire_collapse_button()
+	_wire_categories()
+	_wire_overlay_controls()
 	_sync_collapsed_state()
+	_sync_build_options()
+
+
+func set_build_context(building_definitions: Dictionary, availability: Dictionary, selected_building_id: String = "") -> void:
+	_building_definitions = building_definitions
+	_availability = availability
+	_selected_building_id = selected_building_id
+	_sync_build_options()
+
+
+func set_active_heatmap_mode(mode: String) -> void:
+	_active_heatmap_mode = mode
+	_sync_overlay_controls()
 
 
 func _wire_collapse_button() -> void:
@@ -40,9 +87,132 @@ func _wire_collapse_button() -> void:
 		button.pressed.connect(_on_collapse_button_pressed)
 
 
+func _wire_categories() -> void:
+	for category in CATEGORY_PATHS.keys():
+		var node := get_node_or_null(CATEGORY_PATHS[category])
+		if node == null or not node.has_signal("tool_requested"):
+			continue
+		var callback := Callable(self, "_on_category_tool_requested")
+		if not node.is_connected("tool_requested", callback):
+			node.connect("tool_requested", callback)
+
+
+func _wire_overlay_controls() -> void:
+	_connect_overlay_button(^"ContentMargin/PaletteStack/OverlayPanel/PowerFlowRow/PowerFlowCheck", "energy")
+	_connect_overlay_button(^"ContentMargin/PaletteStack/OverlayPanel/DataFlowRow/DataFlowCheck", "network")
+	_connect_overlay_button(^"ContentMargin/PaletteStack/OverlayPanel/CongestionRow/CongestionCheck", "cooling")
+	_sync_overlay_controls()
+
+
+func _connect_overlay_button(path: NodePath, mode: String) -> void:
+	var button := get_node_or_null(path) as BaseButton
+	if button == null:
+		return
+	var callback := Callable(self, "_on_overlay_button_pressed").bind(mode)
+	if not button.pressed.is_connected(callback):
+		button.pressed.connect(callback)
+
+
+func _on_overlay_button_pressed(mode: String) -> void:
+	_active_heatmap_mode = "none" if _active_heatmap_mode == mode else mode
+	_sync_overlay_controls()
+	heatmap_mode_requested.emit(_active_heatmap_mode)
+
+
+func _sync_overlay_controls() -> void:
+	_set_button_pressed(^"ContentMargin/PaletteStack/OverlayPanel/PowerFlowRow/PowerFlowCheck", _active_heatmap_mode == "energy")
+	_set_button_pressed(^"ContentMargin/PaletteStack/OverlayPanel/DataFlowRow/DataFlowCheck", _active_heatmap_mode == "network")
+	_set_button_pressed(^"ContentMargin/PaletteStack/OverlayPanel/CongestionRow/CongestionCheck", _active_heatmap_mode == "cooling")
+
+
+func _set_button_pressed(path: NodePath, pressed: bool) -> void:
+	var button := get_node_or_null(path) as BaseButton
+	if button != null:
+		button.button_pressed = pressed
+
+
 func _on_collapse_button_pressed() -> void:
 	collapsed = not collapsed
 	_sync_collapsed_state()
+
+
+func _on_category_tool_requested(tool_id: String) -> void:
+	_selected_building_id = tool_id
+	_sync_build_options()
+	build_requested.emit(tool_id)
+
+
+func _sync_build_options() -> void:
+	if not is_inside_tree():
+		return
+
+	var grouped := _group_buildings_by_category()
+	for category in CATEGORY_PATHS.keys():
+		var category_node := get_node_or_null(CATEGORY_PATHS[category])
+		if category_node == null:
+			continue
+
+		var entries: Array = grouped.get(category, [])
+		var labels := PackedStringArray()
+		var ids := PackedStringArray()
+		var icons := PackedStringArray()
+		var details := PackedStringArray()
+		var disabled_reasons := PackedStringArray()
+		var disabled_indices := PackedInt32Array()
+		var selected_index := -1
+
+		for index in range(entries.size()):
+			var definition: Dictionary = entries[index]
+			var building_id := str(definition.get("id", ""))
+			var availability: Dictionary = _availability.get(building_id, {"ok": true, "reason": ""})
+			labels.append(_short_label(str(definition.get("display_name", building_id))))
+			ids.append(building_id)
+			icons.append(str(definition.get("icon_key", category)))
+			details.append("EUR %d / %d mo / %d slots" % [int(definition.get("cost", 0)), int(definition.get("construction_months", 1)), int(definition.get("slots_required", 1))])
+			disabled_reasons.append(str(availability.get("reason", "")))
+			if not bool(availability.get("ok", true)):
+				disabled_indices.append(index)
+			if building_id == _selected_building_id:
+				selected_index = index
+
+		category_node.set("category_title", str(CATEGORY_TITLES.get(category, category.to_upper())))
+		category_node.set("button_family", str(CATEGORY_FAMILIES.get(category, category)))
+		category_node.set("tool_labels", labels)
+		category_node.set("tool_ids", ids)
+		category_node.set("tool_icon_states", icons)
+		category_node.set("tool_detail_lines", details)
+		category_node.set("disabled_reasons", disabled_reasons)
+		category_node.set("disabled_tool_indices", disabled_indices)
+		category_node.set("selected_tool_index", selected_index)
+
+
+func _group_buildings_by_category() -> Dictionary:
+	var grouped := {
+		"energy": [],
+		"compute": [],
+		"cooling": [],
+		"research": [],
+		"grid": [],
+	}
+
+	var keys := _building_definitions.keys()
+	keys.sort()
+	for building_id in keys:
+		var definition: Dictionary = _building_definitions[building_id]
+		var category := str(definition.get("category", "grid"))
+		if not grouped.has(category):
+			category = "grid"
+		(grouped[category] as Array).append(definition)
+	return grouped
+
+
+func _short_label(display_name: String) -> String:
+	var label := display_name
+	label = label.replace("Centre recherche ", "R. ")
+	label = label.replace("Refroidissement ", "Froid ")
+	label = label.replace("Datacenter ", "DC ")
+	label = label.replace("Centrale ", "")
+	return label
 
 
 func _sync_collapsed_state() -> void:
