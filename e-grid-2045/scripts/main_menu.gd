@@ -27,6 +27,10 @@ var _menu_actions := {}
 var _is_changing_scene := false
 var _settings_menu_prewarm_started := false
 var _game_runtime_prewarm_started := false
+var _game_runtime_prewarmed := false
+var _game_scene_prewarm_started := false
+var _game_scene_prewarmed := false
+var _prewarmed_game_scene: Node
 
 
 func _ready() -> void:
@@ -47,12 +51,26 @@ func _ready() -> void:
 
 func _preload_menu_target_scenes() -> void:
 	await get_tree().process_frame
+	if not is_inside_tree():
+		return
 	_request_threaded_scene_preload(GAME_SCENE_PATH)
 	_request_threaded_scene_preload(settings_menu_scene_path)
 	await get_tree().process_frame
+	if not is_inside_tree():
+		return
 	await _prewarm_settings_menu()
+	if not is_inside_tree():
+		return
 	await get_tree().process_frame
+	if not is_inside_tree():
+		return
 	await _prewarm_game_runtime_data()
+	if not is_inside_tree():
+		return
+	await get_tree().process_frame
+	if not is_inside_tree():
+		return
+	await _prewarm_game_scene()
 
 
 func _request_threaded_scene_preload(scene_path: String) -> void:
@@ -63,6 +81,14 @@ func _request_threaded_scene_preload(scene_path: String) -> void:
 	var error := ResourceLoader.load_threaded_request(path, "PackedScene", true)
 	if error != OK and error != ERR_BUSY:
 		push_warning("MainMenu could not preload scene %s. Error code: %d." % [path, error])
+
+
+func is_game_runtime_prewarmed() -> bool:
+	return _game_runtime_prewarmed
+
+
+func is_game_scene_prewarmed() -> bool:
+	return _game_scene_prewarmed and _prewarmed_game_scene != null and is_instance_valid(_prewarmed_game_scene)
 
 
 func _prewarm_settings_menu() -> void:
@@ -90,6 +116,8 @@ func _load_settings_menu_scene_threaded() -> PackedScene:
 
 	var progress: Array = []
 	while true:
+		if not is_inside_tree():
+			return null
 		var status := ResourceLoader.load_threaded_get_status(scene_path, progress)
 		match status:
 			ResourceLoader.THREAD_LOAD_LOADED:
@@ -103,13 +131,14 @@ func _load_settings_menu_scene_threaded() -> PackedScene:
 
 
 func _prewarm_game_runtime_data() -> void:
-	if _game_runtime_prewarm_started:
+	if _game_runtime_prewarm_started or _game_runtime_prewarmed:
 		return
 
 	_game_runtime_prewarm_started = true
 	await get_tree().process_frame
 
 	if not is_inside_tree():
+		_game_runtime_prewarm_started = false
 		return
 
 	var loader := DATA_LOADER.new()
@@ -117,9 +146,68 @@ func _prewarm_game_runtime_data() -> void:
 	await get_tree().process_frame
 
 	if not is_inside_tree():
+		_game_runtime_prewarm_started = false
 		return
 
 	E_GRID_MAP_ASSETS.load_cached(GAME_MAP_BACKDROP_PATH, GAME_MAP_CONTOURS_PATH, GAME_MAP_MASK_PATH)
+	_game_runtime_prewarmed = true
+	_game_runtime_prewarm_started = false
+
+
+func _prewarm_game_scene() -> void:
+	if _game_scene_prewarm_started or is_game_scene_prewarmed():
+		return
+
+	_game_scene_prewarm_started = true
+	var packed_scene := await _load_game_scene_threaded()
+	if packed_scene == null or not is_inside_tree():
+		_game_scene_prewarm_started = false
+		return
+
+	var instance := packed_scene.instantiate()
+	if instance == null:
+		_game_scene_prewarm_started = false
+		return
+
+	instance.process_mode = Node.PROCESS_MODE_DISABLED
+	if instance is CanvasItem:
+		(instance as CanvasItem).hide()
+
+	add_child(instance)
+	await get_tree().process_frame
+	await get_tree().process_frame
+
+	if not is_inside_tree() or not is_instance_valid(instance):
+		_game_scene_prewarm_started = false
+		return
+
+	_prewarmed_game_scene = instance
+	_game_scene_prewarmed = true
+	_game_scene_prewarm_started = false
+
+
+func _load_game_scene_threaded() -> PackedScene:
+	if not ResourceLoader.exists(GAME_SCENE_PATH):
+		return null
+
+	var request_error := ResourceLoader.load_threaded_request(GAME_SCENE_PATH, "PackedScene", true)
+	if request_error != OK and request_error != ERR_BUSY:
+		return null
+
+	var progress: Array = []
+	while true:
+		if not is_inside_tree():
+			return null
+		var status := ResourceLoader.load_threaded_get_status(GAME_SCENE_PATH, progress)
+		match status:
+			ResourceLoader.THREAD_LOAD_LOADED:
+				return ResourceLoader.load_threaded_get(GAME_SCENE_PATH) as PackedScene
+			ResourceLoader.THREAD_LOAD_FAILED, ResourceLoader.THREAD_LOAD_INVALID_RESOURCE:
+				return null
+			_:
+				await get_tree().process_frame
+
+	return null
 
 
 func _setup_settings_menu() -> void:
@@ -405,9 +493,26 @@ func _change_scene_async(scene_path: String) -> void:
 		return
 
 	_set_menu_input_enabled(false)
-	var error := await E_GRID_SCENE_TRANSITION.change_scene(self, scene_path, "CHARGEMENT DU JEU")
+	var prepared_scene := _take_prewarmed_game_scene(scene_path)
+	var error := OK
+	if prepared_scene != null:
+		error = await E_GRID_SCENE_TRANSITION.change_scene_to_node(self, prepared_scene, "CHARGEMENT DU JEU")
+	else:
+		error = await E_GRID_SCENE_TRANSITION.change_scene(self, scene_path, "CHARGEMENT DU JEU")
 
 	if error != OK:
 		push_error("MainMenu failed to change scene. Error code: %d." % error)
 		_is_changing_scene = false
 		_set_menu_input_enabled(true)
+
+
+func _take_prewarmed_game_scene(scene_path: String) -> Node:
+	if scene_path != GAME_SCENE_PATH:
+		return null
+	if not is_game_scene_prewarmed():
+		return null
+
+	var scene := _prewarmed_game_scene
+	_prewarmed_game_scene = null
+	_game_scene_prewarmed = false
+	return scene

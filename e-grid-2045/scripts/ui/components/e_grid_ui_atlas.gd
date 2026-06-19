@@ -158,3 +158,9 @@ static func _load_spritesheet(texture_path: String) -> Texture2D:
 		return imported_texture
 
 	return null
+
+
+static func clear_cache_for_tests() -> void:
+	_manifest_cache.clear()
+	_texture_cache.clear()
+	_spritesheet_cache.clear()

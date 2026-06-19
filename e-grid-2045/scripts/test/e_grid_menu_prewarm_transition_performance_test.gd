@@ -7,7 +7,8 @@ const E_GRID_RUNTIME_TEXTURE_LOADER := preload("res://scripts/ui/components/e_gr
 const E_GRID_UI_ATLAS := preload("res://scripts/ui/components/e_grid_ui_atlas.gd")
 
 const MAIN_MENU_SCENE := "res://scenes/main_menu.tscn"
-const MAX_MENU_TO_GAME_USEC := 3000000
+const MAX_PREWARMED_MENU_TO_GAME_USEC := 500000
+const MAX_PREWARM_WAIT_FRAMES := 360
 
 
 func _init() -> void:
@@ -16,14 +17,21 @@ func _init() -> void:
 		_fail("Cannot load main menu scene.")
 		return
 
-	var menu := packed_menu.instantiate()
+	var menu := packed_menu.instantiate() as Control
 	if menu == null:
 		_fail("Cannot instantiate main menu scene.")
 		return
 
 	root.add_child(menu)
 	current_scene = menu
-	await process_frame
+
+	if not menu.has_method("is_game_scene_prewarmed"):
+		_fail("MainMenu must expose game scene prewarm completion for performance tests.")
+		return
+
+	if not await _wait_for_game_scene_prewarm(menu):
+		_fail("Game scene prewarm did not finish.")
+		return
 
 	var play_button := menu.get_node_or_null("MenuArtboardAspect/MenuArtboard/MenuButtons/PlayButton") as Button
 	if play_button == null:
@@ -37,14 +45,22 @@ func _init() -> void:
 		await process_frame
 		if current_scene != null and current_scene.name == "GameScene":
 			var transition_usec := Time.get_ticks_usec() - transition_started
-			if transition_usec > MAX_MENU_TO_GAME_USEC:
-				_fail("Menu to game transition is too slow: %d usec." % transition_usec)
+			if transition_usec > MAX_PREWARMED_MENU_TO_GAME_USEC:
+				_fail("Prewarmed menu to game transition is too slow: %d usec." % transition_usec)
 				return
-			print("E-Grid menu transition smoke test passed. transition_usec=%d" % transition_usec)
+			print("E-Grid prewarmed menu transition performance test passed. transition_usec=%d" % transition_usec)
 			await _finish(0)
 			return
 
-	_fail("PlayButton did not transition to GameScene.")
+	_fail("Prewarmed PlayButton did not transition to GameScene.")
+
+
+func _wait_for_game_scene_prewarm(menu: Control) -> bool:
+	for _index in range(MAX_PREWARM_WAIT_FRAMES):
+		if bool(menu.call("is_game_scene_prewarmed")):
+			return true
+		await process_frame
+	return false
 
 
 func _fail(message: String) -> void:

@@ -19,3 +19,7 @@ static func load_texture(texture_path: String) -> Texture2D:
 
 	_texture_cache[texture_path] = imported_texture
 	return imported_texture
+
+
+static func clear_cache_for_tests() -> void:
+	_texture_cache.clear()

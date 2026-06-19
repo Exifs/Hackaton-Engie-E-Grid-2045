@@ -32,6 +32,11 @@ static var _texture_cache: Dictionary = {}
 static var _frame_cache: Dictionary = {}
 
 
+static func clear_cache_for_tests() -> void:
+	_texture_cache.clear()
+	_frame_cache.clear()
+
+
 func _ready() -> void:
 	text = ""
 	flat = true
