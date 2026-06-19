@@ -9,8 +9,10 @@ const TEST_CONFIG_FILE := "tutorial_state_reset_test.cfg"
 const REQUIRED_STEP_KEYS := ["id", "title", "body", "objective", "required_event"]
 const NEW_BUILD_TARGETS := [
 	"build_menu.cooling_overlay_button",
+	"build_menu.university_button",
 	"build_menu.wind_onshore_button",
 	"build_menu.river_cooling_button",
+	"build_menu.datacenter_button",
 	"build_menu.ai_research_center_button",
 ]
 
@@ -212,6 +214,8 @@ func _validate_palette_targets_resolve() -> void:
 			continue
 		if target_id == "build_menu.cooling_overlay_button":
 			_validate_cooling_overlay_target(target, emitted_heatmaps)
+		else:
+			_validate_build_button_target(target, target_id)
 
 	root.remove_child(palette)
 	palette.free()
@@ -232,6 +236,20 @@ func _validate_cooling_overlay_target(target: Variant, emitted_heatmaps: Array[S
 	button.emit_signal("pressed")
 	if not emitted_heatmaps.has("cooling"):
 		_failures.append("Clicking the cooling overlay tutorial target must request the cooling heatmap")
+
+
+func _validate_build_button_target(target: Variant, target_id: String) -> void:
+	if not (target is BaseButton):
+		_failures.append("Build tutorial target must resolve to a clickable BaseButton: %s" % target_id)
+		return
+
+	var button := target as BaseButton
+	if button.disabled:
+		_failures.append("Build tutorial target must be enabled: %s" % target_id)
+	if not button.is_visible_in_tree():
+		_failures.append("Build tutorial target must be visible: %s" % target_id)
+	if button.size.x <= 0.0 or button.size.y <= 0.0:
+		_failures.append("Build tutorial target must have a non-zero size: %s" % target_id)
 
 
 func _report() -> void:
