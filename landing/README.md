@@ -26,9 +26,10 @@ http://127.0.0.1:8080/landing/download.html
 
 ## Contenu
 
-- `index.html` : structure de la landing, sections pitch, souveraineté IA, captures, vidéo placeholder, outil de régions, lien GitHub discret et CTA de téléchargement.
+- `index.html` : structure de la landing, sections pitch, souveraineté IA, partenaires/sponsors, captures, outil de régions, lien GitHub discret et CTA de téléchargement.
 - `download.html` : page dédiée aux téléchargements Windows, macOS et Linux, avec texte centré sur le projet et les partenaires.
-- `styles.css` : DA premium commune, layout responsive, glass panels, cartes 3D, halos, ticker, video shell.
+- `styles.css` : DA premium commune, layout responsive, glass panels, cartes 3D, halos, ticker.
+- `sponsors.css` : styles de la section de remerciement, carte photo DefendIntelligence et cartes partenaires.
 - `download.css` : effets spécifiques à la page de download : réacteur 3D, cartes OS, overlay de cérémonie, terminal et responsive.
 - `download-polish.css` : correctifs de layout, notamment le conflit de classe Linux, plus les styles du bloc partenaires.
 - `main.js` : canvas de réseau énergétique, tilt 3D, parallax souris, magnetic buttons, reveal au scroll et barre de progression.
@@ -46,6 +47,8 @@ La landing et la page de téléchargement mentionnent :
 - ENGIE ;
 - OpenAI.
 
+La section `#partners` remplace l’ancien placeholder vidéo. Elle remercie les partenaires et utilise une image publique issue de l’article Les Numériques “Le 27 novembre, le live Twitch des Nums accueille Defend Intelligence”.
+
 ## Assets utilisés
 
 La page référence directement les assets existants du repo :
@@ -55,10 +58,6 @@ La page référence directement les assets existants du repo :
 - `Docs/Concept art - EU-Grid 2026-v2-1.png`
 - `Docs/Concept art - EU-Grid 2026-v2-2.png`
 - `egrid_region_editor_tool/assets/map/europe_map_backdrop_generated_clean_v1.png`
-
-## Emplacement vidéo
-
-La section `#video` est un placeholder 16:9 prêt à remplacer par un embed ou un lecteur vidéo quand la présentation sera disponible.
 
 ## Liens GitHub et téléchargements
 
@@ -104,9 +103,3 @@ Pour un déploiement déclenché par tag :
 Le workflow peut aussi créer automatiquement la règle de tag `v*` quand l’identifiant d’administration du dépôt est fourni dans les secrets de l’action.
 
 Après déploiement, le workflow ajoute l’URL du site aux notes de release et tente de mettre à jour le champ **Website** du dépôt avec l’URL retournée par `actions/deploy-pages`.
-
-## Notes
-
-- Aucun framework ni dépendance externe.
-- Compatible ouverture locale, GitHub Pages ou serveur statique.
-- Les animations respectent `prefers-reduced-motion`.
