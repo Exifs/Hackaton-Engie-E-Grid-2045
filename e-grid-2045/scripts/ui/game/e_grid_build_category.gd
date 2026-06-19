@@ -5,8 +5,13 @@ signal tool_requested(tool_id: String)
 
 const ICON_BUTTON_SCENE := preload("res://scenes/ui/components/e_grid_icon_button.tscn")
 const PRIMARY_BUTTON_PATH := ^"ContentMargin/CategoryRow/PrimaryButton"
+const CONTENT_MARGIN_PATH := ^"ContentMargin"
+const TOOLS_STACK_PATH := ^"ContentMargin/CategoryRow/ToolsStack"
+const HEADER_PATH := ^"ContentMargin/CategoryRow/ToolsStack/Header"
 const TITLE_LABEL_PATH := ^"ContentMargin/CategoryRow/ToolsStack/Header/TitleLabel"
 const SLOTS_GRID_PATH := ^"ContentMargin/CategoryRow/ToolsStack/SlotsGrid"
+const BASE_MINIMUM_HEIGHT := 82.0
+const HEIGHT_RESERVE := 6.0
 const BUTTON_FAMILY_SELECTED_STATE := {
 	"energy": "energy_selected",
 	"datacenter": "datacenter_selected",
@@ -80,6 +85,7 @@ const BUTTON_FAMILY_SELECTED_STATE := {
 	set(value):
 		primary_button_size = value
 		_request_primary_sync()
+		_request_slots_sync()
 
 var _sync_suspended := false
 
@@ -153,6 +159,7 @@ func _sync_slots() -> void:
 
 	slots_grid.columns = columns
 	_ensure_slot_count(slots_grid)
+	_sync_minimum_height(slots_grid)
 
 	for index in range(slots_grid.get_child_count()):
 		var button := slots_grid.get_child(index) as BaseButton
@@ -161,6 +168,7 @@ func _sync_slots() -> void:
 
 		var has_tool := index < tool_labels.size()
 		var label := str(tool_labels[index]) if has_tool else ""
+		_set_property_if_available(button, "fit_to_source_size", false)
 		button.visible = has_tool
 		button.name = "Slot%d" % (index + 1)
 		button.tooltip_text = _tooltip_for_index(index, label) if has_tool else ""
@@ -189,7 +197,45 @@ func _ensure_slot_count(slots_grid: GridContainer) -> void:
 			return
 
 		button.name = "Slot%d" % (slots_grid.get_child_count() + 1)
+		_set_property_if_available(button, "fit_to_source_size", false)
 		slots_grid.add_child(button)
+		_set_property_if_available(button, "fit_to_source_size", false)
+
+
+func _sync_minimum_height(slots_grid: GridContainer) -> void:
+	var rows := maxi(1, int(ceilf(float(maxi(tool_labels.size(), 1)) / float(maxi(columns, 1)))))
+	var grid_height := float(rows) * slot_min_size.y + float(maxi(rows - 1, 0)) * _grid_vertical_separation(slots_grid)
+	var tools_height := _header_minimum_height() + _tools_stack_separation() + grid_height
+	var row_height := maxf(primary_button_size.y, tools_height)
+	var next_height := _content_vertical_margins() + row_height + HEIGHT_RESERVE
+	custom_minimum_size = Vector2(custom_minimum_size.x, maxf(BASE_MINIMUM_HEIGHT, ceilf(next_height)))
+
+
+func _grid_vertical_separation(slots_grid: GridContainer) -> float:
+	if slots_grid == null:
+		return 0.0
+	return float(slots_grid.get_theme_constant("v_separation"))
+
+
+func _tools_stack_separation() -> float:
+	var tools_stack := get_node_or_null(TOOLS_STACK_PATH) as VBoxContainer
+	if tools_stack == null:
+		return 0.0
+	return float(tools_stack.get_theme_constant("separation"))
+
+
+func _header_minimum_height() -> float:
+	var header := get_node_or_null(HEADER_PATH) as Control
+	if header == null:
+		return 0.0
+	return maxf(header.custom_minimum_size.y, header.get_combined_minimum_size().y)
+
+
+func _content_vertical_margins() -> float:
+	var margin := get_node_or_null(CONTENT_MARGIN_PATH) as MarginContainer
+	if margin == null:
+		return 0.0
+	return float(margin.get_theme_constant("margin_top") + margin.get_theme_constant("margin_bottom"))
 
 
 func _sync_primary_button() -> void:

@@ -15,6 +15,14 @@ const NEW_BUILD_TARGETS := [
 	"build_menu.datacenter_button",
 	"build_menu.ai_research_center_button",
 ]
+const BUILD_CATEGORY_PATHS := {
+	"energy": "ContentMargin/PaletteStack/CategoriesScroll/CategoriesStack/EnergyCategory",
+	"compute": "ContentMargin/PaletteStack/CategoriesScroll/CategoriesStack/DatacentersCategory",
+	"cooling": "ContentMargin/PaletteStack/CategoriesScroll/CategoriesStack/CoolingCategory",
+	"research": "ContentMargin/PaletteStack/CategoriesScroll/CategoriesStack/ResearchCategory",
+	"grid": "ContentMargin/PaletteStack/CategoriesScroll/CategoriesStack/GridNetworkCategory",
+}
+const SLOTS_GRID_PATH := "ContentMargin/CategoryRow/ToolsStack/SlotsGrid"
 
 var _failures: Array[String] = []
 
@@ -192,15 +200,19 @@ func _validate_palette_targets_resolve() -> void:
 		_failures.append("Unable to load building data for palette target smoke test")
 		return
 
-	var palette := BUILD_PALETTE_SCENE.instantiate()
+	var palette := BUILD_PALETTE_SCENE.instantiate() as Control
 	if palette == null:
 		_failures.append("Unable to instantiate build palette scene")
 		return
 
+	palette.custom_minimum_size = Vector2(348.0, 720.0)
+	palette.size = Vector2(348.0, 720.0)
 	root.add_child(palette)
 	await process_frame
 	palette.call("set_build_context", buildings, {})
 	await process_frame
+	await process_frame
+	_validate_build_palette_layout(palette, buildings)
 	var emitted_heatmaps: Array[String] = []
 	if palette.has_signal("heatmap_mode_requested"):
 		palette.connect("heatmap_mode_requested", func(mode: String) -> void:
@@ -220,6 +232,89 @@ func _validate_palette_targets_resolve() -> void:
 	root.remove_child(palette)
 	palette.free()
 	await process_frame
+
+
+func _validate_build_palette_layout(palette: Control, buildings: Dictionary) -> void:
+	var expected_counts := _building_counts_by_category(buildings)
+
+	for category_id in BUILD_CATEGORY_PATHS.keys():
+		var category := palette.get_node_or_null(BUILD_CATEGORY_PATHS[category_id]) as Control
+		if category == null:
+			_failures.append("Build palette category missing: %s" % category_id)
+			continue
+
+		_validate_category_slot_layout(category_id, category, int(expected_counts.get(category_id, 0)))
+
+
+func _building_counts_by_category(buildings: Dictionary) -> Dictionary:
+	var counts := {}
+	for building_id in buildings.keys():
+		var definition: Dictionary = buildings[building_id]
+		var category := str(definition.get("category", "grid"))
+		if category == "storage":
+			category = "grid"
+		if not BUILD_CATEGORY_PATHS.has(category):
+			category = "grid"
+		counts[category] = int(counts.get(category, 0)) + 1
+	return counts
+
+
+func _validate_category_slot_layout(category_id: String, category: Control, expected_count: int) -> void:
+	var slots_grid := category.get_node_or_null(SLOTS_GRID_PATH) as GridContainer
+	if slots_grid == null:
+		_failures.append("Build category has no slots grid: %s" % category_id)
+		return
+
+	var visible_buttons: Array[Control] = []
+	for child in slots_grid.get_children():
+		var button := child as BaseButton
+		if button != null and button.visible:
+			visible_buttons.append(button)
+
+	if visible_buttons.size() != expected_count:
+		_failures.append("Build category %s visible slot count mismatch: expected %d, got %d" % [category_id, expected_count, visible_buttons.size()])
+
+	if category_id == "energy" and visible_buttons.size() != 6:
+		_failures.append("Energy build category must show 6 creation buttons with current data, got %d" % visible_buttons.size())
+
+	if category.size.x <= 0.0 or category.size.y <= 0.0:
+		_failures.append("Build category has non-positive size: %s" % category_id)
+		return
+
+	var category_rect := category.get_global_rect().grow(0.5)
+	for index in range(visible_buttons.size()):
+		var button := visible_buttons[index]
+		var button_rect := button.get_global_rect()
+		if button_rect.size.x <= 0.0 or button_rect.size.y <= 0.0:
+			_failures.append("Build category %s slot %d has non-positive size" % [category_id, index])
+			continue
+
+		if not _rect_contains(category_rect, button_rect):
+			_failures.append("Build category %s slot %d exceeds category bounds" % [category_id, index])
+
+		for other_index in range(index + 1, visible_buttons.size()):
+			var other_rect := visible_buttons[other_index].get_global_rect()
+			if _rects_overlap(button_rect, other_rect):
+				_failures.append("Build category %s slots %d and %d overlap" % [category_id, index, other_index])
+
+
+func _rect_contains(outer: Rect2, inner: Rect2) -> bool:
+	return (
+		inner.position.x >= outer.position.x
+		and inner.position.y >= outer.position.y
+		and inner.end.x <= outer.end.x
+		and inner.end.y <= outer.end.y
+	)
+
+
+func _rects_overlap(a: Rect2, b: Rect2) -> bool:
+	var epsilon := 0.5
+	return (
+		a.position.x < b.end.x - epsilon
+		and a.end.x > b.position.x + epsilon
+		and a.position.y < b.end.y - epsilon
+		and a.end.y > b.position.y + epsilon
+	)
 
 
 func _validate_cooling_overlay_target(target: Variant, emitted_heatmaps: Array[String]) -> void:
