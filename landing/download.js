@@ -14,6 +14,7 @@
 
   let redirectTimer = 0;
   let confettiRaf = 0;
+  let pendingDownloadTab = null;
 
   function detectPlatform() {
     const raw = `${navigator.userAgentData?.platform || ''} ${navigator.platform || ''} ${navigator.userAgent || ''}`.toLowerCase();
@@ -59,18 +60,47 @@
 
   function setupDownloads() {
     buttons.forEach((button) => {
+      button.setAttribute('target', '_blank');
+      button.setAttribute('rel', 'noreferrer');
       button.addEventListener('click', (event) => {
         if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) return;
         event.preventDefault();
         const url = button.href || releasePageUrl;
         const platform = button.dataset.platform || 'Desktop';
         const file = button.dataset.file || 'E-Grid-2045.zip';
-        startDownloadCeremony(platform, file, url);
+        const downloadTab = openPendingDownloadTab(platform, file);
+        startDownloadCeremony(platform, file, url, downloadTab);
       });
     });
   }
 
-  function startDownloadCeremony(platform, file, url) {
+  function openPendingDownloadTab(platform, file) {
+    const tab = window.open('', '_blank');
+    if (!tab) return null;
+    pendingDownloadTab = tab;
+    try {
+      tab.opener = null;
+      tab.document.title = `Téléchargement ${platform} · E-Grid 2045`;
+      tab.document.body.style.margin = '0';
+      tab.document.body.style.minHeight = '100vh';
+      tab.document.body.style.display = 'grid';
+      tab.document.body.style.placeItems = 'center';
+      tab.document.body.style.background = '#03080f';
+      tab.document.body.style.color = '#edfaff';
+      tab.document.body.style.fontFamily = 'system-ui, sans-serif';
+      tab.document.body.innerHTML = `
+        <main style="max-width: 560px; padding: 32px; text-align: center;">
+          <h1 style="margin: 0 0 12px; font-size: 34px; letter-spacing: -0.04em;">E-Grid 2045</h1>
+          <p style="margin: 0; color: #9cb8c6; line-height: 1.6;">Préparation de ${file} depuis GitHub Releases…</p>
+        </main>
+      `;
+    } catch (_) {
+      // Some browsers restrict access to the new tab. The redirect still works below.
+    }
+    return tab;
+  }
+
+  function startDownloadCeremony(platform, file, url, downloadTab) {
     window.clearTimeout(redirectTimer);
     window.cancelAnimationFrame(confettiRaf);
 
@@ -82,11 +112,11 @@
       `asset target: ${file}`,
       'energizing download core...',
       'routing through GitHub Releases...',
-      'download launch in 3... 2... 1...'
+      'opening release asset in a new tab...'
     ], 170);
 
     if (!overlay) {
-      window.location.href = url;
+      openDownloadUrl(url, downloadTab);
       return;
     }
 
@@ -99,8 +129,17 @@
     }
 
     redirectTimer = window.setTimeout(() => {
-      window.location.href = url;
+      openDownloadUrl(url, downloadTab);
     }, prefersReduced ? 450 : 1650);
+  }
+
+  function openDownloadUrl(url, downloadTab) {
+    if (downloadTab && !downloadTab.closed) {
+      downloadTab.location.href = url;
+      return;
+    }
+    const opened = window.open(url, '_blank', 'noopener,noreferrer');
+    if (!opened) window.location.href = url;
   }
 
   function pulseCards(platform) {
@@ -121,6 +160,8 @@
 
   function closeCeremony() {
     window.clearTimeout(redirectTimer);
+    if (pendingDownloadTab && !pendingDownloadTab.closed) pendingDownloadTab.close();
+    pendingDownloadTab = null;
     if (!overlay) return;
     overlay.classList.remove('is-open');
     window.setTimeout(() => {
