@@ -588,6 +588,8 @@ func _resolve_target(target_id: String) -> Variant:
 		if not (target_variant is Object):
 			continue
 		var target_object := target_variant as Object
+		if target_object.has_method("prepare_tutorial_target"):
+			target_object.call("prepare_tutorial_target", target_id)
 		if target_object.has_method("get_tutorial_target_node"):
 			var node = target_object.call("get_tutorial_target_node", target_id)
 			if node is Node and is_instance_valid(node):

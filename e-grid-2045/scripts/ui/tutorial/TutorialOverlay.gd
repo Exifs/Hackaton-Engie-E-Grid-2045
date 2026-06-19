@@ -101,6 +101,10 @@ func _position_text_panel() -> void:
 	if _text_panel == null or not is_instance_valid(_text_panel):
 		return
 
+	if _highlighter != null and _highlighter.has_method("refresh_target_rect"):
+		_highlighter.call("refresh_target_rect")
+		_target = _highlighter.target_rect
+
 	panel_size = _text_panel.size
 	if panel_size.y <= 0.0:
 		panel_size.y = 210.0

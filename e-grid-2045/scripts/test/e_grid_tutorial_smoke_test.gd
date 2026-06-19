@@ -2,6 +2,7 @@ extends SceneTree
 
 const DATA_LOADER := preload("res://scripts/simulation/DataLoader.gd")
 const BUILD_PALETTE_SCENE := preload("res://scenes/ui/game/e_grid_build_palette.tscn")
+const GAME_SCENE := preload("res://scenes/game/game_scene.tscn")
 const TUTORIAL_MANAGER := preload("res://scripts/tutorial/TutorialManager.gd")
 const TUTORIAL_PATH := "res://data/tutorial_first_loop.json"
 const TEST_CONFIG_PATH := "user://tutorial_state_reset_test.cfg"
@@ -23,6 +24,8 @@ const BUILD_CATEGORY_PATHS := {
 	"grid": "ContentMargin/PaletteStack/CategoriesScroll/CategoriesStack/GridNetworkCategory",
 }
 const SLOTS_GRID_PATH := "ContentMargin/CategoryRow/ToolsStack/SlotsGrid"
+const CATEGORIES_SCROLL_PATH := "ContentMargin/PaletteStack/CategoriesScroll"
+const GAME_BUILD_PALETTE_PATH := "SafeArea/Root/MainRow/BuildPalette"
 
 var _failures: Array[String] = []
 
@@ -43,6 +46,7 @@ func _run() -> void:
 	_validate_final_completion_step(steps)
 	_validate_tutorial_state_flags()
 	await _validate_palette_targets_resolve()
+	await _validate_game_scene_build_targets_resolve()
 	_report()
 
 
@@ -232,6 +236,64 @@ func _validate_palette_targets_resolve() -> void:
 	root.remove_child(palette)
 	palette.free()
 	await process_frame
+
+
+func _validate_game_scene_build_targets_resolve() -> void:
+	var game_scene := GAME_SCENE.instantiate() as Control
+	if game_scene == null:
+		_failures.append("Unable to instantiate game scene for tutorial target smoke test")
+		return
+
+	root.add_child(game_scene)
+	for _index in range(8):
+		await process_frame
+
+	var palette := game_scene.get_node_or_null(GAME_BUILD_PALETTE_PATH) as Control
+	if palette == null:
+		_failures.append("Game scene build palette target provider is missing")
+		root.remove_child(game_scene)
+		game_scene.free()
+		await process_frame
+		return
+
+	var manager := game_scene.get_node_or_null("TutorialManager")
+	for target_id in NEW_BUILD_TARGETS:
+		var target = manager.call("_resolve_target", target_id) if manager != null else palette.call("get_tutorial_target_node", target_id)
+		await process_frame
+		if target is Control and is_instance_valid(target):
+			target = manager.call("_resolve_target", target_id) if manager != null else palette.call("get_tutorial_target_node", target_id)
+			await process_frame
+		_validate_game_scene_build_target(target_id, palette, target)
+
+	root.remove_child(game_scene)
+	game_scene.free()
+	await process_frame
+
+
+func _validate_game_scene_build_target(target_id: String, palette: Control, target: Variant) -> void:
+	if not (target is Control) or not is_instance_valid(target):
+		_failures.append("Game scene build tutorial target did not resolve: %s" % target_id)
+		return
+
+	var control := target as Control
+	if not control.is_visible_in_tree():
+		_failures.append("Game scene build tutorial target is not visible in tree: %s" % target_id)
+		return
+
+	var target_rect := control.get_global_rect()
+	if target_rect.size.x <= 0.0 or target_rect.size.y <= 0.0:
+		_failures.append("Game scene build tutorial target has non-positive bounds: %s" % target_id)
+		return
+
+	var palette_rect := palette.get_global_rect().grow(1.0)
+	if not _rect_contains(palette_rect, target_rect):
+		_failures.append("Game scene build tutorial target is outside build palette bounds after reveal: %s" % target_id)
+
+	var scroll := palette.get_node_or_null(CATEGORIES_SCROLL_PATH) as ScrollContainer
+	if scroll != null and scroll.is_ancestor_of(control):
+		var scroll_rect := scroll.get_global_rect().grow(1.0)
+		if not _rect_contains(scroll_rect, target_rect):
+			_failures.append("Game scene build tutorial target is outside scroll viewport after reveal: %s" % target_id)
 
 
 func _validate_build_palette_layout(palette: Control, buildings: Dictionary) -> void:
