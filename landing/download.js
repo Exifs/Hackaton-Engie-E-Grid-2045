@@ -2,6 +2,7 @@
   const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const releasePageUrl = 'https://github.com/Exifs/Hackaton-Engie-E-Grid-2045/releases/latest';
   const latestReleaseApiUrl = 'https://api.github.com/repos/Exifs/Hackaton-Engie-E-Grid-2045/releases/latest';
+  const ceremonyDelayMs = prefersReduced ? 450 : 2300;
 
   const cards = [...document.querySelectorAll('.download-card[data-os]')];
   const buttons = [...document.querySelectorAll('.download-button')];
@@ -15,7 +16,6 @@
 
   let redirectTimer = 0;
   let confettiRaf = 0;
-  let pendingDownloadTab = null;
   let latestReleasePromise = null;
 
   function detectPlatform() {
@@ -63,15 +63,14 @@
     buttons.forEach((button) => {
       button.setAttribute('target', '_blank');
       button.setAttribute('rel', 'noreferrer');
-      button.addEventListener('click', async (event) => {
+      button.addEventListener('click', (event) => {
         if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) return;
         event.preventDefault();
 
         const platform = button.dataset.platform || 'Desktop';
         const expectedFile = button.dataset.file || 'build.zip';
-        const downloadTab = openPendingDownloadTab(platform, expectedFile);
-        const target = await resolveDownloadTarget(button);
-        startDownloadCeremony(platform, target.file, target.url, downloadTab, target.resolved);
+        const targetPromise = resolveDownloadTarget(button);
+        startDownloadCeremony(platform, expectedFile, targetPromise);
       });
     });
   }
@@ -118,52 +117,23 @@
     return latestReleasePromise;
   }
 
-  function openPendingDownloadTab(platform, file) {
-    const tab = window.open('', '_blank');
-    if (!tab) return null;
-    pendingDownloadTab = tab;
-    try {
-      tab.opener = null;
-      tab.document.title = `Téléchargement ${platform} · E-Grid 2045`;
-      tab.document.body.style.margin = '0';
-      tab.document.body.style.minHeight = '100vh';
-      tab.document.body.style.display = 'grid';
-      tab.document.body.style.placeItems = 'center';
-      tab.document.body.style.background = '#03080f';
-      tab.document.body.style.color = '#edfaff';
-      tab.document.body.style.fontFamily = 'system-ui, sans-serif';
-      tab.document.body.innerHTML = `
-        <main style="max-width: 560px; padding: 32px; text-align: center;">
-          <h1 style="margin: 0 0 12px; font-size: 34px; letter-spacing: -0.04em;">E-Grid 2045</h1>
-          <p style="margin: 0; color: #9cb8c6; line-height: 1.6;">Recherche de ${file} dans la dernière GitHub Release…</p>
-        </main>
-      `;
-    } catch (_) {
-      // Some browsers restrict access to the new tab. The redirect still works below.
-    }
-    return tab;
-  }
-
-  function startDownloadCeremony(platform, file, url, downloadTab, resolved) {
+  function startDownloadCeremony(platform, expectedFile, targetPromise) {
     window.clearTimeout(redirectTimer);
     window.cancelAnimationFrame(confettiRaf);
 
     if (ceremonyTitle) ceremonyTitle.textContent = `${platform} déverrouillé`;
-    if (ceremonyCopy) {
-      ceremonyCopy.textContent = resolved
-        ? `Asset trouvé dans la release : ${file}`
-        : 'Asset non résolu automatiquement : ouverture de la page GitHub Releases.';
-    }
+    if (ceremonyCopy) ceremonyCopy.textContent = `Séquence de lancement : recherche de ${expectedFile} dans GitHub Releases…`;
 
     writeLog([
       `selected platform: ${platform}`,
-      resolved ? `resolved asset: ${file}` : `expected asset prefix: ${file}`,
+      `expected asset prefix: ${expectedFile}`,
       'routing through GitHub Releases...',
-      resolved ? 'opening release asset in a new tab...' : 'opening latest release page in a new tab...'
+      'countdown armed...',
+      'opening release tab after ceremony...'
     ], 170);
 
     if (!overlay) {
-      openDownloadUrl(url, downloadTab);
+      openAfterCeremony(targetPromise);
       return;
     }
 
@@ -176,15 +146,29 @@
     }
 
     redirectTimer = window.setTimeout(() => {
-      openDownloadUrl(url, downloadTab);
-    }, prefersReduced ? 450 : 1650);
+      openAfterCeremony(targetPromise);
+    }, ceremonyDelayMs);
   }
 
-  function openDownloadUrl(url, downloadTab) {
-    if (downloadTab && !downloadTab.closed) {
-      downloadTab.location.href = url;
-      return;
+  async function openAfterCeremony(targetPromise) {
+    const target = await targetPromise.catch(() => ({ url: releasePageUrl, file: 'GitHub Releases', resolved: false }));
+
+    if (ceremonyCopy) {
+      ceremonyCopy.textContent = target.resolved
+        ? `Téléchargement prêt : ${target.file}`
+        : 'Asset non résolu automatiquement : ouverture de la page GitHub Releases.';
     }
+
+    writeLog([
+      target.resolved ? `resolved asset: ${target.file}` : 'asset fallback: latest release page',
+      'ceremony complete.',
+      'opening GitHub release tab now...'
+    ], 100);
+
+    openDownloadUrl(target.url);
+  }
+
+  function openDownloadUrl(url) {
     const opened = window.open(url, '_blank', 'noopener,noreferrer');
     if (!opened) window.location.href = url;
   }
@@ -207,8 +191,6 @@
 
   function closeCeremony() {
     window.clearTimeout(redirectTimer);
-    if (pendingDownloadTab && !pendingDownloadTab.closed) pendingDownloadTab.close();
-    pendingDownloadTab = null;
     if (!overlay) return;
     overlay.classList.remove('is-open');
     window.setTimeout(() => {
