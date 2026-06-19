@@ -1,0 +1,68 @@
+name: Godot desktop CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+    tags-ignore:
+      - '*'
+  workflow_dispatch:
+
+concurrency:
+  group: godot-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  PROJECT_PATH: e-grid-2045
+  GODOT_VERSION: "4.6.3"
+  GODOT_STATUS: stable
+  GAME_NAME: "E-Grid 2045"
+
+jobs:
+  build:
+    name: Build ${{ matrix.label }}
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - label: Linux
+            target: linux
+            preset: Linux
+            artifact: e-grid-2045-linux-x86_64
+          - label: Windows
+            target: windows
+            preset: Windows Desktop
+            artifact: e-grid-2045-windows-x86_64
+          - label: macOS
+            target: macos
+            preset: macOS
+            artifact: e-grid-2045-macos-universal
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Cache Godot editor and export templates
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/egrid-godot/${{ env.GODOT_VERSION }}-${{ env.GODOT_STATUS }}
+            ~/.local/share/godot/export_templates/${{ env.GODOT_VERSION }}.${{ env.GODOT_STATUS }}
+          key: godot-${{ runner.os }}-${{ env.GODOT_VERSION }}-${{ env.GODOT_STATUS }}
+
+      - name: Export ${{ matrix.label }} build
+        env:
+          PACKAGE_BASENAME: ${{ matrix.artifact }}-${{ github.sha }}
+        run: bash .github/scripts/export-godot.sh "${{ matrix.preset }}" "${{ matrix.target }}"
+
+      - name: Upload ${{ matrix.label }} artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: dist/*.zip
+          if-no-files-found: error
+          retention-days: 7
