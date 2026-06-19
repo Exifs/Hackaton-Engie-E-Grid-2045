@@ -14,6 +14,7 @@ Le pitch: piloter le réseau énergétique européen face à l'explosion des bes
 - Une base **data-driven**: régions, technologies, bâtiments, événements, scoring et réseau sont décrits dans des fichiers CSV/JSON.
 - Un prototype **Godot** pensé pour avancer vite vers une première boucle jouable.
 - Une direction artistique déjà posée: interface strategy game, carte européenne, flux énergie/data/cooling et ambiance techno-industrielle.
+- Un outillage de production créé pour le hackathon: éditeur de régions dans navigateur, exports JSON/SVG et génération d'assets carte pour Godot.
 
 ## Apercu
 
@@ -21,11 +22,43 @@ Le pitch: piloter le réseau énergétique européen face à l'explosion des bes
 | --- | --- | --- |
 | ![Menu principal](<Docs/menu.png>) | ![Réseau énergétique](<Docs/Concept art - EU-Grid 2026-v2-1.png>) | ![Datacenters et cooling](<Docs/Concept art - EU-Grid 2026-v2-2.png>) |
 
+## Outil hackathon: Region Shape Editor
+
+Pour transformer rapidement une Europe stylisée en carte jouable, le repo embarque `egrid_region_editor_tool/`: un éditeur web standalone conçu pour créer et affiner les délimitations gameplay des **30 régions E-Grid 2045** directement dans un navigateur, par-dessus le fond de carte du projet.
+
+L'objectif est très hackathon: éviter de perdre du temps dans un logiciel externe lourd, permettre à un designer ou à un développeur d'ajuster les frontières en quelques minutes, puis réinjecter le résultat dans Godot sous forme d'assets data-driven.
+
+Ce que permet l'outil:
+
+- sélectionner une région depuis la liste ou directement sur la carte;
+- déplacer les sommets, ajouter/supprimer des points et déplacer une région entière;
+- gérer les composants séparés, comme les îles ou morceaux de régions;
+- activer les **sommets liés** pour garder des bordures raccordées entre régions voisines;
+- zoomer, panner, filtrer les régions, afficher les labels, isoler la région sélectionnée et utiliser undo/redo;
+- sauvegarder localement dans le navigateur;
+- exporter un JSON éditeur, un `regions_contours.json` runtime ou un SVG master retouchable.
+
+Le pipeline ne s'arrête pas à l'édition visuelle: l'export JSON peut être passé à `tools/map_regions/apply_region_editor_export.py` pour régénérer les contours, le masque d'IDs de régions, la LUT de région, l'overlay de debug et le SVG master. En pratique, cela donne une chaîne courte: **édition navigateur -> export -> assets Godot vérifiables**.
+
+Lancer l'éditeur:
+
+```bash
+cd egrid_region_editor_tool
+python tools/region_editor/launch_region_editor.py
+```
+
+Pour une démo sans serveur local, ouvrir directement:
+
+```text
+egrid_region_editor_tool/tools/region_editor/region_shape_editor_standalone.html
+```
+
 ## Contenu du repo
 
 - `e-grid-2045/` - projet Godot, scènes, scripts et assets intégrés.
 - `Docs/` - game design, direction artistique, visuels, données de simulation et gel technique P0.
 - `Docs/*.csv` / `Docs/*.json` - constantes de gameplay, régions, graphe réseau, technologies, bâtiments et événements.
+- `egrid_region_editor_tool/` - éditeur web et scripts d'intégration pour produire les délimitations des régions et les assets carte Godot.
 
 ## Lancer le projet
 
