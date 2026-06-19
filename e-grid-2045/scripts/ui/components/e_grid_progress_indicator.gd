@@ -11,6 +11,12 @@ const E_GRID_COMPONENT_BITMAP_TEXT_SCRIPT := preload("res://scripts/ui/component
 		_sync_component_size()
 		queue_redraw()
 
+@export var fit_to_source_size := true:
+	set(value):
+		fit_to_source_size = value
+		_sync_component_size()
+		queue_redraw()
+
 var _value := 50.0
 
 @export_range(0.0, 100.0, 0.1) var value: float:
@@ -131,6 +137,9 @@ func _cache_nodes() -> void:
 
 
 func _sync_component_size() -> void:
+	if not fit_to_source_size:
+		return
+
 	var cell_size := E_GRID_UI_ATLAS.get_cell_size(component_name)
 	if cell_size != Vector2i.ZERO:
 		custom_minimum_size = Vector2(cell_size)

@@ -211,7 +211,13 @@ func _detail_value_color(key_text: String) -> Color:
 	var key := key_text.to_lower()
 	if semantic_state == "disabled":
 		return Color("#546467cc")
-	if semantic_state in ["warning", "critical"] and (key.contains("deficit") or key.contains("drift") or key.contains("risk")):
+	if semantic_state in ["warning", "critical"] and (
+		key.contains("deficit")
+		or key.contains("drift")
+		or key.contains("risk")
+		or key.contains("unserved")
+		or key.contains("issues")
+	):
 		return _semantic_color()
 
 	return Color("#e0e8e8")

@@ -25,7 +25,7 @@ const E_GRID_UI_ATLAS := preload("res://scripts/ui/components/e_grid_ui_atlas.gd
 		action_name = value
 		_sync()
 
-@export_enum("power_warning", "critical", "cooling_warning", "research_success", "market_info", "disabled") var alert_state := "power_warning":
+@export_enum("power_warning", "critical", "cooling_warning", "research_success", "market_info", "system_nominal", "grid_info", "research_info", "supply_info", "disabled") var alert_state := "power_warning":
 	set(value):
 		alert_state = value
 		_sync()
@@ -143,10 +143,14 @@ func _icon_state() -> String:
 	match alert_state:
 		"cooling_warning":
 			return "cooling"
-		"research_success":
+		"research_success", "research_info", "system_nominal":
 			return "science"
 		"market_info":
 			return "money"
+		"grid_info":
+			return "grid"
+		"supply_info":
+			return "battery"
 		"critical":
 			return "grid"
 		_:
@@ -155,8 +159,14 @@ func _icon_state() -> String:
 
 func _accent_color() -> Color:
 	match alert_state:
-		"research_success":
+		"system_nominal":
+			return Color("#4ce38a")
+		"research_success", "research_info":
 			return Color("#42b9e6")
+		"grid_info":
+			return Color("#2fc7f0")
+		"supply_info":
+			return Color("#6fbf90")
 		"market_info":
 			return Color("#89999c")
 		"critical":

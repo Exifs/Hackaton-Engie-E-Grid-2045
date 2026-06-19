@@ -351,7 +351,7 @@ func _draw_nine_slice(source_texture: Texture2D, target_rect: Rect2) -> void:
 	if target_rect.size.x <= 0.0 or target_rect.size.y <= 0.0:
 		return
 
-	var source_size := Vector2(source_texture.get_width(), source_texture.get_height())
+	var source_size := _nine_slice_source_size(source_texture)
 	if source_size.x <= 0.0 or source_size.y <= 0.0:
 		return
 
@@ -419,6 +419,14 @@ func _draw_nine_slice_part(source_texture: Texture2D, target_rect: Rect2, source
 			draw_texture_rect_region(source_texture, target_part, source_part)
 			x += tile_width
 		y += tile_height
+
+
+func _nine_slice_source_size(source_texture: Texture2D) -> Vector2:
+	var cell_size := E_GRID_UI_ATLAS.get_cell_size(component_name)
+	if cell_size != Vector2i.ZERO:
+		return Vector2(cell_size)
+
+	return Vector2(source_texture.get_width(), source_texture.get_height())
 
 
 func _source_scale(fitted_rect: Rect2) -> float:

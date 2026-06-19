@@ -10,12 +10,23 @@ const STAT_PATHS := [
 	^"ContentMargin/PanelStack/TabPages/Overview/EnergyStatus",
 	^"ContentMargin/PanelStack/TabPages/Overview/CoolingStatus",
 	^"ContentMargin/PanelStack/TabPages/Overview/ComputeStatus",
+	^"ContentMargin/PanelStack/TabPages/Stats/GridLoad",
+	^"ContentMargin/PanelStack/TabPages/Stats/ImportExport",
+	^"ContentMargin/PanelStack/TabPages/Stats/Stability",
 ]
 
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
-	call_deferred("queue_redraw")
+	_place_under_content()
+	queue_redraw.call_deferred()
+
+
+func _place_under_content() -> void:
+	var owner_node := get_parent()
+	if owner_node != null and get_index() > 1:
+		owner_node.move_child.call_deferred(self, 1)
+	queue_redraw.call_deferred()
 
 
 func _notification(what: int) -> void:
@@ -36,7 +47,7 @@ func _draw() -> void:
 		var stat := owner_node.get_node_or_null(path) as Control
 		if stat == null or not stat.visible:
 			continue
-		_draw_stat_separator(_local_rect(stat).grow_individual(0.0, 3.0, 0.0, 2.0))
+		_draw_stat_frame(_local_rect(stat).grow_individual(0.0, 3.0, 0.0, 2.0), _stat_accent_color(stat))
 
 
 func _group_rect(owner_node: Control, paths: Array) -> Rect2:
@@ -77,12 +88,34 @@ func _draw_section_frame(rect: Rect2) -> void:
 		draw_rect(Rect2(Vector2(rect.position.x + 16.0, rect.end.y - 5.0), Vector2(rail_width, 1.0)), Color("#020608aa"), true)
 
 
-func _draw_stat_separator(rect: Rect2) -> void:
+func _draw_stat_frame(rect: Rect2, accent_color: Color) -> void:
 	if rect.size.x <= 0.0 or rect.size.y <= 0.0:
 		return
 
-	draw_line(rect.position, Vector2(rect.end.x, rect.position.y), Color("#39505782"), 1.0, true)
-	draw_line(Vector2(rect.position.x, rect.end.y), rect.end, Color("#020608a8"), 1.0, true)
+	var points := _clipped_rect_points(rect, 4.0)
+	draw_colored_polygon(points, Color("#0310143c"))
+	draw_rect(Rect2(rect.position + Vector2(1.0, 5.0), Vector2(2.0, maxf(rect.size.y - 10.0, 0.0))), accent_color, true)
+	draw_line(rect.position + Vector2(8.0, 0.0), Vector2(rect.end.x - 8.0, rect.position.y), Color("#39505782"), 1.0, true)
+	draw_line(Vector2(rect.position.x + 8.0, rect.end.y), rect.end - Vector2(8.0, 0.0), Color("#020608a8"), 1.0, true)
+	draw_line(rect.position + Vector2(4.0, 4.0), rect.position + Vector2(4.0, rect.size.y - 4.0), Color("#13282e80"), 1.0, true)
+
+
+func _stat_accent_color(stat: Control) -> Color:
+	var state_name := "normal"
+	for property in stat.get_property_list():
+		if str(property.get("name", "")) == "semantic_state":
+			state_name = str(stat.get("semantic_state"))
+			break
+
+	if state_name == "success":
+		return Color("#4ce38a80")
+	if state_name == "warning":
+		return Color("#ff5a2488")
+	if state_name == "critical":
+		return Color("#cf3a3090")
+	if state_name == "disabled":
+		return Color("#54646766")
+	return Color("#1fd0e280")
 
 
 func _clipped_rect_points(rect: Rect2, corner_size: float) -> PackedVector2Array:

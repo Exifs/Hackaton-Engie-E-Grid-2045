@@ -10,8 +10,8 @@ const TOOLS_STACK_PATH := ^"ContentMargin/CategoryRow/ToolsStack"
 const HEADER_PATH := ^"ContentMargin/CategoryRow/ToolsStack/Header"
 const TITLE_LABEL_PATH := ^"ContentMargin/CategoryRow/ToolsStack/Header/TitleLabel"
 const SLOTS_GRID_PATH := ^"ContentMargin/CategoryRow/ToolsStack/SlotsGrid"
-const BASE_MINIMUM_HEIGHT := 82.0
-const HEIGHT_RESERVE := 6.0
+const BASE_MINIMUM_HEIGHT := 72.0
+const HEIGHT_RESERVE := 2.0
 const BUTTON_FAMILY_SELECTED_STATE := {
 	"energy": "energy_selected",
 	"datacenter": "datacenter_selected",
@@ -182,7 +182,7 @@ func _sync_slots() -> void:
 
 		_set_property_if_available(button, "label_text", "")
 		_set_property_if_available(button, "utility_icon_state", _tool_icon_state(index))
-		_set_property_if_available(button, "icon_size", _icon_size_for(slot_min_size, 0.54, 18.0, 23.0))
+		_set_property_if_available(button, "icon_size", _icon_size_for(slot_min_size, 0.72, 22.0, 26.0))
 		_apply_button_family(button)
 		_wire_slot_button(button, index)
 

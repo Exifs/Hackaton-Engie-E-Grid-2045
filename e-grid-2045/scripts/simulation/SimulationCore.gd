@@ -49,10 +49,14 @@ var _tick_accumulator := 0.0
 
 
 func _process(delta: float) -> void:
+	step_simulation_time(delta)
+
+
+func step_simulation_time(delta_seconds: float) -> void:
 	if state.paused or state.game_result != "":
 		return
 
-	_tick_accumulator += delta * maxf(state.simulation_speed, 0.0)
+	_tick_accumulator += delta_seconds * maxf(state.simulation_speed, 0.0)
 	var advanced_months := 0
 	while _tick_accumulator >= seconds_per_month and advanced_months < MAX_MONTHS_PER_FRAME:
 		_tick_accumulator -= seconds_per_month
@@ -179,7 +183,16 @@ func start_research(technology_id: String) -> void:
 
 
 func get_summary() -> Dictionary:
-	return state.to_summary()
+	var summary := state.to_summary()
+	summary["month_progress"] = get_month_progress()
+	return summary
+
+
+func get_month_progress() -> float:
+	if seconds_per_month <= 0.0:
+		return 0.0
+
+	return clampf(_tick_accumulator / seconds_per_month, 0.0, 1.0)
 
 
 func get_regions_snapshot() -> Dictionary:

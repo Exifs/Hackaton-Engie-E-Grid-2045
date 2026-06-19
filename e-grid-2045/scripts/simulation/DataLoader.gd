@@ -3,6 +3,24 @@ class_name EGridDataLoader
 
 const EXPORT_DIAGNOSTICS := preload("res://scripts/debug/EGridExportDiagnostics.gd")
 const DATA_ROOT := "res://data/"
+const BUILDING_ICON_KEYS := {
+	"university": "university",
+	"ai_research_center": "ai_research_center",
+	"energy_research_center": "energy_research_center",
+	"datacenter_standard": "datacenter_standard",
+	"datacenter_hyperscale": "datacenter_hyperscale",
+	"gas_power_plant": "gas_power_plant",
+	"nuclear_power_plant": "nuclear_power_plant",
+	"wind_onshore": "wind_onshore",
+	"wind_offshore": "wind_offshore",
+	"solar_farm": "solar_farm",
+	"hydro_dam": "hydro_dam",
+	"battery_storage": "battery_storage",
+	"air_cooling": "air_cooling",
+	"river_cooling": "river_cooling",
+	"sea_cooling": "sea_cooling",
+	"geothermal_cooling": "geothermal_cooling",
+}
 
 static var _game_data_cache: Dictionary = {}
 
@@ -308,6 +326,8 @@ func _number_or_inf(raw_value: Variant) -> float:
 
 
 func _icon_key_for_building(building_id: String, category: String) -> String:
+	if BUILDING_ICON_KEYS.has(building_id):
+		return str(BUILDING_ICON_KEYS[building_id])
 	if building_id.contains("wind"):
 		return "energy"
 	if building_id.contains("solar"):

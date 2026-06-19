@@ -36,6 +36,7 @@ clip_contents = true
 script = ExtResource("1_region_panel")
 region_name = "NETHERLANDS"
 level_text = "REGION LEVEL"
+tag_text = "URBAN / COASTAL"
 level_badge_text = "4"
 xp_text = "1,250 / 2,000 XP"
 xp_progress = 62.5

@@ -53,6 +53,11 @@ const COLLAPSIBLE_CONTENT_PATHS := [
 		level_text = value
 		_request_sync()
 
+@export var tag_text := "":
+	set(value):
+		tag_text = value
+		_request_sync()
+
 @export var level_badge_text := "0":
 	set(value):
 		level_badge_text = value
@@ -125,6 +130,8 @@ const COLLAPSIBLE_CONTENT_PATHS := [
 
 var _region_id := ""
 var _construction_count := 0
+var _slots_used := 0
+var _slots_max := 0
 var _sync_suspended := false
 
 
@@ -144,8 +151,11 @@ func display_region(region: Dictionary, building_definitions: Dictionary, summar
 	if region.is_empty():
 		_region_id = ""
 		_construction_count = 0
+		_slots_used = 0
+		_slots_max = 0
 		region_name = "NO REGION"
 		level_text = "SELECT A REGION"
+		tag_text = ""
 		level_badge_text = "0"
 		xp_text = "0 / 0 SLOTS"
 		xp_progress = 0.0
@@ -170,12 +180,15 @@ func display_region(region: Dictionary, building_definitions: Dictionary, summar
 	var cached: Dictionary = region.get("cached", {})
 	var slots_used := int(region.get("slots_used", 0))
 	var slots_max := int(region.get("slots_max", 0))
+	_slots_used = slots_used
+	_slots_max = slots_max
 	region_name = str(region.get("display_name", _region_id)).to_upper()
-	level_text = _tags_text(region.get("tags", []))
+	level_text = "BUILD CAPACITY"
+	tag_text = _tags_text(region.get("tags", []))
 	level_badge_text = "%d" % slots_used
 	xp_text = "%d / %d SLOTS" % [slots_used, slots_max]
 	xp_progress = clampf(float(slots_used) / maxf(float(slots_max), 1.0) * 100.0, 0.0, 100.0)
-	xp_semantic_state = _efficiency_state(float(cached.get("regional_efficiency", 1.0)))
+	xp_semantic_state = _capacity_state(slots_used, slots_max)
 	_update_slot_views(region, building_definitions)
 	_sync_suspended = false
 	_sync()
@@ -213,6 +226,7 @@ func _sync() -> void:
 		title_label.text = region_name
 	if level_label != null:
 		level_label.text = level_text
+		level_label.tooltip_text = tag_text
 	if level_badge != null:
 		_set_property_if_available(level_badge, "label_text", level_badge_text)
 		_set_property_if_available(level_badge, "text", "")
@@ -269,10 +283,12 @@ func _update_slot_views(region: Dictionary, building_definitions: Dictionary) ->
 			states.append(str(entry.get("state", "normal")))
 			icons.append(str(entry.get("icon", "grid")))
 		else:
-			labels.append("Free slot")
-			pips.append(0)
-			states.append("disabled")
-			icons.append("")
+			var suggestion := _free_slot_suggestion(region, index)
+			labels.append("Available %s" % str(suggestion.get("label", "capacity")))
+			pips.append(int(suggestion.get("pips", 1)))
+			states.append("normal")
+			icons.append(str(suggestion.get("icon", "grid")))
+		if index >= slots_max:
 			locked.append(index)
 
 	if slots_max > VISIBLE_BUILDING_SLOT_COUNT and labels.size() > 0:
@@ -307,10 +323,10 @@ func _update_slot_views(region: Dictionary, building_definitions: Dictionary) ->
 		slots_title.text = "BUILDING SLOTS"
 
 
-func _update_stats(cached: Dictionary, summary: Dictionary) -> void:
+func _update_stats(cached: Dictionary, _summary: Dictionary) -> void:
 	_set_stat(
 		"ContentMargin/PanelStack/TabPages/Overview/EnergyStatus",
-		"ENERGY",
+		"ENERGY STATUS",
 		"%d%%" % roundi(float(cached.get("energy_efficiency", 0.0)) * 100.0),
 		float(cached.get("energy_efficiency", 0.0)) * 100.0,
 		_efficiency_state(float(cached.get("energy_efficiency", 0.0))),
@@ -318,19 +334,27 @@ func _update_stats(cached: Dictionary, summary: Dictionary) -> void:
 	)
 	_set_stat(
 		"ContentMargin/PanelStack/TabPages/Overview/CoolingStatus",
-		"COOLING",
+		"COOLING STATUS",
 		"%d%%" % roundi(float(cached.get("cooling_efficiency", 0.0)) * 100.0),
 		float(cached.get("cooling_efficiency", 0.0)) * 100.0,
 		_efficiency_state(float(cached.get("cooling_efficiency", 0.0))),
-		"Available %.1f / Used %.1f" % [float(cached.get("cooling_available", 0.0)), float(cached.get("cooling_used", 0.0))]
+		"Avail %.1f / Used %.1f / Reserve %.1f" % [
+			float(cached.get("cooling_available", 0.0)),
+			float(cached.get("cooling_used", 0.0)),
+			float(cached.get("cooling_available", 0.0)) - float(cached.get("cooling_used", 0.0)),
+		]
 	)
 	_set_stat(
 		"ContentMargin/PanelStack/TabPages/Overview/ComputeStatus",
-		"COMPUTE",
+		"COMPUTE DEMAND",
 		"%.1f" % float(cached.get("compute_produced", 0.0)),
 		clampf(float(cached.get("compute_produced", 0.0)) / 40.0 * 100.0, 0.0, 100.0),
 		"success" if float(cached.get("compute_produced", 0.0)) > 8.0 else "normal",
-		"Researchers %.1f req / %.1f global" % [float(cached.get("researchers_required", 0.0)), float(summary.get("researchers_available", 0.0))]
+		"Prod %.1f / Demand %.1f / Labor %.0f%%" % [
+			float(cached.get("compute_produced", 0.0)),
+			float(cached.get("compute_demand", 0.0)),
+			float(cached.get("researcher_efficiency", 1.0)) * 100.0,
+		]
 	)
 	_set_stat(
 		"ContentMargin/PanelStack/TabPages/Stats/GridLoad",
@@ -338,7 +362,11 @@ func _update_stats(cached: Dictionary, summary: Dictionary) -> void:
 		"%.1f in" % float(cached.get("energy_imported", 0.0)),
 		clampf(float(cached.get("energy_imported", 0.0)) / 40.0 * 100.0, 0.0, 100.0),
 		"warning" if bool(cached.get("network_congested", false)) else "normal",
-		"Export %.1f / Unserved %.1f" % [float(cached.get("energy_exported", 0.0)), float(cached.get("energy_unserved", 0.0))]
+		"Import %.1f / Export %.1f / Unserved %.1f" % [
+			float(cached.get("energy_imported", 0.0)),
+			float(cached.get("energy_exported", 0.0)),
+			float(cached.get("energy_unserved", 0.0)),
+		]
 	)
 	_set_stat(
 		"ContentMargin/PanelStack/TabPages/Stats/ImportExport",
@@ -346,7 +374,11 @@ func _update_stats(cached: Dictionary, summary: Dictionary) -> void:
 		"%+.1f" % (float(cached.get("energy_imported", 0.0)) - float(cached.get("energy_exported", 0.0))),
 		50.0,
 		"success" if float(cached.get("energy_balance_local", 0.0)) >= 0.0 else "warning",
-		"Local balance %.1f" % float(cached.get("energy_balance_local", 0.0))
+		"Import %.1f / Export %.1f / Balance %+.1f" % [
+			float(cached.get("energy_imported", 0.0)),
+			float(cached.get("energy_exported", 0.0)),
+			float(cached.get("energy_balance_local", 0.0)),
+		]
 	)
 	_set_stat(
 		"ContentMargin/PanelStack/TabPages/Stats/Stability",
@@ -354,7 +386,11 @@ func _update_stats(cached: Dictionary, summary: Dictionary) -> void:
 		"%d%%" % roundi(float(cached.get("regional_efficiency", 0.0)) * 100.0),
 		float(cached.get("regional_efficiency", 0.0)) * 100.0,
 		_efficiency_state(float(cached.get("regional_efficiency", 0.0))),
-		", ".join(cached.get("problems", []))
+		"Energy %.0f%% / Cooling %.0f%% / Issues %d" % [
+			float(cached.get("energy_efficiency", 0.0)) * 100.0,
+			float(cached.get("cooling_efficiency", 0.0)) * 100.0,
+			(cached.get("problems", []) as Array).size(),
+		]
 	)
 
 
@@ -495,11 +531,15 @@ func _sync_building_slot_count() -> void:
 		return
 
 	var active_count := 0
-	for index in range(building_slot_labels.size()):
-		if not building_slot_locked_indices.has(index):
-			active_count += 1
+	if _slots_max > 0:
+		active_count = _slots_used
+	else:
+		for index in range(building_slot_labels.size()):
+			if not building_slot_locked_indices.has(index):
+				active_count += 1
 
-	count_label.text = "%d / %d" % [active_count, building_slot_labels.size()]
+	var total_count := _slots_max if _slots_max > 0 else building_slot_labels.size()
+	count_label.text = "%d / %d" % [active_count, total_count]
 
 
 func _sync_slot_grid(
@@ -528,10 +568,12 @@ func _sync_slot_grid(
 		slot.visible = has_slot
 		slot.disabled = locked
 		slot.tooltip_text = str(slot_labels[index]) if has_slot else ""
+		var is_available_slot := has_slot and str(slot_labels[index]).begins_with("Available ")
 		_set_property_if_available(slot, "locked", locked)
 		_set_property_if_available(slot, "semantic_state", semantic_state)
 		_set_property_if_available(slot, "base_state", "auto")
 		_set_property_if_available(slot, "building_icon", _slot_icon_texture(icon_states[index] if index < icon_states.size() else ""))
+		_set_property_if_available(slot, "building_icon_alpha", 0.36 if is_available_slot else 1.0)
 		_set_property_if_available(slot, "pips_active", pips[index] if index < pips.size() else 0)
 		_set_property_if_available(slot, "bottom_tier", 1 if has_slot and not locked else 0)
 		_set_property_if_available(slot, "top_bars", 1 if semantic_state == "warning" else 0)
@@ -543,6 +585,38 @@ func _slot_icon_texture(icon_state: String) -> Texture2D:
 	if icon_state.strip_edges().is_empty():
 		return null
 	return E_GRID_UI_ATLAS.get_texture("utility_icons_48px", icon_state)
+
+
+func _free_slot_suggestion(region: Dictionary, slot_index: int) -> Dictionary:
+	var suggestions := []
+	var energy_potential := maxf(
+		float(region.get("potential_solar", 0.0)),
+		maxf(float(region.get("potential_wind_onshore", 0.0)), float(region.get("potential_wind_offshore", 0.0)))
+	)
+	energy_potential = maxf(energy_potential, maxf(float(region.get("potential_hydro", 0.0)), float(region.get("potential_nuclear", 0.0))))
+	suggestions.append({"label": "energy", "icon": "energy", "pips": _potential_pips(energy_potential)})
+
+	if float(region.get("potential_cooling", 0.0)) >= 2.0:
+		suggestions.append({"label": "cooling", "icon": "cooling", "pips": _potential_pips(float(region.get("potential_cooling", 0.0)))})
+	if float(region.get("potential_research", 0.0)) >= 2.0:
+		suggestions.append({"label": "research", "icon": "research", "pips": _potential_pips(float(region.get("potential_research", 0.0)))})
+	if _region_has_tag(region, ["urbain", "dense", "industriel"]):
+		suggestions.append({"label": "compute", "icon": "datacenter", "pips": clampi(roundi(float(region.get("population_units", 0.0))), 1, 5)})
+
+	suggestions.append({"label": "grid", "icon": "grid", "pips": _potential_pips(float(region.get("potential_grid", 0.0)))})
+	return suggestions[slot_index % suggestions.size()]
+
+
+func _potential_pips(value: float) -> int:
+	return clampi(roundi(value), 1, 5)
+
+
+func _region_has_tag(region: Dictionary, accepted_tags: Array) -> bool:
+	var tags: Array = region.get("tags", [])
+	for tag_variant in tags:
+		if accepted_tags.has(str(tag_variant)):
+			return true
+	return false
 
 
 func _tags_text(tags: Array) -> String:
@@ -588,6 +662,18 @@ func _efficiency_state(value: float) -> String:
 	if value >= 0.72:
 		return "warning"
 	return "critical"
+
+
+func _capacity_state(slots_used: int, slots_max: int) -> String:
+	if slots_max <= 0:
+		return "disabled"
+
+	var ratio := float(slots_used) / float(slots_max)
+	if ratio >= 1.0:
+		return "critical"
+	if ratio >= 0.8:
+		return "warning"
+	return "normal"
 
 
 func _set_property_if_available(target: Object, property_name: String, property_value: Variant) -> void:

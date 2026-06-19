@@ -1728,7 +1728,23 @@
         "compute",
         "gas",
         "money",
-        "science"
+        "science",
+        "university",
+        "ai_research_center",
+        "energy_research_center",
+        "datacenter_standard",
+        "datacenter_hyperscale",
+        "gas_power_plant",
+        "nuclear_power_plant",
+        "wind_onshore",
+        "wind_offshore",
+        "solar_farm",
+        "hydro_dam",
+        "battery_storage",
+        "air_cooling",
+        "river_cooling",
+        "sea_cooling",
+        "geothermal_cooling"
       ],
       "frames": [
         {
@@ -1818,6 +1834,134 @@
           "w": 48,
           "h": 48,
           "file": "sprites/utility_icons_48px/10_science.png"
+        },
+        {
+          "state": "university",
+          "x": 528,
+          "y": 0,
+          "w": 48,
+          "h": 48,
+          "file": "sprites/utility_icons_48px/11_university.png"
+        },
+        {
+          "state": "ai_research_center",
+          "x": 576,
+          "y": 0,
+          "w": 48,
+          "h": 48,
+          "file": "sprites/utility_icons_48px/12_ai_research_center.png"
+        },
+        {
+          "state": "energy_research_center",
+          "x": 624,
+          "y": 0,
+          "w": 48,
+          "h": 48,
+          "file": "sprites/utility_icons_48px/13_energy_research_center.png"
+        },
+        {
+          "state": "datacenter_standard",
+          "x": 672,
+          "y": 0,
+          "w": 48,
+          "h": 48,
+          "file": "sprites/utility_icons_48px/14_datacenter_standard.png"
+        },
+        {
+          "state": "datacenter_hyperscale",
+          "x": 720,
+          "y": 0,
+          "w": 48,
+          "h": 48,
+          "file": "sprites/utility_icons_48px/15_datacenter_hyperscale.png"
+        },
+        {
+          "state": "gas_power_plant",
+          "x": 768,
+          "y": 0,
+          "w": 48,
+          "h": 48,
+          "file": "sprites/utility_icons_48px/16_gas_power_plant.png"
+        },
+        {
+          "state": "nuclear_power_plant",
+          "x": 816,
+          "y": 0,
+          "w": 48,
+          "h": 48,
+          "file": "sprites/utility_icons_48px/17_nuclear_power_plant.png"
+        },
+        {
+          "state": "wind_onshore",
+          "x": 864,
+          "y": 0,
+          "w": 48,
+          "h": 48,
+          "file": "sprites/utility_icons_48px/18_wind_onshore.png"
+        },
+        {
+          "state": "wind_offshore",
+          "x": 912,
+          "y": 0,
+          "w": 48,
+          "h": 48,
+          "file": "sprites/utility_icons_48px/19_wind_offshore.png"
+        },
+        {
+          "state": "solar_farm",
+          "x": 960,
+          "y": 0,
+          "w": 48,
+          "h": 48,
+          "file": "sprites/utility_icons_48px/20_solar_farm.png"
+        },
+        {
+          "state": "hydro_dam",
+          "x": 1008,
+          "y": 0,
+          "w": 48,
+          "h": 48,
+          "file": "sprites/utility_icons_48px/21_hydro_dam.png"
+        },
+        {
+          "state": "battery_storage",
+          "x": 1056,
+          "y": 0,
+          "w": 48,
+          "h": 48,
+          "file": "sprites/utility_icons_48px/22_battery_storage.png"
+        },
+        {
+          "state": "air_cooling",
+          "x": 1104,
+          "y": 0,
+          "w": 48,
+          "h": 48,
+          "file": "sprites/utility_icons_48px/23_air_cooling.png"
+        },
+        {
+          "state": "river_cooling",
+          "x": 1152,
+          "y": 0,
+          "w": 48,
+          "h": 48,
+          "file": "sprites/utility_icons_48px/24_river_cooling.png"
+        },
+        {
+          "state": "sea_cooling",
+          "x": 1200,
+          "y": 0,
+          "w": 48,
+          "h": 48,
+          "file": "sprites/utility_icons_48px/25_sea_cooling.png"
+        },
+        {
+          "state": "geothermal_cooling",
+          "x": 1248,
+          "y": 0,
+          "w": 48,
+          "h": 48,
+          "file": "sprites/utility_icons_48px/26_geothermal_cooling.png"
         }
       ]
     }
