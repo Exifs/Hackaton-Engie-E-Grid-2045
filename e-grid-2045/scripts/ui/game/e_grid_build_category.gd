@@ -4,12 +4,16 @@ class_name EGridBuildCategory
 signal tool_requested(tool_id: String)
 
 const ICON_BUTTON_SCENE := preload("res://scenes/ui/components/e_grid_icon_button.tscn")
+const E_GRID_UI_ATLAS := preload("res://scripts/ui/components/e_grid_ui_atlas.gd")
 const PRIMARY_BUTTON_PATH := ^"ContentMargin/CategoryRow/PrimaryButton"
 const CONTENT_MARGIN_PATH := ^"ContentMargin"
 const TOOLS_STACK_PATH := ^"ContentMargin/CategoryRow/ToolsStack"
 const HEADER_PATH := ^"ContentMargin/CategoryRow/ToolsStack/Header"
 const TITLE_LABEL_PATH := ^"ContentMargin/CategoryRow/ToolsStack/Header/TitleLabel"
 const SLOTS_GRID_PATH := ^"ContentMargin/CategoryRow/ToolsStack/SlotsGrid"
+const CATEGORY_ICON_COMPONENT := "category_icons_mono_64px"
+const BUILDING_ICON_MONO_COMPONENT := "building_icons_mono_64px"
+const UTILITY_ICON_COMPONENT := "utility_icons_48px"
 const BASE_MINIMUM_HEIGHT := 72.0
 const HEIGHT_RESERVE := 2.0
 const BUTTON_FAMILY_SELECTED_STATE := {
@@ -182,7 +186,8 @@ func _sync_slots() -> void:
 
 		_set_property_if_available(button, "label_text", "")
 		_set_property_if_available(button, "utility_icon_state", _tool_icon_state(index))
-		_set_property_if_available(button, "icon_size", _icon_size_for(slot_min_size, 0.72, 22.0, 26.0))
+		_set_property_if_available(button, "utility_icon_component_name", _tool_icon_component(index))
+		_set_property_if_available(button, "icon_size", _icon_size_for(slot_min_size, 0.76, 24.0, 30.0))
 		_apply_button_family(button)
 		_wire_slot_button(button, index)
 
@@ -255,7 +260,8 @@ func _sync_primary_button() -> void:
 
 	_set_property_if_available(button, "label_text", "")
 	_set_property_if_available(button, "utility_icon_state", _category_icon_state())
-	_set_property_if_available(button, "icon_size", _icon_size_for(primary_button_size, 0.58, 28.0, 34.0))
+	_set_property_if_available(button, "utility_icon_component_name", CATEGORY_ICON_COMPONENT)
+	_set_property_if_available(button, "icon_size", _icon_size_for(primary_button_size, 0.72, 32.0, 38.0))
 	_apply_button_family(button)
 
 
@@ -325,6 +331,13 @@ func _tool_icon_state(index: int) -> String:
 	if index < tool_icon_states.size():
 		return str(tool_icon_states[index])
 	return _category_icon_state()
+
+
+func _tool_icon_component(index: int) -> String:
+	var icon_state := _tool_icon_state(index)
+	if E_GRID_UI_ATLAS.has_state(BUILDING_ICON_MONO_COMPONENT, icon_state):
+		return BUILDING_ICON_MONO_COMPONENT
+	return UTILITY_ICON_COMPONENT
 
 
 func _category_icon_state() -> String:

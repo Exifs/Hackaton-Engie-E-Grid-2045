@@ -305,7 +305,7 @@ func _sync_top_bar(summary: Dictionary) -> void:
 		float(summary.get("compute_produced", 0.0)),
 		float(summary.get("compute_used", 0.0)),
 	])
-	_top_bar.set("europe_progress_text", "EU %.1f%%" % float(summary.get("eu_agi_progress", 0.0)))
+	_top_bar.set("europe_progress_text", "EUROPE %.1f%%" % float(summary.get("eu_agi_progress", 0.0)))
 	_top_bar.set("usa_progress_text", "USA %.1f%%" % float(summary.get("usa_agi_progress", 0.0)))
 	_top_bar.set("budget_text", "EUR %.0f" % float(summary.get("money", 0.0)))
 	_top_bar.set("budget_delta_text", "+%.0f / MO  CO2 %.0f %s" % [float(summary.get("monthly_income", 0.0)), float(summary.get("cumulative_co2", 0.0)), co2_tier])

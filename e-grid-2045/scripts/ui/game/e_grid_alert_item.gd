@@ -4,6 +4,7 @@ class_name EGridAlertItem
 signal action_requested(action_name: String)
 
 const E_GRID_UI_ATLAS := preload("res://scripts/ui/components/e_grid_ui_atlas.gd")
+const NOTIFICATION_ICON_COMPONENT := "notification_icons_64px"
 
 @export var title_text := "ALERT":
 	set(value):
@@ -120,7 +121,7 @@ func _sync_icon(icon: TextureRect, accent_color: Color) -> void:
 	if icon == null:
 		return
 
-	icon.texture = E_GRID_UI_ATLAS.get_texture("utility_icons_48px", _icon_state())
+	icon.texture = E_GRID_UI_ATLAS.get_texture(NOTIFICATION_ICON_COMPONENT, _icon_state())
 	icon.visible = icon.texture != null
 	icon.modulate = accent_color
 
@@ -141,20 +142,22 @@ func _sync_icon_frame(icon_frame: PanelContainer, accent_color: Color) -> void:
 
 func _icon_state() -> String:
 	match alert_state:
+		"power_warning":
+			return "power"
 		"cooling_warning":
 			return "cooling"
 		"research_success", "research_info", "system_nominal":
-			return "science"
+			return "research" if alert_state != "system_nominal" else "system"
 		"market_info":
-			return "money"
+			return "market"
 		"grid_info":
 			return "grid"
 		"supply_info":
-			return "battery"
+			return "supply"
 		"critical":
-			return "grid"
+			return "critical"
 		_:
-			return "energy"
+			return "power"
 
 
 func _accent_color() -> Color:

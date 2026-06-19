@@ -107,6 +107,11 @@ const E_GRID_COMPONENT_BITMAP_TEXT_SCRIPT := preload("res://scripts/ui/component
 		utility_icon_state = value
 		queue_redraw()
 
+@export var utility_icon_component_name := "utility_icons_48px":
+	set(value):
+		utility_icon_component_name = value
+		queue_redraw()
+
 @export var icon_size := Vector2(30.0, 30.0):
 	set(value):
 		icon_size = value
@@ -358,7 +363,7 @@ func _draw_utility_icon(fitted_rect: Rect2) -> void:
 	if utility_icon_state.is_empty():
 		return
 
-	var icon_texture := E_GRID_UI_ATLAS.get_texture("utility_icons_48px", utility_icon_state)
+	var icon_texture := E_GRID_UI_ATLAS.get_texture(utility_icon_component_name, utility_icon_state)
 	if icon_texture == null:
 		return
 

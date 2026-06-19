@@ -5,6 +5,8 @@ const E_GRID_UI_ATLAS := preload("res://scripts/ui/components/e_grid_ui_atlas.gd
 
 const DETAIL_COLUMN_COUNT := 3
 const DETAIL_VALUE_START_CHARS := "0123456789+-"
+const STATUS_ICON_COMPONENT := "status_icons_mono_64px"
+const STATUS_ICON_SIZE := Vector2(32.0, 32.0)
 
 @export var title_text := "STAT":
 	set(value):
@@ -144,7 +146,10 @@ func _sync_icon(icon: TextureRect, semantic_color: Color) -> void:
 	if resolved_icon.is_empty():
 		resolved_icon = _infer_icon_state()
 
-	icon.texture = E_GRID_UI_ATLAS.get_texture("utility_icons_48px", resolved_icon) if not resolved_icon.is_empty() else null
+	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	icon.custom_minimum_size = STATUS_ICON_SIZE
+	icon.size = STATUS_ICON_SIZE
+	icon.texture = E_GRID_UI_ATLAS.get_texture(STATUS_ICON_COMPONENT, resolved_icon) if not resolved_icon.is_empty() else null
 	icon.visible = icon.texture != null
 	icon.modulate = semantic_color
 

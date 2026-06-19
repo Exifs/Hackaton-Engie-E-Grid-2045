@@ -74,6 +74,8 @@ func _sync_alerts() -> void:
 		var alert: Dictionary = alert_variant
 		var item := ALERT_ITEM_SCENE.instantiate()
 		container.add_child(item)
+		if item is Control:
+			(item as Control).size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		item.set("title_text", str(alert.get("title", "ALERT")))
 		item.set("body_text", str(alert.get("body", "")))
 		item.set("action_name", str(alert.get("region_id", "")))

@@ -6,6 +6,9 @@ signal cancel_construction_requested(region_id: String, queue_index: int)
 const E_GRID_UI_ATLAS := preload("res://scripts/ui/components/e_grid_ui_atlas.gd")
 const VISIBLE_BUILDING_SLOT_COUNT := 8
 const VISIBLE_MODULE_SLOT_COUNT := 3
+const BUILDING_ICON_COLOR_COMPONENT := "building_icons_color_96px"
+const BUILDING_ICON_MONO_COMPONENT := "building_icons_mono_64px"
+const UTILITY_ICON_COMPONENT := "utility_icons_48px"
 
 const TAB_BUTTONS := {
 	"overview": "ContentMargin/PanelStack/TabButtons/OverviewTab",
@@ -293,8 +296,9 @@ func _update_slot_views(region: Dictionary, building_definitions: Dictionary) ->
 
 	if slots_max > VISIBLE_BUILDING_SLOT_COUNT and labels.size() > 0:
 		labels[labels.size() - 1] = "+%d slots" % (slots_max - VISIBLE_BUILDING_SLOT_COUNT + 1)
+		pips[pips.size() - 1] = 0
 		states[states.size() - 1] = "normal"
-		icons[icons.size() - 1] = "grid"
+		icons[icons.size() - 1] = ""
 
 	building_slot_labels = labels
 	building_slot_pips = pips
@@ -432,9 +436,12 @@ func _wire_footer_button() -> void:
 
 
 func _on_manage_region_pressed() -> void:
-	if _region_id.is_empty() or _construction_count <= 0:
+	if _region_id.is_empty():
 		return
-	cancel_construction_requested.emit(_region_id, 0)
+	if _construction_count > 0:
+		cancel_construction_requested.emit(_region_id, 0)
+		return
+	active_tab = "buildings"
 
 
 func _sync_footer_button() -> void:
@@ -444,13 +451,13 @@ func _sync_footer_button() -> void:
 	if button == null:
 		return
 	if _construction_count > 0:
-		_set_property_if_available(button, "label_text", "CANCEL")
+		_set_property_if_available(button, "label_text", "CANCEL BUILD")
 		button.disabled = false
 		button.tooltip_text = "Cancel first construction for a partial refund"
 	else:
-		_set_property_if_available(button, "label_text", "MANAGE")
-		button.disabled = true
-		button.tooltip_text = "No construction to cancel"
+		_set_property_if_available(button, "label_text", "MANAGE REGION")
+		button.disabled = _region_id.is_empty()
+		button.tooltip_text = "Open regional building management"
 
 
 func _on_collapse_button_pressed() -> void:
@@ -569,11 +576,14 @@ func _sync_slot_grid(
 		slot.disabled = locked
 		slot.tooltip_text = str(slot_labels[index]) if has_slot else ""
 		var is_available_slot := has_slot and str(slot_labels[index]).begins_with("Available ")
+		var slot_icon: Texture2D = null
+		if has_slot and not is_available_slot:
+			slot_icon = _slot_icon_texture(icon_states[index] if index < icon_states.size() else "")
 		_set_property_if_available(slot, "locked", locked)
 		_set_property_if_available(slot, "semantic_state", semantic_state)
 		_set_property_if_available(slot, "base_state", "auto")
-		_set_property_if_available(slot, "building_icon", _slot_icon_texture(icon_states[index] if index < icon_states.size() else ""))
-		_set_property_if_available(slot, "building_icon_alpha", 0.36 if is_available_slot else 1.0)
+		_set_property_if_available(slot, "building_icon", slot_icon)
+		_set_property_if_available(slot, "building_icon_alpha", 1.0)
 		_set_property_if_available(slot, "pips_active", pips[index] if index < pips.size() else 0)
 		_set_property_if_available(slot, "bottom_tier", 1 if has_slot and not locked else 0)
 		_set_property_if_available(slot, "top_bars", 1 if semantic_state == "warning" else 0)
@@ -581,10 +591,15 @@ func _sync_slot_grid(
 		_set_property_if_available(slot, "show_status_badge", false)
 
 
-func _slot_icon_texture(icon_state: String) -> Texture2D:
+func _slot_icon_texture(icon_state: String, prefer_monochrome := false) -> Texture2D:
 	if icon_state.strip_edges().is_empty():
 		return null
-	return E_GRID_UI_ATLAS.get_texture("utility_icons_48px", icon_state)
+
+	if prefer_monochrome and E_GRID_UI_ATLAS.has_state(BUILDING_ICON_MONO_COMPONENT, icon_state):
+		return E_GRID_UI_ATLAS.get_texture(BUILDING_ICON_MONO_COMPONENT, icon_state)
+	if not prefer_monochrome and E_GRID_UI_ATLAS.has_state(BUILDING_ICON_COLOR_COMPONENT, icon_state):
+		return E_GRID_UI_ATLAS.get_texture(BUILDING_ICON_COLOR_COMPONENT, icon_state)
+	return E_GRID_UI_ATLAS.get_texture(UTILITY_ICON_COMPONENT, icon_state)
 
 
 func _free_slot_suggestion(region: Dictionary, slot_index: int) -> Dictionary:
@@ -594,17 +609,62 @@ func _free_slot_suggestion(region: Dictionary, slot_index: int) -> Dictionary:
 		maxf(float(region.get("potential_wind_onshore", 0.0)), float(region.get("potential_wind_offshore", 0.0)))
 	)
 	energy_potential = maxf(energy_potential, maxf(float(region.get("potential_hydro", 0.0)), float(region.get("potential_nuclear", 0.0))))
-	suggestions.append({"label": "energy", "icon": "energy", "pips": _potential_pips(energy_potential)})
+	suggestions.append({"label": "energy", "icon": _best_energy_suggestion_icon(region), "pips": _potential_pips(energy_potential)})
 
 	if float(region.get("potential_cooling", 0.0)) >= 2.0:
-		suggestions.append({"label": "cooling", "icon": "cooling", "pips": _potential_pips(float(region.get("potential_cooling", 0.0)))})
+		suggestions.append({"label": "cooling", "icon": _best_cooling_suggestion_icon(region), "pips": _potential_pips(float(region.get("potential_cooling", 0.0)))})
 	if float(region.get("potential_research", 0.0)) >= 2.0:
-		suggestions.append({"label": "research", "icon": "research", "pips": _potential_pips(float(region.get("potential_research", 0.0)))})
+		suggestions.append({"label": "research", "icon": _best_research_suggestion_icon(region), "pips": _potential_pips(float(region.get("potential_research", 0.0)))})
 	if _region_has_tag(region, ["urbain", "dense", "industriel"]):
-		suggestions.append({"label": "compute", "icon": "datacenter", "pips": clampi(roundi(float(region.get("population_units", 0.0))), 1, 5)})
+		suggestions.append({"label": "compute", "icon": _best_compute_suggestion_icon(region), "pips": clampi(roundi(float(region.get("population_units", 0.0))), 1, 5)})
 
-	suggestions.append({"label": "grid", "icon": "grid", "pips": _potential_pips(float(region.get("potential_grid", 0.0)))})
+	suggestions.append({"label": "grid", "icon": "battery_storage", "pips": _potential_pips(float(region.get("potential_grid", 0.0)))})
 	return suggestions[slot_index % suggestions.size()]
+
+
+func _best_energy_suggestion_icon(region: Dictionary) -> String:
+	var candidates := [
+		{"icon": "solar_farm", "value": float(region.get("potential_solar", 0.0))},
+		{"icon": "wind_onshore", "value": float(region.get("potential_wind_onshore", 0.0))},
+		{"icon": "wind_offshore", "value": float(region.get("potential_wind_offshore", 0.0))},
+		{"icon": "hydro_dam", "value": float(region.get("potential_hydro", 0.0))},
+		{"icon": "nuclear_power_plant", "value": float(region.get("potential_nuclear", 0.0))},
+	]
+	return _best_icon_by_value(candidates, "gas_power_plant")
+
+
+func _best_cooling_suggestion_icon(region: Dictionary) -> String:
+	if _region_has_tag(region, ["littoral", "mer_du_nord", "mer_noire", "iles"]):
+		return "sea_cooling"
+	if _region_has_tag(region, ["fleuve", "hydro"]):
+		return "river_cooling"
+	if float(region.get("potential_cooling", 0.0)) >= 4.0:
+		return "geothermal_cooling"
+	return "air_cooling"
+
+
+func _best_research_suggestion_icon(region: Dictionary) -> String:
+	if _region_has_tag(region, ["urbain", "central", "dense"]):
+		return "ai_research_center"
+	return "university"
+
+
+func _best_compute_suggestion_icon(region: Dictionary) -> String:
+	if _region_has_tag(region, ["littoral", "froid", "fleuve"]):
+		return "datacenter_hyperscale"
+	return "datacenter_standard"
+
+
+func _best_icon_by_value(candidates: Array, fallback_icon: String) -> String:
+	var best_icon := fallback_icon
+	var best_value := -INF
+	for candidate_variant in candidates:
+		var candidate: Dictionary = candidate_variant
+		var value := float(candidate.get("value", 0.0))
+		if value > best_value:
+			best_value = value
+			best_icon = str(candidate.get("icon", fallback_icon))
+	return best_icon
 
 
 func _potential_pips(value: float) -> int:
