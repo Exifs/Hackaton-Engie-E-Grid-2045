@@ -41,16 +41,16 @@ func _draw() -> void:
 		return
 
 	var hovered := is_hovered() or has_focus()
-	var pressed := button_pressed
+	var is_pressed := button_pressed
 	var points := _clipped_rect_points(rect, 4.0)
-	draw_colored_polygon(points, _fill_color(hovered, pressed))
+	draw_colored_polygon(points, _fill_color(hovered, is_pressed))
 	_draw_closed_polyline(points, Color("#020608ea"), 2.0)
-	_draw_closed_polyline(_clipped_rect_points(rect.grow(-1.0), 3.0), _border_color(hovered, pressed), 1.0)
+	_draw_closed_polyline(_clipped_rect_points(rect.grow(-1.0), 3.0), _border_color(hovered, is_pressed), 1.0)
 	_draw_closed_polyline(_clipped_rect_points(rect.grow(-5.0), 2.0), Color("#4bb7c460"), 1.0)
-	_draw_energy_rails(rect, hovered or pressed)
+	_draw_energy_rails(rect, hovered or is_pressed)
 
 	if show_gear_icon:
-		_draw_gear_icon(_gear_center(rect), _icon_color(pressed))
+		_draw_gear_icon(_gear_center(rect), _icon_color(is_pressed))
 
 
 func _install_empty_button_styles() -> void:
@@ -117,30 +117,30 @@ func _sync_label_layout() -> void:
 	_label.offset_bottom = 0.0
 
 
-func _fill_color(hovered: bool, pressed: bool) -> Color:
+func _fill_color(hovered: bool, is_pressed: bool) -> Color:
 	if disabled:
 		return Color("#071014dc")
-	if pressed:
+	if is_pressed:
 		return Color("#0f5160ee")
 	if hovered:
 		return Color("#0d3944ec")
 	return Color("#0a2630ec")
 
 
-func _border_color(hovered: bool, pressed: bool) -> Color:
+func _border_color(hovered: bool, is_pressed: bool) -> Color:
 	if disabled:
 		return Color("#2f3d4280")
-	if pressed:
+	if is_pressed:
 		return Color("#6df3ff")
 	if hovered:
 		return Color("#42dcece6")
 	return Color("#279db0dc")
 
 
-func _icon_color(pressed: bool) -> Color:
+func _icon_color(is_pressed: bool) -> Color:
 	if disabled:
 		return disabled_label_color
-	if pressed:
+	if is_pressed:
 		return Color("#eefeff")
 	return Color(accent_color, 0.95)
 

@@ -118,15 +118,15 @@ func _draw_link_set(links: Array, map_rect: Rect2, color: Color, width: float) -
 
 func _draw_nodes(map_rect: Rect2) -> void:
 	for index in range(NETWORK_NODES.size()):
-		var position := _project(NETWORK_NODES[index], map_rect)
+		var node_position := _project(NETWORK_NODES[index], map_rect)
 		var color := Color(0.16, 0.95, 0.86, 0.94)
 		if index in [3, 7]:
 			color = Color(1.0, 0.29, 0.08, 0.95)
 
-		draw_circle(position, 6.5, Color(color.r, color.g, color.b, 0.13))
-		draw_circle(position, 4.0, Color(color.r, color.g, color.b, 0.24))
-		draw_circle(position, 2.6, color)
-		draw_circle(position, 1.1, Color(0.84, 0.98, 0.94, 1.0))
+		draw_circle(node_position, 6.5, Color(color.r, color.g, color.b, 0.13))
+		draw_circle(node_position, 4.0, Color(color.r, color.g, color.b, 0.24))
+		draw_circle(node_position, 2.6, color)
+		draw_circle(node_position, 1.1, Color(0.84, 0.98, 0.94, 1.0))
 
 
 func _project(point: Vector2, map_rect: Rect2) -> Vector2:

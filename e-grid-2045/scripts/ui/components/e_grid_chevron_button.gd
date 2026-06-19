@@ -39,17 +39,17 @@ func _draw() -> void:
 		return
 
 	var hovered := is_hovered() or has_focus()
-	var pressed := button_pressed
-	var fill_color := _fill_color(hovered, pressed)
-	var border_color := _border_color(hovered, pressed)
+	var is_pressed := button_pressed
+	var fill_color := _fill_color(hovered, is_pressed)
+	var border_color := _border_color(hovered, is_pressed)
 	var points := _clipped_rect_points(rect, 6.0)
 
 	draw_colored_polygon(points, fill_color)
 	_draw_closed_polyline(points, Color("#020608e8"), 2.0)
 	_draw_closed_polyline(_clipped_rect_points(rect.grow(-1.0), 5.0), border_color, 1.0)
 	_draw_closed_polyline(_clipped_rect_points(rect.grow(-5.0), 3.0), Color("#183037a8"), 1.0)
-	_draw_grip_rails(rect, hovered, pressed)
-	_draw_chevrons(rect.grow(-9.0), _current_icon_color(pressed), pressed)
+	_draw_grip_rails(rect, hovered, is_pressed)
+	_draw_chevrons(rect.grow(-9.0), _current_icon_color(is_pressed), is_pressed)
 
 
 func _install_empty_button_styles() -> void:
@@ -79,36 +79,36 @@ func _connect_redraw_signals() -> void:
 		toggled.connect(_on_toggled)
 
 
-func _fill_color(hovered: bool, pressed: bool) -> Color:
+func _fill_color(hovered: bool, is_pressed: bool) -> Color:
 	if disabled:
 		return Color("#070d10dc")
-	if pressed:
+	if is_pressed:
 		return Color("#0e3139f0")
 	if hovered:
 		return Color("#0b1d23ee")
 	return Color("#071014ec")
 
 
-func _border_color(hovered: bool, pressed: bool) -> Color:
+func _border_color(hovered: bool, is_pressed: bool) -> Color:
 	if disabled:
 		return Color("#27333788")
-	if pressed:
+	if is_pressed:
 		return Color(accent_color, 0.95)
 	if hovered:
 		return Color("#3b7580dc")
 	return Color("#34464bc0")
 
 
-func _current_icon_color(pressed: bool) -> Color:
+func _current_icon_color(is_pressed: bool) -> Color:
 	if disabled:
 		return disabled_icon_color
-	if pressed:
+	if is_pressed:
 		return Color("#effeff")
 	return icon_color
 
 
-func _draw_grip_rails(rect: Rect2, hovered: bool, pressed: bool) -> void:
-	var glow := Color(accent_color, 0.34 if hovered or pressed else 0.16)
+func _draw_grip_rails(rect: Rect2, hovered: bool, is_pressed: bool) -> void:
+	var glow := Color(accent_color, 0.34 if hovered or is_pressed else 0.16)
 	var edge := Color("#5d777d70")
 	var shadow := Color("#020608c8")
 
@@ -128,7 +128,7 @@ func _draw_grip_rails(rect: Rect2, hovered: bool, pressed: bool) -> void:
 		draw_line(Vector2(rect.end.x - 5.0, center_y - 10.0), Vector2(rect.end.x - 5.0, center_y + 10.0), shadow, 2.0, true)
 
 
-func _draw_chevrons(rect: Rect2, color: Color, pressed: bool) -> void:
+func _draw_chevrons(rect: Rect2, color: Color, is_pressed: bool) -> void:
 	var count := clampi(chevron_count, 1, 3)
 	var vertical := direction == "up" or direction == "down"
 	var step := 9.0
@@ -139,9 +139,9 @@ func _draw_chevrons(rect: Rect2, color: Color, pressed: bool) -> void:
 		var offset := float(index) * step - total_span * 0.5
 		var chevron_center := center
 		if vertical:
-			chevron_center.y += offset + (1.0 if pressed else 0.0)
+			chevron_center.y += offset + (1.0 if is_pressed else 0.0)
 		else:
-			chevron_center.x += offset + (1.0 if pressed else 0.0)
+			chevron_center.x += offset + (1.0 if is_pressed else 0.0)
 		_draw_single_chevron(chevron_center, color)
 
 

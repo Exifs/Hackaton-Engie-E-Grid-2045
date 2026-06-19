@@ -11,6 +11,9 @@ const COLLAPSIBLE_CONTENT_PATHS := [
 	^"ContentMargin/PaletteStack/GridOverview",
 ]
 
+const CATEGORIES_SCROLL_PATH := ^"ContentMargin/PaletteStack/CategoriesScroll"
+const TUTORIAL_TARGET_SCROLL_PADDING := 14.0
+
 const CATEGORY_PATHS := {
 	"energy": "ContentMargin/PaletteStack/CategoriesScroll/CategoriesStack/EnergyCategory",
 	"compute": "ContentMargin/PaletteStack/CategoriesScroll/CategoriesStack/DatacentersCategory",
@@ -121,6 +124,16 @@ func _on_overlay_button_pressed(mode: String) -> void:
 
 
 func get_tutorial_target_node(target_id: String) -> Control:
+	var target := _resolve_tutorial_target_node(target_id)
+	_reveal_tutorial_target(target)
+	return target
+
+
+func prepare_tutorial_target(target_id: String) -> void:
+	_reveal_tutorial_target(_resolve_tutorial_target_node(target_id))
+
+
+func _resolve_tutorial_target_node(target_id: String) -> Control:
 	match target_id:
 		"build_menu.energy_category":
 			return get_node_or_null(CATEGORY_PATHS["energy"]) as Control
@@ -141,6 +154,42 @@ func get_tutorial_target_node(target_id: String) -> Control:
 		"build_menu.ai_research_center_button":
 			return _button_for_building_id("research", "ai_research_center")
 	return null
+
+
+func _reveal_tutorial_target(target: Control) -> void:
+	if target == null:
+		return
+
+	if collapsed:
+		collapsed = false
+
+	var scroll := get_node_or_null(CATEGORIES_SCROLL_PATH) as ScrollContainer
+	if scroll == null or not scroll.is_ancestor_of(target):
+		return
+
+	_scroll_control_into_view(scroll, target)
+	call_deferred("_scroll_control_into_view", scroll, target)
+
+
+func _scroll_control_into_view(scroll: ScrollContainer, target: Control) -> void:
+	if scroll == null or target == null:
+		return
+	if not is_instance_valid(scroll) or not is_instance_valid(target):
+		return
+	if not scroll.is_inside_tree() or not target.is_inside_tree():
+		return
+
+	var scroll_rect := scroll.get_global_rect()
+	var target_rect := target.get_global_rect()
+	if scroll_rect.size.x <= 0.0 or scroll_rect.size.y <= 0.0 or target_rect.size.y <= 0.0:
+		return
+
+	var visible_top := scroll_rect.position.y + TUTORIAL_TARGET_SCROLL_PADDING
+	var visible_bottom := scroll_rect.end.y - TUTORIAL_TARGET_SCROLL_PADDING
+	if target_rect.position.y < visible_top:
+		scroll.scroll_vertical += int(floor(target_rect.position.y - visible_top))
+	elif target_rect.end.y > visible_bottom:
+		scroll.scroll_vertical += int(ceil(target_rect.end.y - visible_bottom))
 
 
 func _button_for_building_id(category: String, building_id: String) -> Control:
