@@ -1,0 +1,6 @@
+﻿tier_id,min_cumulative_co2,max_cumulative_co2,income_penalty,event_frequency_multiplier,cooling_demand_pct,notes
+low,0,399,0,1.0,0,Aucune conséquence
+moderate,400,799,-10,1.15,5,Légère hausse coûts/froid
+elevated,800,1299,-30,1.35,10,Événements climatiques plus fréquents
+very_high,1300,1999,-50,1.6,15,Sécheresses + pénalités économiques
+critical,2000,,-80,2.0,25,Score très dégradé et ralentissement global

@@ -1,0 +1,19 @@
+[remap]
+
+importer="csv_translation"
+type="Translation"
+uid="uid://cvek15nwuned8"
+
+[deps]
+
+files=["res://data/events.display.translation", "res://data/events.event.translation", "res://data/events.weight.translation", "res://data/events.min.translation", "res://data/events.max.translation", "res://data/events.min.translation", "res://data/events.cooldown.translation", "res://data/events.duration.translation", "res://data/events.effect.translation", "res://data/events.effect.translation", "res://data/events.target.translation", "res://data/events.is.translation", "res://data/events.alert.translation"]
+
+source_file="res://data/events.csv"
+dest_files=["res://data/events.display.translation", "res://data/events.event.translation", "res://data/events.weight.translation", "res://data/events.min.translation", "res://data/events.max.translation", "res://data/events.min.translation", "res://data/events.cooldown.translation", "res://data/events.duration.translation", "res://data/events.effect.translation", "res://data/events.effect.translation", "res://data/events.target.translation", "res://data/events.is.translation", "res://data/events.alert.translation"]
+
+[params]
+
+compress=1
+delimiter=0
+unescape_keys=false
+unescape_translations=true

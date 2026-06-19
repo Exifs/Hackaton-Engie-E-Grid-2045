@@ -1,4 +1,4 @@
-@tool
+﻿@tool
 class_name EGridProgressIndicator
 extends Control
 
@@ -17,8 +17,12 @@ var _value := 50.0
 	get:
 		return _value
 	set(next_value):
-		_value = clampf(next_value, 0.0, 100.0)
+		var clamped_value := clampf(next_value, 0.0, 100.0)
+		if is_equal_approx(_value, clamped_value):
+			return
+		_value = clamped_value
 		_sync_label()
+		_request_animation_update()
 		queue_redraw()
 
 @export_enum("normal", "warning", "critical", "success", "disabled") var semantic_state := "normal":
@@ -28,6 +32,7 @@ var _value := 50.0
 		queue_redraw()
 
 @export_range(1.0, 30.0, 0.5) var smooth_speed := 10.0
+@export var animate_value_changes := false
 @export var show_value_label := true:
 	set(value):
 		show_value_label = value
@@ -41,6 +46,10 @@ var _value := 50.0
 	set(value):
 		value_label_color = value
 		_sync_label()
+@export var stretch_bar_to_bounds := true:
+	set(value):
+		stretch_bar_to_bounds = value
+		queue_redraw()
 
 var _display_value := 50.0
 var _value_label: Control
@@ -51,7 +60,7 @@ func _ready() -> void:
 	_cache_nodes()
 	_sync_component_size()
 	_sync_label()
-	set_process(not Engine.is_editor_hint())
+	set_process(false)
 
 
 func _process(delta: float) -> void:
@@ -60,12 +69,21 @@ func _process(delta: float) -> void:
 
 	if absf(_display_value - value) < 0.01:
 		_display_value = value
+		set_process(false)
 
 	queue_redraw()
 
 
+func _request_animation_update() -> void:
+	if Engine.is_editor_hint() or not animate_value_changes:
+		_display_value = value
+		set_process(false)
+		return
+	set_process(absf(_display_value - value) >= 0.01)
+
+
 func _draw() -> void:
-	var fitted_rect := E_GRID_UI_ATLAS.get_aspect_fit_rect(component_name, size)
+	var fitted_rect := _get_fitted_rect()
 	var base_texture := E_GRID_UI_ATLAS.get_texture(component_name, _base_state())
 	if base_texture == null:
 		draw_rect(fitted_rect, Color("#081115e6"), true)
@@ -212,8 +230,22 @@ func _progress_color() -> Color:
 
 
 func _source_rect_to_fitted(source_rect: Rect2, fitted_rect: Rect2) -> Rect2:
-	var source_scale := _source_scale(fitted_rect)
+	var source_size := E_GRID_UI_ATLAS.get_cell_size(component_name)
+	if source_size == Vector2i.ZERO:
+		return Rect2(fitted_rect.position + source_rect.position, source_rect.size)
+
+	var source_scale := Vector2(
+		fitted_rect.size.x / float(source_size.x),
+		fitted_rect.size.y / float(source_size.y)
+	)
 	return Rect2(fitted_rect.position + source_rect.position * source_scale, source_rect.size * source_scale)
+
+
+func _get_fitted_rect() -> Rect2:
+	if component_name == "progress_bar_states" and stretch_bar_to_bounds:
+		return Rect2(Vector2.ZERO, size)
+
+	return E_GRID_UI_ATLAS.get_aspect_fit_rect(component_name, size)
 
 
 func _source_scale(fitted_rect: Rect2) -> float:

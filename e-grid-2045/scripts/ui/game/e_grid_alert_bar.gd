@@ -1,8 +1,10 @@
-@tool
-extends Control
+﻿extends Control
 class_name EGridAlertBar
 
 signal alert_action_requested(action_name: String)
+signal alert_region_requested(region_id: String)
+
+const ALERT_ITEM_SCENE := preload("res://scenes/ui/game/e_grid_alert_item.tscn")
 
 @export_node_path("Container") var alert_container_path: NodePath = ^"ContentMargin/AlertRow/AlertItems"
 @export_node_path("BaseButton") var collapse_button_path: NodePath = ^"ContentMargin/AlertRow/CollapseButton"
@@ -12,36 +14,78 @@ signal alert_action_requested(action_name: String)
 		collapsed = value
 		_sync_collapsed_state()
 
-@export_range(42.0, 140.0, 1.0) var expanded_height := 84.0:
+@export_range(42.0, 140.0, 1.0) var expanded_height := 96.0:
 	set(value):
 		expanded_height = value
 		_sync_collapsed_state()
 
-@export_range(36.0, 80.0, 1.0) var collapsed_height := 48.0:
+@export_range(36.0, 80.0, 1.0) var collapsed_height := 52.0:
 	set(value):
 		collapsed_height = value
 		_sync_collapsed_state()
+
+var _alerts := []
+var _alerts_signature := ""
 
 
 func _ready() -> void:
 	clip_contents = true
 	_wire_collapse_button()
-	_wire_alerts()
+	_sync_alerts()
 	_sync_collapsed_state()
 
 
-func _wire_alerts() -> void:
-	var container := get_node_or_null(alert_container_path) as Container
+func set_alerts(alerts: Array) -> void:
+	var next_signature := _signature_for_alerts(alerts)
+	if next_signature == _alerts_signature:
+		return
+	_alerts_signature = next_signature
+	_alerts = alerts
+	_sync_alerts()
 
+
+func _signature_for_alerts(alerts: Array) -> String:
+	var parts := PackedStringArray()
+	for alert_variant in alerts:
+		var alert: Dictionary = alert_variant
+		parts.append("%s|%s|%s|%s" % [
+			str(alert.get("title", "")),
+			str(alert.get("body", "")),
+			str(alert.get("region_id", "")),
+			str(alert.get("state", "")),
+		])
+	return "~".join(parts)
+
+
+func _sync_alerts() -> void:
+	if not is_inside_tree():
+		return
+
+	var container := get_node_or_null(alert_container_path) as Container
 	if container == null:
 		push_warning("Alert bar cannot find alert container at %s." % alert_container_path)
 		return
 
 	for child in container.get_children():
-		if child.has_signal("action_requested"):
+		child.queue_free()
+
+	for alert_variant in _alerts:
+		var alert: Dictionary = alert_variant
+		var item := ALERT_ITEM_SCENE.instantiate()
+		container.add_child(item)
+		item.set("title_text", str(alert.get("title", "ALERT")))
+		item.set("body_text", str(alert.get("body", "")))
+		item.set("action_name", str(alert.get("region_id", "")))
+		item.set("alert_state", str(alert.get("state", "power_warning")))
+		item.set("action_text", "VIEW" if not str(alert.get("region_id", "")).is_empty() else "INFO")
+		if item.has_signal("action_requested"):
 			var callback := Callable(self, "_on_alert_action_requested")
-			if not child.is_connected("action_requested", callback):
-				child.connect("action_requested", callback)
+			if not item.is_connected("action_requested", callback):
+				item.connect("action_requested", callback)
+
+	var count_label := get_node_or_null("ContentMargin/AlertRow/AlertCountLabel") as Label
+	if count_label != null:
+		count_label.text = "%d ALERTS" % _alerts.size()
 
 
 func _wire_collapse_button() -> void:
@@ -68,7 +112,11 @@ func _sync_collapsed_state() -> void:
 
 	var alert_items := get_node_or_null(alert_container_path) as Control
 	if alert_items != null:
-		alert_items.visible = not collapsed
+		alert_items.visible = true
+		alert_items.mouse_filter = Control.MOUSE_FILTER_IGNORE if collapsed else Control.MOUSE_FILTER_PASS
+		for child in alert_items.get_children():
+			if child is CanvasItem:
+				(child as CanvasItem).visible = not collapsed
 
 	var count_label := get_node_or_null("ContentMargin/AlertRow/AlertCountLabel") as Control
 	if count_label != null:
@@ -83,6 +131,8 @@ func _sync_collapsed_state() -> void:
 
 func _on_alert_action_requested(action_name: String) -> void:
 	alert_action_requested.emit(action_name)
+	if not action_name.is_empty():
+		alert_region_requested.emit(action_name)
 
 
 func _set_property_if_available(target: Object, property_name: String, property_value: Variant) -> void:
@@ -93,3 +143,4 @@ func _set_property_if_available(target: Object, property_name: String, property_
 		if str(property.get("name", "")) == property_name:
 			target.set(property_name, property_value)
 			return
+

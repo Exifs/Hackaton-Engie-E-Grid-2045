@@ -1,4 +1,4 @@
-@tool
+﻿@tool
 class_name EGridSlotRadialProgress
 extends Control
 
@@ -27,9 +27,11 @@ var _value := 50.0
 	get:
 		return _value
 	set(next_value):
-		_value = clampf(next_value, 0.0, 100.0)
-		if Engine.is_editor_hint():
-			_display_value = _value
+		var clamped_value := clampf(next_value, 0.0, 100.0)
+		if is_equal_approx(_value, clamped_value):
+			return
+		_value = clamped_value
+		_request_animation_update()
 		_sync_visuals()
 
 @export_enum("normal", "warning", "critical", "success", "disabled") var semantic_state := "normal":
@@ -37,6 +39,7 @@ var _value := 50.0
 		semantic_state = next_state
 		_sync_visuals()
 @export_range(1.0, 30.0, 0.5) var smooth_speed := 10.0
+@export var animate_value_changes := false
 @export var show_value_label := true:
 	set(next_value):
 		show_value_label = next_value
@@ -103,7 +106,7 @@ func _ready() -> void:
 	_cache_children()
 	_configure_progress()
 	_sync_visuals()
-	set_process(true)
+	set_process(false)
 
 
 func _notification(what: int) -> void:
@@ -113,15 +116,21 @@ func _notification(what: int) -> void:
 
 
 func _process(delta: float) -> void:
-	if Engine.is_editor_hint():
+	var blend := 1.0 - exp(-smooth_speed * delta)
+	_display_value = lerpf(_display_value, value, blend)
+	if absf(_display_value - value) < 0.01:
 		_display_value = value
-	else:
-		var blend := 1.0 - exp(-smooth_speed * delta)
-		_display_value = lerpf(_display_value, value, blend)
-		if absf(_display_value - value) < 0.01:
-			_display_value = value
+		set_process(false)
 
 	_sync_visuals()
+
+
+func _request_animation_update() -> void:
+	if Engine.is_editor_hint() or not animate_value_changes:
+		_display_value = value
+		set_process(false)
+		return
+	set_process(absf(_display_value - value) >= 0.01)
 
 
 func _cache_children() -> void:

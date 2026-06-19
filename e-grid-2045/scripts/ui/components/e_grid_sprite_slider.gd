@@ -1,4 +1,4 @@
-@tool
+﻿@tool
 class_name EGridSpriteSlider
 extends Control
 
@@ -52,6 +52,7 @@ var _slider_value := 50.0
 		queue_redraw()
 
 @export_range(1.0, 30.0, 0.5) var smooth_speed := 14.0
+@export var animate_value_changes := false
 @export var show_value_label := true:
 	set(value):
 		show_value_label = value
@@ -105,7 +106,7 @@ func _ready() -> void:
 	_cache_nodes()
 	_sync_component_size()
 	_sync_label()
-	set_process(not Engine.is_editor_hint())
+	set_process(false)
 
 
 func _process(delta: float) -> void:
@@ -115,6 +116,8 @@ func _process(delta: float) -> void:
 
 	if absf(_display_value - target) < 0.01:
 		_display_value = target
+		if not _dragging:
+			set_process(false)
 
 	_sync_label()
 	queue_redraw()
@@ -132,6 +135,7 @@ func _gui_input(event: InputEvent) -> void:
 
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
 		_dragging = event.pressed
+		set_process(_dragging or absf(_display_value - slider_value) >= 0.01)
 		if event.pressed:
 			grab_focus()
 			_apply_pointer_position(event.position)
@@ -176,6 +180,11 @@ func set_value(value: float, should_emit := true) -> void:
 
 	_slider_value = next_value
 	_sync_label()
+	if Engine.is_editor_hint() or not animate_value_changes:
+		_display_value = next_value
+		set_process(false)
+	else:
+		set_process(true)
 	queue_redraw()
 
 	if should_emit:

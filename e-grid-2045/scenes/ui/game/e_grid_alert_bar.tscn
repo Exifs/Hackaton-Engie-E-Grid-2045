@@ -1,16 +1,12 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/game/e_grid_alert_bar.gd" id="1_alert_bar"]
 [ext_resource type="PackedScene" path="res://scenes/ui/game/e_grid_alert_item.tscn" id="2_alert_item"]
 [ext_resource type="PackedScene" path="res://scenes/ui/components/e_grid_panel.tscn" id="3_panel"]
-[ext_resource type="PackedScene" path="res://scenes/ui/components/e_grid_mini_button.tscn" id="4_mini_button"]
-
-[sub_resource type="LabelSettings" id="LabelSettings_count"]
-font_size = 11
-font_color = Color(0.537255, 0.6, 0.611765, 0.94)
+[ext_resource type="PackedScene" path="res://scenes/ui/components/e_grid_chevron_button.tscn" id="4_chevron_button"]
 
 [node name="EGridAlertBar" type="Control"]
-custom_minimum_size = Vector2(0, 84)
+custom_minimum_size = Vector2(0, 96)
 size_flags_vertical = 0
 clip_contents = true
 script = ExtResource("1_alert_bar")
@@ -33,20 +29,20 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/margin_left = 8
-theme_override_constants/margin_top = 8
-theme_override_constants/margin_right = 8
-theme_override_constants/margin_bottom = 8
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 12
 
 [node name="AlertRow" type="HBoxContainer" parent="ContentMargin"]
 layout_mode = 2
 size_flags_vertical = 0
-theme_override_constants/separation = 8
+theme_override_constants/separation = 10
 
 [node name="AlertItems" type="HBoxContainer" parent="ContentMargin/AlertRow"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/separation = 8
+theme_override_constants/separation = 11
 
 [node name="PowerCongestionAlert" parent="ContentMargin/AlertRow/AlertItems" instance=ExtResource("2_alert_item")]
 layout_mode = 2
@@ -64,6 +60,14 @@ body_text = "Low reserve in Italy"
 action_name = "cooling_warning"
 alert_state = "cooling_warning"
 
+[node name="DataLinkAlert" parent="ContentMargin/AlertRow/AlertItems" instance=ExtResource("2_alert_item")]
+layout_mode = 2
+size_flags_horizontal = 0
+title_text = "DATA LINK DEGRADED"
+body_text = "Netherlands -> Germany"
+action_name = "data_link_degraded"
+alert_state = "critical"
+
 [node name="ResearchCompleteAlert" parent="ContentMargin/AlertRow/AlertItems" instance=ExtResource("2_alert_item")]
 layout_mode = 2
 size_flags_horizontal = 0
@@ -73,14 +77,17 @@ action_text = "CLAIM"
 action_name = "research_complete"
 alert_state = "research_success"
 
-[node name="AlertCountLabel" type="Label" parent="ContentMargin/AlertRow"]
-custom_minimum_size = Vector2(42, 0)
+[node name="MarketUpdateAlert" parent="ContentMargin/AlertRow/AlertItems" instance=ExtResource("2_alert_item")]
 layout_mode = 2
-text = "3/8"
-label_settings = SubResource("LabelSettings_count")
-vertical_alignment = 1
-horizontal_alignment = 1
+size_flags_horizontal = 0
+title_text = "MARKET UPDATE"
+body_text = "Battery prices decreased"
+action_name = "market_update"
+alert_state = "market_info"
 
-[node name="CollapseButton" parent="ContentMargin/AlertRow" instance=ExtResource("4_mini_button")]
+[node name="CollapseButton" parent="ContentMargin/AlertRow" instance=ExtResource("4_chevron_button")]
+custom_minimum_size = Vector2(46, 72)
 layout_mode = 2
+direction = "down"
+chevron_count = 2
 label_text = "V"

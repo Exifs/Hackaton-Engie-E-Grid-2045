@@ -1,0 +1,19 @@
+[remap]
+
+importer="csv_translation"
+type="Translation"
+uid="uid://c80l7olg0qf7o"
+
+[deps]
+
+files=["res://data/network_volume_efficiency.min.translation", "res://data/network_volume_efficiency.max.translation", "res://data/network_volume_efficiency.max.translation", "res://data/network_volume_efficiency.volume.translation"]
+
+source_file="res://data/network_volume_efficiency.csv"
+dest_files=["res://data/network_volume_efficiency.min.translation", "res://data/network_volume_efficiency.max.translation", "res://data/network_volume_efficiency.max.translation", "res://data/network_volume_efficiency.volume.translation"]
+
+[params]
+
+compress=1
+delimiter=0
+unescape_keys=false
+unescape_translations=true
