@@ -1,4 +1,4 @@
-name: Godot desktop CI
+name: Godot CI
 
 on:
   pull_request:
@@ -8,10 +8,6 @@ on:
     tags-ignore:
       - '*'
   workflow_dispatch:
-
-concurrency:
-  group: godot-ci-${{ github.ref }}
-  cancel-in-progress: true
 
 permissions:
   contents: read
@@ -23,25 +19,9 @@ env:
   GAME_NAME: "E-Grid 2045"
 
 jobs:
-  build:
-    name: Build ${{ matrix.label }}
+  build-linux:
+    name: Build Linux
     runs-on: ubuntu-24.04
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - label: Linux
-            target: linux
-            preset: Linux
-            artifact: e-grid-2045-linux-x86_64
-          - label: Windows
-            target: windows
-            preset: Windows Desktop
-            artifact: e-grid-2045-windows-x86_64
-          - label: macOS
-            target: macos
-            preset: macOS
-            artifact: e-grid-2045-macos-universal
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -50,19 +30,103 @@ jobs:
         uses: actions/cache@v4
         with:
           path: |
-            ~/.cache/egrid-godot/${{ env.GODOT_VERSION }}-${{ env.GODOT_STATUS }}
-            ~/.local/share/godot/export_templates/${{ env.GODOT_VERSION }}.${{ env.GODOT_STATUS }}
-          key: godot-${{ runner.os }}-${{ env.GODOT_VERSION }}-${{ env.GODOT_STATUS }}
+            ~/.cache/egrid-godot/4.6.3-stable
+            ~/.local/share/godot/export_templates/4.6.3.stable
+          key: godot-ubuntu-4.6.3-stable
 
-      - name: Export ${{ matrix.label }} build
+      - name: Export Linux build
         env:
-          PACKAGE_BASENAME: ${{ matrix.artifact }}-${{ github.sha }}
-        run: bash .github/scripts/export-godot.sh "${{ matrix.preset }}" "${{ matrix.target }}"
+          PACKAGE_BASENAME: e-grid-2045-linux-x86_64
+        run: bash .github/scripts/export-godot.sh "Linux" "linux"
 
-      - name: Upload ${{ matrix.label }} artifact
+      - name: Upload Linux artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.artifact }}
+          name: e-grid-2045-linux-x86_64
+          path: dist/*.zip
+          if-no-files-found: error
+          retention-days: 7
+
+  build-windows:
+    name: Build Windows
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Cache Godot editor and export templates
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/egrid-godot/4.6.3-stable
+            ~/.local/share/godot/export_templates/4.6.3.stable
+          key: godot-ubuntu-4.6.3-stable
+
+      - name: Export Windows build
+        env:
+          PACKAGE_BASENAME: e-grid-2045-windows-x86_64
+        run: bash .github/scripts/export-godot.sh "Windows Desktop" "windows"
+
+      - name: Upload Windows artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: e-grid-2045-windows-x86_64
+          path: dist/*.zip
+          if-no-files-found: error
+          retention-days: 7
+
+  build-macos:
+    name: Build macOS
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Cache Godot editor and export templates
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/egrid-godot/4.6.3-stable
+            ~/.local/share/godot/export_templates/4.6.3.stable
+          key: godot-ubuntu-4.6.3-stable
+
+      - name: Export macOS build
+        env:
+          PACKAGE_BASENAME: e-grid-2045-macos-universal
+        run: bash .github/scripts/export-godot.sh "macOS" "macos"
+
+      - name: Upload macOS artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: e-grid-2045-macos-universal
+          path: dist/*.zip
+          if-no-files-found: error
+          retention-days: 7
+
+  build-web:
+    name: Build Web
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Cache Godot editor and export templates
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/egrid-godot/4.6.3-stable
+            ~/.local/share/godot/export_templates/4.6.3.stable
+          key: godot-ubuntu-4.6.3-stable
+
+      - name: Export Web build
+        env:
+          PACKAGE_BASENAME: e-grid-2045-web
+        run: bash .github/scripts/export-godot.sh "Web" "web"
+
+      - name: Upload Web artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: e-grid-2045-web
           path: dist/*.zip
           if-no-files-found: error
           retention-days: 7

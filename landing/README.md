@@ -101,3 +101,5 @@ Pour un déploiement déclenché par tag :
 4. Retirer ou valider les règles d’approbation si les tags doivent publier sans intervention manuelle.
 
 Le workflow peut aussi créer automatiquement la règle de tag `v*` quand l’identifiant d’administration du dépôt est fourni dans les secrets de l’action.
+
+Après déploiement, le workflow ajoute l’URL du site aux notes de release et tente de mettre à jour le champ **Website** du dépôt avec l’URL retournée par `actions/deploy-pages`.

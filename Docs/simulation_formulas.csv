@@ -6,6 +6,6 @@ researcher_efficiency,"min(1,researchers_available/researchers_required_total)",
 construction_cancel_refund,"cost_total * lerp(0.50,0.75,construction_progress)",Jamais 100% pour conserver la tension de planification.
 runtime_constants_source,balance_constants.json,Source de vérité runtime P0 pour constantes gameplay et économie. global_constants.csv est documentaire/fallback.
 network_topology_source,network_graph.json -> BFS distance matrix at load time,"Source de vérité réseau; network_edges/matrix/generated CSV servent au debug, aux tests ou au fallback."
-region_layout_source,region_layout.json normalized_map_0_1,Positions approximatives P0 pour carte Node2D cliquable; region_layout.csv est un miroir éditable.
+region_layout_source,region_layout.json normalized_map_0_1,Positions des points capitales précalculées depuis les centroïdes des polygones; region_layout.csv est un miroir éditable.
 resource_accounting_contract,"production/capacity = max(0, *_delta); demand/requirements = consumes_*; negative *_delta ignored for P0 runtime","Évite le double comptage. output_amount sert à l’affichage, au debug et aux formules de scaling."
 co2_cooling_watchlist,CO2 tiers and starting cooling must be retested after first playable loop; do not block P0 implementation,Risque connu: pression CO2 trop rapide et refroidissement de départ potentiellement trop généreux.

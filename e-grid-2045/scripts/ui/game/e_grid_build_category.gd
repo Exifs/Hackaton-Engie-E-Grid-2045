@@ -164,6 +164,8 @@ func _sync_slots() -> void:
 		button.visible = has_tool
 		button.name = "Slot%d" % (index + 1)
 		button.tooltip_text = _tooltip_for_index(index, label) if has_tool else ""
+		if has_tool:
+			button.set_meta("tutorial_building_id", _tool_id_for_index(index))
 		button.custom_minimum_size = slot_min_size
 		button.focus_mode = Control.FOCUS_ALL
 		button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
@@ -224,6 +226,24 @@ func _on_slot_pressed(index: int) -> void:
 
 	selected_tool_index = index
 	tool_requested.emit(tool_id)
+
+
+func get_tutorial_target_node_for_tool_id(tool_id: String) -> Control:
+	if tool_id.strip_edges().is_empty():
+		return null
+
+	var slots_grid := get_node_or_null(SLOTS_GRID_PATH) as GridContainer
+	if slots_grid == null:
+		return null
+
+	for index in range(tool_ids.size()):
+		if str(tool_ids[index]) != tool_id:
+			continue
+		if index >= slots_grid.get_child_count():
+			return null
+		return slots_grid.get_child(index) as Control
+
+	return null
 
 
 func _tool_id_for_index(index: int) -> String:

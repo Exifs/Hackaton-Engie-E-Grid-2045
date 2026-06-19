@@ -3,6 +3,7 @@ class_name EGridBuildPalette
 
 signal build_requested(building_id: String)
 signal heatmap_mode_requested(mode: String)
+signal category_opened(category_id: String)
 
 const COLLAPSIBLE_CONTENT_PATHS := [
 	^"ContentMargin/PaletteStack/CategoriesScroll",
@@ -118,6 +119,34 @@ func _on_overlay_button_pressed(mode: String) -> void:
 	heatmap_mode_requested.emit(_active_heatmap_mode)
 
 
+func get_tutorial_target_node(target_id: String) -> Control:
+	match target_id:
+		"build_menu.energy_category":
+			return get_node_or_null(CATEGORY_PATHS["energy"]) as Control
+		"build_menu.cooling_category":
+			return get_node_or_null(CATEGORY_PATHS["cooling"]) as Control
+		"build_menu.research_category":
+			return get_node_or_null(CATEGORY_PATHS["research"]) as Control
+		"build_menu.wind_onshore_button":
+			return _button_for_building_id("energy", "wind_onshore")
+		"build_menu.river_cooling_button":
+			return _button_for_building_id("cooling", "river_cooling")
+		"build_menu.datacenter_button":
+			return _button_for_building_id("compute", "datacenter_standard")
+		"build_menu.university_button":
+			return _button_for_building_id("research", "university")
+		"build_menu.ai_research_center_button":
+			return _button_for_building_id("research", "ai_research_center")
+	return null
+
+
+func _button_for_building_id(category: String, building_id: String) -> Control:
+	var category_node := get_node_or_null(CATEGORY_PATHS.get(category, "")) as Control
+	if category_node == null or not category_node.has_method("get_tutorial_target_node_for_tool_id"):
+		return null
+	return category_node.call("get_tutorial_target_node_for_tool_id", building_id) as Control
+
+
 func _sync_overlay_controls() -> void:
 	_set_button_pressed(^"ContentMargin/PaletteStack/OverlayPanel/PowerFlowRow/PowerFlowCheck", _active_heatmap_mode == "energy")
 	_set_button_pressed(^"ContentMargin/PaletteStack/OverlayPanel/DataFlowRow/DataFlowCheck", _active_heatmap_mode == "network")
@@ -138,6 +167,9 @@ func _on_collapse_button_pressed() -> void:
 func _on_category_tool_requested(tool_id: String) -> void:
 	_selected_building_id = tool_id
 	_sync_build_options()
+	var category := _category_for_building_id(tool_id)
+	if not category.is_empty():
+		category_opened.emit(category)
 	build_requested.emit(tool_id)
 
 
@@ -219,6 +251,11 @@ func _group_buildings_by_category() -> Dictionary:
 	return grouped
 
 
+func _category_for_building_id(building_id: String) -> String:
+	var definition: Dictionary = _building_definitions.get(building_id, {})
+	return str(definition.get("category", ""))
+
+
 func _short_label(display_name: String) -> String:
 	var label := display_name
 	label = label.replace("Centre recherche ", "R. ")
@@ -260,4 +297,3 @@ func _set_property_if_available(target: Object, property_name: String, property_
 		if str(property.get("name", "")) == property_name:
 			target.set(property_name, property_value)
 			return
-

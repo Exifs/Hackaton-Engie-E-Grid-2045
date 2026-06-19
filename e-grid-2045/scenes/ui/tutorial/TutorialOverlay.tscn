@@ -1,0 +1,127 @@
+[gd_scene load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/tutorial/TutorialOverlay.gd" id="1_overlay"]
+[ext_resource type="Script" path="res://scripts/ui/tutorial/TutorialHighlighter.gd" id="2_highlighter"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_panel"]
+bg_color = Color(0.027451, 0.0509804, 0.0588235, 0.96)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.254902, 0.847059, 0.913725, 0.54)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+shadow_color = Color(0, 0, 0, 0.36)
+shadow_size = 12
+
+[sub_resource type="LabelSettings" id="LabelSettings_step"]
+font_size = 12
+font_color = Color(0.537255, 0.6, 0.611765, 0.95)
+
+[sub_resource type="LabelSettings" id="LabelSettings_title"]
+font_size = 20
+font_color = Color(0.878431, 0.909804, 0.909804, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_body"]
+font_size = 14
+font_color = Color(0.815686, 0.858824, 0.858824, 0.95)
+
+[sub_resource type="LabelSettings" id="LabelSettings_objective"]
+font_size = 13
+font_color = Color(0.960784, 0.788235, 0.47451, 1)
+
+[node name="TutorialOverlay" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1_overlay")
+
+[node name="Dim" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.00392157, 0.0117647, 0.0156863, 0.18)
+
+[node name="Highlighter" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("2_highlighter")
+
+[node name="TextPanel" type="PanelContainer" parent="."]
+custom_minimum_size = Vector2(440, 0)
+layout_mode = 0
+offset_left = 580.0
+offset_top = 650.0
+offset_right = 1020.0
+offset_bottom = 862.0
+mouse_filter = 0
+theme_override_styles/panel = SubResource("StyleBox_panel")
+
+[node name="PanelMargin" type="MarginContainer" parent="TextPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 18
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 18
+theme_override_constants/margin_bottom = 16
+
+[node name="PanelStack" type="VBoxContainer" parent="TextPanel/PanelMargin"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="HeaderRow" type="HBoxContainer" parent="TextPanel/PanelMargin/PanelStack"]
+layout_mode = 2
+
+[node name="StepLabel" type="Label" parent="TextPanel/PanelMargin/PanelStack/HeaderRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Étape 1 / 12"
+label_settings = SubResource("LabelSettings_step")
+
+[node name="TitleLabel" type="Label" parent="TextPanel/PanelMargin/PanelStack"]
+layout_mode = 2
+text = "Objectif : atteindre l’AGI avant les USA"
+label_settings = SubResource("LabelSettings_title")
+autowrap_mode = 3
+
+[node name="BodyLabel" type="Label" parent="TextPanel/PanelMargin/PanelStack"]
+layout_mode = 2
+text = "Tu pilotes l’Europe énergétique."
+label_settings = SubResource("LabelSettings_body")
+autowrap_mode = 3
+
+[node name="ObjectiveLabel" type="Label" parent="TextPanel/PanelMargin/PanelStack"]
+layout_mode = 2
+text = "Objectif : Clique sur Continuer."
+label_settings = SubResource("LabelSettings_objective")
+autowrap_mode = 3
+
+[node name="ButtonRow" type="HBoxContainer" parent="TextPanel/PanelMargin/PanelStack"]
+layout_mode = 2
+theme_override_constants/separation = 8
+alignment = 2
+
+[node name="SkipButton" type="Button" parent="TextPanel/PanelMargin/PanelStack/ButtonRow"]
+custom_minimum_size = Vector2(154, 34)
+layout_mode = 2
+text = "Passer le tutoriel"
+
+[node name="NextButton" type="Button" parent="TextPanel/PanelMargin/PanelStack/ButtonRow"]
+custom_minimum_size = Vector2(104, 34)
+layout_mode = 2
+text = "Continuer"

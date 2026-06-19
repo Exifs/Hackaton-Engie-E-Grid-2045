@@ -1,0 +1,160 @@
+[
+  {
+    "id": "welcome_agi_race",
+    "target": "dashboard.agi_bar",
+    "title": "Objectif : atteindre l'AGI avant les USA",
+    "body": "Tu pilotes l'Europe énergétique dans la course à l'AGI. La première boucle consiste à choisir une région solide, former des chercheurs, produire de l'énergie, ajouter du froid, puis transformer tout cela en compute.",
+    "objective": "Clique sur Continuer.",
+    "pause_simulation": true,
+    "required_event": "tutorial_next"
+  },
+  {
+    "id": "select_region",
+    "target": "map.recommended_region",
+    "title": "Choisis une région de départ",
+    "body": "Commence en France Nord : c'est une région équilibrée, très connectée, avec une bonne recherche et un bon refroidissement. Elle pardonne mieux les premières erreurs.",
+    "objective": "Sélectionne France Nord, la région mise en évidence.",
+    "pause_simulation": false,
+    "required_event": "region_selected"
+  },
+  {
+    "id": "build_university",
+    "target": "build_menu.university_button",
+    "title": "Forme des chercheurs",
+    "body": "Construis d'abord une université. Les chercheurs seront nécessaires pour exploiter les datacenters et lancer la recherche sans bloquer la chaîne.",
+    "objective": "Construis 1 université avant de charger la région en compute.",
+    "pause_simulation": false,
+    "required_event": "building_queued",
+    "required_params": {
+      "building_id": "university"
+    }
+  },
+  {
+    "id": "construction_time",
+    "target": "map.last_construction_slot",
+    "title": "La construction prend du temps",
+    "body": "Un bâtiment ne produit rien tant qu'il est en chantier. Surveille le calendrier : anticiper coûte moins cher que réparer une pénurie.",
+    "objective": "Attends la mise en service de l'université.",
+    "pause_simulation": false,
+    "required_event": "building_completed",
+    "required_params": {
+      "building_id": "university"
+    }
+  },
+  {
+    "id": "build_energy",
+    "target": "build_menu.wind_onshore_button",
+    "title": "Produis de l'énergie",
+    "body": "Le compute consomme beaucoup d'énergie. En France Nord, l'éolien terrestre est propre, abordable et adapté au potentiel local sans faire monter le CO2 dès le début.",
+    "objective": "Construis l'éolien terrestre conseillé. Le gaz ou le solaire restent acceptés si tu veux comparer.",
+    "pause_simulation": false,
+    "required_event": "building_queued",
+    "accepted_building_ids": [
+      "gas_power_plant",
+      "solar_farm",
+      "wind_onshore"
+    ]
+  },
+  {
+    "id": "cooling_heatmap",
+    "target": "dashboard.cooling_kpi",
+    "title": "Repère le refroidissement",
+    "body": "Un datacenter a besoin de froid pour tourner à plein régime. France Nord a un bon potentiel et un tag fleuve, ce qui prépare bien le choix suivant.",
+    "objective": "Active l'overlay de refroidissement ou ouvre la catégorie Froid pour vérifier le potentiel.",
+    "pause_simulation": false,
+    "required_event": "heatmap_enabled",
+    "required_params": {
+      "heatmap_id": "cooling"
+    },
+    "allow_alternative_event": "build_menu_category_opened",
+    "alternative_params": {
+      "category_id": "cooling"
+    }
+  },
+  {
+    "id": "build_cooling",
+    "target": "build_menu.river_cooling_button",
+    "title": "Ajoute du froid",
+    "body": "Le refroidissement fluvial profite du tag fleuve de France Nord et offre un bon rendement. Il prépare directement le datacenter standard.",
+    "objective": "Construis le refroidissement fluvial conseillé. L'air ou le marin restent acceptés.",
+    "pause_simulation": false,
+    "required_event": "building_queued",
+    "accepted_building_ids": [
+      "air_cooling",
+      "river_cooling",
+      "sea_cooling"
+    ]
+  },
+  {
+    "id": "build_datacenter",
+    "target": "build_menu.datacenter_button",
+    "title": "Construis ton premier datacenter",
+    "body": "Le datacenter standard transforme l'énergie, le froid et les chercheurs en compute exploitable. C'est le coeur de la boucle AGI.",
+    "objective": "Construis 1 datacenter standard après avoir préparé énergie, froid et chercheurs.",
+    "pause_simulation": false,
+    "required_event": "building_queued",
+    "accepted_building_ids": [
+      "datacenter_standard"
+    ]
+  },
+  {
+    "id": "compute_to_agi",
+    "target": "dashboard.compute_kpi",
+    "title": "Le compute accélère l'AGI",
+    "body": "Quand le datacenter fonctionne, le compute augmente. Plus de compute donne à l'Europe la capacité de convertir ses infrastructures en progression AGI.",
+    "objective": "Observe l'augmentation du compute avant de lancer la recherche IA.",
+    "pause_simulation": false,
+    "required_event": "resource_changed",
+    "required_params": {
+      "resource_id": "compute",
+      "direction": "increase"
+    }
+  },
+  {
+    "id": "start_research",
+    "target": "build_menu.ai_research_center_button",
+    "title": "Convertis le compute en AGI",
+    "body": "Le centre de recherche IA transforme le compute et les chercheurs en progression AGI. C'est ce qui te permet de dépasser les USA au lieu de seulement produire des ressources.",
+    "objective": "Construis le centre de recherche IA conseillé. Une recherche énergie ou une technologie restent acceptées.",
+    "pause_simulation": false,
+    "required_event": "building_queued",
+    "accepted_building_ids": [
+      "ai_research_center",
+      "energy_research_center"
+    ],
+    "allow_alternative_event": "research_started",
+    "accepted_research_ids": [
+      "model_optimization",
+      "batteries",
+      "energy_efficiency",
+      "smart_grids",
+      "offshore_wind",
+      "cooling_efficiency"
+    ]
+  },
+  {
+    "id": "first_tension",
+    "target": "alerts_panel.first_alert",
+    "title": "Première tension détectée",
+    "body": "Une alerte signale qu'un maillon de la chaîne manque d'énergie, de froid ou de chercheurs. Réponds à la cause, pas seulement au symptôme.",
+    "objective": "Lis l'alerte puis prépare le prochain bâtiment utile.",
+    "pause_simulation": false,
+    "required_event": "alert_created",
+    "accepted_alert_types": [
+      "energy_deficit",
+      "researcher_shortage",
+      "cooling_deficit"
+    ],
+    "allow_timeout_seconds": 60
+  },
+  {
+    "id": "tutorial_complete",
+    "target": "map.overview",
+    "title": "Fin du tutoriel",
+    "body": "Fin du tutoriel. À partir de maintenant, plus d'indications : équilibre ton réseau, accélère l'AGI européenne et bats les USA.",
+    "objective": "Clique sur Terminer.",
+    "pause_simulation": true,
+    "required_event": "tutorial_next",
+    "complete_tutorial": true
+  }
+]

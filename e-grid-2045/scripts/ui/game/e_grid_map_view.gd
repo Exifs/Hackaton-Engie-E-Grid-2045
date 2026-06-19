@@ -159,6 +159,26 @@ func set_selected_region_slug(region_slug: String) -> void:
 	queue_redraw()
 
 
+func get_tutorial_target_rect(target_id: String, context: Dictionary = {}) -> Rect2:
+	if _screen_cache_dirty:
+		_rebuild_screen_cache()
+
+	match target_id:
+		"map.overview":
+			return get_global_rect()
+		"map.recommended_region":
+			return _tutorial_rect_for_region(str(context.get("recommended_region_id", "fr_nord")), Vector2(104.0, 86.0))
+		"map.selected_region":
+			return _tutorial_rect_for_region(str(context.get("selected_region_id", _selected_region_slug)), Vector2(104.0, 86.0))
+		"map.last_construction_slot":
+			var region_id := str(context.get("last_construction_region_id", ""))
+			if region_id.is_empty():
+				region_id = _selected_region_slug
+			return _tutorial_rect_for_region(region_id, Vector2(92.0, 92.0))
+
+	return Rect2()
+
+
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_RESIZED:
 		_screen_cache_dirty = true
@@ -540,6 +560,15 @@ func _layout_position(region_id: String) -> Vector2:
 		_rebuild_layout_position_cache()
 	var cached_position = _layout_positions.get(region_id, Vector2.INF)
 	return cached_position if cached_position is Vector2 else Vector2.INF
+
+
+func _tutorial_rect_for_region(region_id: String, rect_size: Vector2) -> Rect2:
+	var local_position := _layout_position(region_id)
+	if local_position == Vector2.INF:
+		local_position = _map_rect.get_center()
+
+	var canvas_position := get_global_transform_with_canvas() * local_position
+	return Rect2(canvas_position - rect_size * 0.5, rect_size)
 
 
 func _rebuild_layout_position_cache() -> void:
