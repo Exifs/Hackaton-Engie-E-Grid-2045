@@ -93,6 +93,10 @@ case "${TARGET}" in
     BUILD_DIR="${PROJECT_ABS}/${BUILD_ROOT}/macos"
     EXPORT_PATH="${BUILD_DIR}/${GAME_NAME}.zip"
     ;;
+  web)
+    BUILD_DIR="${PROJECT_ABS}/${BUILD_ROOT}/web"
+    EXPORT_PATH="${BUILD_DIR}/index.html"
+    ;;
   *)
     echo "Unsupported target: ${TARGET}" >&2
     exit 64
@@ -120,6 +124,15 @@ echo "Exporting preset '${PRESET}' to ${EXPORT_PATH}"
 
 if [[ "${TARGET}" == "linux" ]]; then
   chmod +x "${EXPORT_PATH}"
+fi
+
+if [[ "${TARGET}" == "web" ]]; then
+  for required_file in index.html index.js index.pck index.wasm; do
+    if [[ ! -f "${BUILD_DIR}/${required_file}" ]]; then
+      echo "Missing expected Web export file: ${required_file}" >&2
+      exit 1
+    fi
+  done
 fi
 
 if [[ "${TARGET}" == "macos" ]]; then

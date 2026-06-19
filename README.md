@@ -65,4 +65,10 @@ egrid_region_editor_tool/tools/region_editor/region_shape_editor_standalone.html
 1. Ouvrir `e-grid-2045/project.godot` avec Godot 4.6 ou plus récent.
 2. Lancer la scène principale configurée dans le projet.
 
+## Builds Godot
+
+La CI exporte les versions Linux, Windows, macOS et Web depuis le projet `e-grid-2045/`. Les artefacts sont publiés en ZIP dans l'onglet Actions.
+
+La version Web utilise le preset Godot `Web`, génère `e-grid-2045/build/web/index.html` comme point d'entrée et produit l'artefact `e-grid-2045-web`.
+
 État actuel: prototype de hackathon, avec un scope P0 centré sur une première boucle jouable et une base technique suffisamment lisible pour contribuer rapidement.
