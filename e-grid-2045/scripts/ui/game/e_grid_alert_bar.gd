@@ -69,15 +69,18 @@ func _sync_alerts() -> void:
 	for child in container.get_children():
 		child.queue_free()
 
-	for alert_variant in _alerts:
+	var display_alerts := _alerts if not _alerts.is_empty() else _empty_state_alerts()
+	for alert_variant in display_alerts:
 		var alert: Dictionary = alert_variant
 		var item := ALERT_ITEM_SCENE.instantiate()
 		container.add_child(item)
+		if item is Control:
+			(item as Control).size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		item.set("title_text", str(alert.get("title", "ALERT")))
 		item.set("body_text", str(alert.get("body", "")))
 		item.set("action_name", str(alert.get("region_id", "")))
 		item.set("alert_state", str(alert.get("state", "power_warning")))
-		item.set("action_text", "VIEW" if not str(alert.get("region_id", "")).is_empty() else "INFO")
+		item.set("action_text", str(alert.get("action_text", "VIEW" if not str(alert.get("region_id", "")).is_empty() else "INFO")))
 		if item.has_signal("action_requested"):
 			var callback := Callable(self, "_on_alert_action_requested")
 			if not item.is_connected("action_requested", callback):
@@ -87,6 +90,46 @@ func _sync_alerts() -> void:
 	var count_label := get_node_or_null("ContentMargin/AlertRow/AlertCountLabel") as Label
 	if count_label != null:
 		count_label.text = "%d ALERTS" % _alerts.size()
+
+
+func _empty_state_alerts() -> Array:
+	return [
+		{
+			"title": "SYSTEM NOMINAL",
+			"body": "No active alerts",
+			"region_id": "",
+			"state": "system_nominal",
+			"action_text": "OK",
+		},
+		{
+			"title": "GRID WATCH",
+			"body": "Links within limits",
+			"region_id": "",
+			"state": "grid_info",
+			"action_text": "VIEW",
+		},
+		{
+			"title": "MARKET UPDATE",
+			"body": "Prices within forecast",
+			"region_id": "",
+			"state": "market_info",
+			"action_text": "INFO",
+		},
+		{
+			"title": "RESEARCH QUEUE",
+			"body": "No claim pending",
+			"region_id": "",
+			"state": "research_info",
+			"action_text": "QUEUE",
+		},
+		{
+			"title": "SUPPLY CHAIN",
+			"body": "No blockers reported",
+			"region_id": "",
+			"state": "supply_info",
+			"action_text": "INFO",
+		},
+	]
 
 
 func get_tutorial_target_node(target_id: String) -> Control:

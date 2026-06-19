@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3]
+[gd_scene load_steps=10 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/ui/game/e_grid_build_category.tscn" id="1_build_category"]
 [ext_resource type="PackedScene" path="res://scenes/ui/components/e_grid_panel.tscn" id="2_panel"]
@@ -6,6 +6,7 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/game/e_grid_grid_overview.tscn" id="4_grid_overview"]
 [ext_resource type="Script" path="res://scripts/ui/game/e_grid_build_palette.gd" id="5_build_palette"]
 [ext_resource type="PackedScene" path="res://scenes/ui/components/e_grid_checkbox.tscn" id="6_checkbox"]
+[ext_resource type="Script" path="res://scripts/ui/game/e_grid_panel_outer_chrome.gd" id="7_outer_chrome"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_title"]
 font_size = 16
@@ -30,6 +31,16 @@ grow_vertical = 2
 mouse_filter = 2
 fit_to_source_size = false
 stretch_to_bounds = true
+
+[node name="OuterChrome" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("7_outer_chrome")
 
 [node name="ContentMargin" type="MarginContainer" parent="."]
 layout_mode = 1
@@ -64,14 +75,17 @@ vertical_alignment = 1
 layout_mode = 2
 label_text = "<"
 
-[node name="OverlayPanel" type="VBoxContainer" parent="ContentMargin/PaletteStack"]
+[node name="OverlayPanel" type="HBoxContainer" parent="ContentMargin/PaletteStack"]
+custom_minimum_size = Vector2(0, 32)
 layout_mode = 2
-theme_override_constants/separation = 4
+theme_override_constants/separation = 8
 
 [node name="OverlayTitle" type="Label" parent="ContentMargin/PaletteStack/OverlayPanel"]
+custom_minimum_size = Vector2(54, 0)
 layout_mode = 2
-text = "OVERLAYS"
+text = "FLOW"
 label_settings = SubResource("LabelSettings_muted")
+vertical_alignment = 1
 
 [node name="PowerFlowRow" type="HBoxContainer" parent="ContentMargin/PaletteStack/OverlayPanel"]
 layout_mode = 2
@@ -81,9 +95,10 @@ theme_override_constants/separation = 6
 layout_mode = 2
 
 [node name="PowerFlowLabel" type="Label" parent="ContentMargin/PaletteStack/OverlayPanel/PowerFlowRow"]
+custom_minimum_size = Vector2(27, 0)
 layout_mode = 2
 size_flags_horizontal = 3
-text = "ENERGIE"
+text = "PWR"
 label_settings = SubResource("LabelSettings_muted")
 vertical_alignment = 1
 
@@ -95,9 +110,10 @@ theme_override_constants/separation = 6
 layout_mode = 2
 
 [node name="DataFlowLabel" type="Label" parent="ContentMargin/PaletteStack/OverlayPanel/DataFlowRow"]
+custom_minimum_size = Vector2(34, 0)
 layout_mode = 2
 size_flags_horizontal = 3
-text = "RESEAU"
+text = "DATA"
 label_settings = SubResource("LabelSettings_muted")
 vertical_alignment = 1
 
@@ -109,9 +125,10 @@ theme_override_constants/separation = 6
 layout_mode = 2
 
 [node name="CongestionLabel" type="Label" parent="ContentMargin/PaletteStack/OverlayPanel/CongestionRow"]
+custom_minimum_size = Vector2(34, 0)
 layout_mode = 2
 size_flags_horizontal = 3
-text = "FROID"
+text = "COOL"
 label_settings = SubResource("LabelSettings_muted")
 vertical_alignment = 1
 
@@ -131,8 +148,9 @@ category_title = "ENERGY"
 tool_labels = PackedStringArray("Plant", "Wind", "Solar", "Battery")
 tool_icon_states = PackedStringArray("energy", "energy", "energy", "battery")
 button_family = "energy"
-slot_min_size = Vector2(40, 40)
-primary_button_size = Vector2(52, 52)
+columns = 6
+slot_min_size = Vector2(34, 34)
+primary_button_size = Vector2(48, 48)
 
 [node name="DatacentersCategory" parent="ContentMargin/PaletteStack/CategoriesScroll/CategoriesStack" instance=ExtResource("1_build_category")]
 layout_mode = 2
@@ -140,8 +158,9 @@ category_title = "DATACENTERS"
 tool_labels = PackedStringArray("Compute", "Server", "Storage", "AI")
 tool_icon_states = PackedStringArray("datacenter", "compute", "compute", "science")
 button_family = "datacenter"
-slot_min_size = Vector2(40, 40)
-primary_button_size = Vector2(52, 52)
+columns = 6
+slot_min_size = Vector2(34, 34)
+primary_button_size = Vector2(48, 48)
 
 [node name="CoolingCategory" parent="ContentMargin/PaletteStack/CategoriesScroll/CategoriesStack" instance=ExtResource("1_build_category")]
 layout_mode = 2
@@ -149,8 +168,9 @@ category_title = "COOLING"
 tool_labels = PackedStringArray("Air", "Liquid", "Heat", "Water")
 tool_icon_states = PackedStringArray("cooling", "snow", "gas", "cooling")
 button_family = "cooling"
-slot_min_size = Vector2(40, 40)
-primary_button_size = Vector2(52, 52)
+columns = 6
+slot_min_size = Vector2(34, 34)
+primary_button_size = Vector2(48, 48)
 
 [node name="ResearchCategory" parent="ContentMargin/PaletteStack/CategoriesScroll/CategoriesStack" instance=ExtResource("1_build_category")]
 layout_mode = 2
@@ -158,8 +178,9 @@ category_title = "RESEARCH"
 tool_labels = PackedStringArray("Lab", "Uni", "Chips", "Policy")
 tool_icon_states = PackedStringArray("research", "science", "compute", "money")
 button_family = "research"
-slot_min_size = Vector2(40, 40)
-primary_button_size = Vector2(52, 52)
+columns = 6
+slot_min_size = Vector2(34, 34)
+primary_button_size = Vector2(48, 48)
 
 [node name="GridNetworkCategory" parent="ContentMargin/PaletteStack/CategoriesScroll/CategoriesStack" instance=ExtResource("1_build_category")]
 layout_mode = 2
@@ -167,8 +188,9 @@ category_title = "GRID & NETWORK"
 tool_labels = PackedStringArray("Line", "Node", "HVDC", "Monitor")
 tool_icon_states = PackedStringArray("grid", "grid", "battery", "compute")
 button_family = "grid"
-slot_min_size = Vector2(40, 40)
-primary_button_size = Vector2(52, 52)
+columns = 6
+slot_min_size = Vector2(34, 34)
+primary_button_size = Vector2(48, 48)
 
 [node name="GridOverview" parent="ContentMargin/PaletteStack" instance=ExtResource("4_grid_overview")]
 layout_mode = 2

@@ -14,7 +14,7 @@ font_size = 9
 font_color = Color(0.121569, 0.815686, 0.886275, 0.78)
 
 [node name="EGridBuildCategory" type="Control"]
-custom_minimum_size = Vector2(0, 82)
+custom_minimum_size = Vector2(0, 72)
 size_flags_horizontal = 3
 clip_contents = true
 script = ExtResource("1_build_category")
@@ -47,9 +47,9 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/margin_left = 10
-theme_override_constants/margin_top = 8
+theme_override_constants/margin_top = 6
 theme_override_constants/margin_right = 10
-theme_override_constants/margin_bottom = 8
+theme_override_constants/margin_bottom = 6
 
 [node name="CategoryRow" type="HBoxContainer" parent="ContentMargin"]
 layout_mode = 2

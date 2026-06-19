@@ -315,6 +315,11 @@ func _test_slot_card() -> void:
 	slot_card.set("pips_active", 4)
 	slot_card.set("show_state_overlay", false)
 	slot_card.set("show_status_badge", false)
+	slot_card.set("building_icon_alpha", 0.35)
+	var icon_layer := slot_card.get_node_or_null("BuildingIcon") as TextureRect
+	if icon_layer == null or absf(icon_layer.modulate.a - 0.35) > 0.01:
+		_failures.append("Slot card building icon alpha did not apply")
+	slot_card.set("building_icon_alpha", 1.0)
 	var status_overlay := slot_card.get_node_or_null("StatusOverlay") as TextureRect
 	if status_overlay == null or not status_overlay.visible:
 		_failures.append("Slot card warning status overlay did not become visible")

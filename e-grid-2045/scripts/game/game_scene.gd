@@ -47,6 +47,10 @@ func _ready() -> void:
 	_setup_tutorial()
 
 
+func _process(_delta: float) -> void:
+	_sync_time_progress()
+
+
 func get_layout_regions() -> Dictionary:
 	return {
 		"top_bar": _top_bar,
@@ -301,12 +305,13 @@ func _sync_top_bar(summary: Dictionary) -> void:
 		float(summary.get("compute_produced", 0.0)),
 		float(summary.get("compute_used", 0.0)),
 	])
-	_top_bar.set("europe_progress_text", "EU %.1f%%" % float(summary.get("eu_agi_progress", 0.0)))
+	_top_bar.set("europe_progress_text", "EUROPE %.1f%%" % float(summary.get("eu_agi_progress", 0.0)))
 	_top_bar.set("usa_progress_text", "USA %.1f%%" % float(summary.get("usa_agi_progress", 0.0)))
 	_top_bar.set("budget_text", "EUR %.0f" % float(summary.get("money", 0.0)))
 	_top_bar.set("budget_delta_text", "+%.0f / MO  CO2 %.0f %s" % [float(summary.get("monthly_income", 0.0)), float(summary.get("cumulative_co2", 0.0)), co2_tier])
 	_top_bar.set("date_text", str(summary.get("date_text", "JAN 2025")))
 	_top_bar.set("week_text", "MONTH %03d" % int(summary.get("month_index", 0)))
+	_top_bar.set("month_progress", float(summary.get("month_progress", 0.0)) * 100.0)
 	_top_bar.set("speed_text", speed_text)
 	_top_bar.set("pause_button_text", "II")
 	_top_bar.set("play_button_text", "1X")
@@ -316,6 +321,13 @@ func _sync_top_bar(summary: Dictionary) -> void:
 	_top_bar.set("play_active", not paused and speed <= 1.0)
 	_top_bar.set("fast_active", not paused and speed > 1.0 and speed <= 2.0)
 	_top_bar.set("faster_active", not paused and speed > 2.0)
+
+
+func _sync_time_progress() -> void:
+	if _simulation_core == null or _top_bar == null:
+		return
+
+	_top_bar.set("month_progress", _simulation_core.get_month_progress() * 100.0)
 
 
 func _on_game_ended(result: String, score: Dictionary) -> void:

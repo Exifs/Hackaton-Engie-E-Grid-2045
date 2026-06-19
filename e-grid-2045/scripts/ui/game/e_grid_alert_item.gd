@@ -4,6 +4,7 @@ class_name EGridAlertItem
 signal action_requested(action_name: String)
 
 const E_GRID_UI_ATLAS := preload("res://scripts/ui/components/e_grid_ui_atlas.gd")
+const NOTIFICATION_ICON_COMPONENT := "notification_icons_64px"
 
 @export var title_text := "ALERT":
 	set(value):
@@ -25,7 +26,7 @@ const E_GRID_UI_ATLAS := preload("res://scripts/ui/components/e_grid_ui_atlas.gd
 		action_name = value
 		_sync()
 
-@export_enum("power_warning", "critical", "cooling_warning", "research_success", "market_info", "disabled") var alert_state := "power_warning":
+@export_enum("power_warning", "critical", "cooling_warning", "research_success", "market_info", "system_nominal", "grid_info", "research_info", "supply_info", "disabled") var alert_state := "power_warning":
 	set(value):
 		alert_state = value
 		_sync()
@@ -120,7 +121,7 @@ func _sync_icon(icon: TextureRect, accent_color: Color) -> void:
 	if icon == null:
 		return
 
-	icon.texture = E_GRID_UI_ATLAS.get_texture("utility_icons_48px", _icon_state())
+	icon.texture = E_GRID_UI_ATLAS.get_texture(NOTIFICATION_ICON_COMPONENT, _icon_state())
 	icon.visible = icon.texture != null
 	icon.modulate = accent_color
 
@@ -141,22 +142,34 @@ func _sync_icon_frame(icon_frame: PanelContainer, accent_color: Color) -> void:
 
 func _icon_state() -> String:
 	match alert_state:
+		"power_warning":
+			return "power"
 		"cooling_warning":
 			return "cooling"
-		"research_success":
-			return "science"
+		"research_success", "research_info", "system_nominal":
+			return "research" if alert_state != "system_nominal" else "system"
 		"market_info":
-			return "money"
-		"critical":
+			return "market"
+		"grid_info":
 			return "grid"
+		"supply_info":
+			return "supply"
+		"critical":
+			return "critical"
 		_:
-			return "energy"
+			return "power"
 
 
 func _accent_color() -> Color:
 	match alert_state:
-		"research_success":
+		"system_nominal":
+			return Color("#4ce38a")
+		"research_success", "research_info":
 			return Color("#42b9e6")
+		"grid_info":
+			return Color("#2fc7f0")
+		"supply_info":
+			return Color("#6fbf90")
 		"market_info":
 			return Color("#89999c")
 		"critical":

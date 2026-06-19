@@ -26,10 +26,10 @@ const CATEGORY_PATHS := {
 
 const CATEGORY_TITLES := {
 	"energy": "ENERGY",
-	"compute": "IA / COMPUTE",
+	"compute": "DATACENTERS",
 	"cooling": "COOLING",
 	"research": "RESEARCH",
-	"grid": "GRID / STORAGE",
+	"grid": "GRID & NETWORK",
 }
 
 const CATEGORY_FAMILIES := {
@@ -113,6 +113,9 @@ func _wire_overlay_controls() -> void:
 	_connect_overlay_button(^"ContentMargin/PaletteStack/OverlayPanel/PowerFlowRow/PowerFlowCheck", "energy")
 	_connect_overlay_button(^"ContentMargin/PaletteStack/OverlayPanel/DataFlowRow/DataFlowCheck", "network")
 	_connect_overlay_button(^"ContentMargin/PaletteStack/OverlayPanel/CongestionRow/CongestionCheck", "cooling")
+	_set_overlay_tooltip(^"ContentMargin/PaletteStack/OverlayPanel/PowerFlowRow/PowerFlowCheck", "Show regional power flow")
+	_set_overlay_tooltip(^"ContentMargin/PaletteStack/OverlayPanel/DataFlowRow/DataFlowCheck", "Show grid and data flow")
+	_set_overlay_tooltip(^"ContentMargin/PaletteStack/OverlayPanel/CongestionRow/CongestionCheck", "Show cooling pressure")
 	_sync_overlay_controls()
 
 
@@ -123,6 +126,12 @@ func _connect_overlay_button(path: NodePath, mode: String) -> void:
 	var callback := Callable(self, "_on_overlay_button_pressed").bind(mode)
 	if not button.pressed.is_connected(callback):
 		button.pressed.connect(callback)
+
+
+func _set_overlay_tooltip(path: NodePath, tooltip: String) -> void:
+	var button := get_node_or_null(path) as BaseButton
+	if button != null:
+		button.tooltip_text = tooltip
 
 
 func _on_overlay_button_pressed(mode: String) -> void:

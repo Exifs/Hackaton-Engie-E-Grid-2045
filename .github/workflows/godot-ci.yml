@@ -39,6 +39,13 @@ jobs:
           PACKAGE_BASENAME: e-grid-2045-linux-x86_64
         run: bash .github/scripts/export-godot.sh "Linux" "linux"
 
+      - name: Run Godot smoke tests
+        run: |
+          GODOT_BIN="${HOME}/.cache/egrid-godot/${GODOT_VERSION}-${GODOT_STATUS}/godot"
+          "${GODOT_BIN}" --headless --path "${PROJECT_PATH}" --script "res://scripts/test/e_grid_gameplay_smoke_test.gd"
+          "${GODOT_BIN}" --headless --path "${PROJECT_PATH}" --script "res://scripts/test/e_grid_ui_performance_smoke_test.gd"
+          "${GODOT_BIN}" --headless --path "${PROJECT_PATH}" --script "res://scripts/test/e_grid_game_ui_layout_render_test.gd"
+
       - name: Upload Linux artifact
         uses: actions/upload-artifact@v4
         with:

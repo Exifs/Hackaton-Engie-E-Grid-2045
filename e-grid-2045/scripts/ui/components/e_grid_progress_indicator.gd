@@ -11,6 +11,12 @@ const E_GRID_COMPONENT_BITMAP_TEXT_SCRIPT := preload("res://scripts/ui/component
 		_sync_component_size()
 		queue_redraw()
 
+@export var fit_to_source_size := true:
+	set(value):
+		fit_to_source_size = value
+		_sync_component_size()
+		queue_redraw()
+
 var _value := 50.0
 
 @export_range(0.0, 100.0, 0.1) var value: float:
@@ -39,6 +45,22 @@ var _value := 50.0
 		_sync_label()
 
 @export var bar_track_rect := Rect2(17.0, 13.0, 306.0, 8.0)
+@export var show_progress_head := false:
+	set(value):
+		show_progress_head = value
+		queue_redraw()
+@export_range(1.0, 8.0, 0.5) var progress_head_width := 2.0:
+	set(value):
+		progress_head_width = value
+		queue_redraw()
+@export var progress_head_color := Color("#9ef6ff"):
+	set(value):
+		progress_head_color = value
+		queue_redraw()
+@export var progress_head_glow_color := Color("#1fd0e288"):
+	set(value):
+		progress_head_glow_color = value
+		queue_redraw()
 @export var ring_center := Vector2(34.0, 34.0)
 @export var ring_radius := 22.0
 @export var ring_width := 5.0
@@ -131,6 +153,9 @@ func _cache_nodes() -> void:
 
 
 func _sync_component_size() -> void:
+	if not fit_to_source_size:
+		return
+
 	var cell_size := E_GRID_UI_ATLAS.get_cell_size(component_name)
 	if cell_size != Vector2i.ZERO:
 		custom_minimum_size = Vector2(cell_size)
@@ -155,11 +180,38 @@ func _draw_bar_progress(fitted_rect: Rect2, percent: float) -> void:
 	var track_rect := _source_rect_to_fitted(bar_track_rect, fitted_rect)
 	var fill_rect := Rect2(track_rect.position, Vector2(track_rect.size.x * percent, track_rect.size.y))
 
-	if fill_rect.size.x <= 0.5:
-		return
+	if fill_rect.size.x > 0.5:
+		draw_rect(fill_rect, _progress_color(), true)
+		_draw_bar_stripes(fill_rect)
+	if show_progress_head:
+		_draw_bar_progress_head(track_rect, percent)
 
-	draw_rect(fill_rect, _progress_color(), true)
-	_draw_bar_stripes(fill_rect)
+
+func _draw_bar_progress_head(track_rect: Rect2, percent: float) -> void:
+	var head_x := track_rect.position.x + track_rect.size.x * clampf(percent, 0.0, 1.0)
+	var head_width := maxf(1.0, progress_head_width)
+	var glow_width := maxf(head_width * 3.0, 5.0)
+	var vertical_pad := maxf(2.0, track_rect.size.y * 0.3)
+	var alpha_multiplier := 0.42 if semantic_state == "disabled" else 1.0
+	var glow_color := progress_head_glow_color
+	var core_color := progress_head_color
+	glow_color.a *= alpha_multiplier
+	core_color.a *= alpha_multiplier
+
+	var glow_rect := Rect2(
+		Vector2(head_x - glow_width * 0.5, track_rect.position.y - vertical_pad),
+		Vector2(glow_width, track_rect.size.y + vertical_pad * 2.0)
+	)
+	draw_rect(glow_rect, glow_color, true)
+	draw_line(
+		Vector2(head_x, track_rect.position.y - vertical_pad),
+		Vector2(head_x, track_rect.position.y + track_rect.size.y + vertical_pad),
+		core_color,
+		head_width,
+		true
+	)
+	draw_circle(Vector2(head_x, track_rect.position.y), maxf(1.2, head_width * 0.65), core_color)
+	draw_circle(Vector2(head_x, track_rect.position.y + track_rect.size.y), maxf(1.2, head_width * 0.65), core_color)
 
 
 func _draw_bar_stripes(fill_rect: Rect2) -> void:

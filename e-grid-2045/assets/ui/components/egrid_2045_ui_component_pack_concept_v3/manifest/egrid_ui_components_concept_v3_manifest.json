@@ -1820,6 +1820,520 @@
           "file": "sprites/utility_icons_48px/10_science.png"
         }
       ]
+    },
+    "building_icons_mono_64px": {
+      "spritesheet": "spritesheets/building_icons_mono_64px.png",
+      "cell_size_px": [
+        64,
+        64
+      ],
+      "states": [
+        "university",
+        "ai_research_center",
+        "energy_research_center",
+        "datacenter_standard",
+        "datacenter_hyperscale",
+        "gas_power_plant",
+        "nuclear_power_plant",
+        "wind_onshore",
+        "wind_offshore",
+        "solar_farm",
+        "hydro_dam",
+        "battery_storage",
+        "air_cooling",
+        "river_cooling",
+        "sea_cooling",
+        "geothermal_cooling"
+      ],
+      "frames": [
+        {
+          "state": "university",
+          "x": 0,
+          "y": 0,
+          "w": 64,
+          "h": 64,
+          "file": "sprites/building_icons_mono_64px/00_university.png"
+        },
+        {
+          "state": "ai_research_center",
+          "x": 64,
+          "y": 0,
+          "w": 64,
+          "h": 64,
+          "file": "sprites/building_icons_mono_64px/01_ai_research_center.png"
+        },
+        {
+          "state": "energy_research_center",
+          "x": 128,
+          "y": 0,
+          "w": 64,
+          "h": 64,
+          "file": "sprites/building_icons_mono_64px/02_energy_research_center.png"
+        },
+        {
+          "state": "datacenter_standard",
+          "x": 192,
+          "y": 0,
+          "w": 64,
+          "h": 64,
+          "file": "sprites/building_icons_mono_64px/03_datacenter_standard.png"
+        },
+        {
+          "state": "datacenter_hyperscale",
+          "x": 0,
+          "y": 64,
+          "w": 64,
+          "h": 64,
+          "file": "sprites/building_icons_mono_64px/04_datacenter_hyperscale.png"
+        },
+        {
+          "state": "gas_power_plant",
+          "x": 64,
+          "y": 64,
+          "w": 64,
+          "h": 64,
+          "file": "sprites/building_icons_mono_64px/05_gas_power_plant.png"
+        },
+        {
+          "state": "nuclear_power_plant",
+          "x": 128,
+          "y": 64,
+          "w": 64,
+          "h": 64,
+          "file": "sprites/building_icons_mono_64px/06_nuclear_power_plant.png"
+        },
+        {
+          "state": "wind_onshore",
+          "x": 192,
+          "y": 64,
+          "w": 64,
+          "h": 64,
+          "file": "sprites/building_icons_mono_64px/07_wind_onshore.png"
+        },
+        {
+          "state": "wind_offshore",
+          "x": 0,
+          "y": 128,
+          "w": 64,
+          "h": 64,
+          "file": "sprites/building_icons_mono_64px/08_wind_offshore.png"
+        },
+        {
+          "state": "solar_farm",
+          "x": 64,
+          "y": 128,
+          "w": 64,
+          "h": 64,
+          "file": "sprites/building_icons_mono_64px/09_solar_farm.png"
+        },
+        {
+          "state": "hydro_dam",
+          "x": 128,
+          "y": 128,
+          "w": 64,
+          "h": 64,
+          "file": "sprites/building_icons_mono_64px/10_hydro_dam.png"
+        },
+        {
+          "state": "battery_storage",
+          "x": 192,
+          "y": 128,
+          "w": 64,
+          "h": 64,
+          "file": "sprites/building_icons_mono_64px/11_battery_storage.png"
+        },
+        {
+          "state": "air_cooling",
+          "x": 0,
+          "y": 192,
+          "w": 64,
+          "h": 64,
+          "file": "sprites/building_icons_mono_64px/12_air_cooling.png"
+        },
+        {
+          "state": "river_cooling",
+          "x": 64,
+          "y": 192,
+          "w": 64,
+          "h": 64,
+          "file": "sprites/building_icons_mono_64px/13_river_cooling.png"
+        },
+        {
+          "state": "sea_cooling",
+          "x": 128,
+          "y": 192,
+          "w": 64,
+          "h": 64,
+          "file": "sprites/building_icons_mono_64px/14_sea_cooling.png"
+        },
+        {
+          "state": "geothermal_cooling",
+          "x": 192,
+          "y": 192,
+          "w": 64,
+          "h": 64,
+          "file": "sprites/building_icons_mono_64px/15_geothermal_cooling.png"
+        }
+      ]
+    },
+    "building_icons_color_96px": {
+      "spritesheet": "spritesheets/building_icons_color_96px.png",
+      "cell_size_px": [
+        96,
+        96
+      ],
+      "states": [
+        "university",
+        "ai_research_center",
+        "energy_research_center",
+        "datacenter_standard",
+        "datacenter_hyperscale",
+        "gas_power_plant",
+        "nuclear_power_plant",
+        "wind_onshore",
+        "wind_offshore",
+        "solar_farm",
+        "hydro_dam",
+        "battery_storage",
+        "air_cooling",
+        "river_cooling",
+        "sea_cooling",
+        "geothermal_cooling"
+      ],
+      "frames": [
+        {
+          "state": "university",
+          "x": 0,
+          "y": 0,
+          "w": 96,
+          "h": 96,
+          "file": "sprites/building_icons_color_96px/00_university.png"
+        },
+        {
+          "state": "ai_research_center",
+          "x": 96,
+          "y": 0,
+          "w": 96,
+          "h": 96,
+          "file": "sprites/building_icons_color_96px/01_ai_research_center.png"
+        },
+        {
+          "state": "energy_research_center",
+          "x": 192,
+          "y": 0,
+          "w": 96,
+          "h": 96,
+          "file": "sprites/building_icons_color_96px/02_energy_research_center.png"
+        },
+        {
+          "state": "datacenter_standard",
+          "x": 288,
+          "y": 0,
+          "w": 96,
+          "h": 96,
+          "file": "sprites/building_icons_color_96px/03_datacenter_standard.png"
+        },
+        {
+          "state": "datacenter_hyperscale",
+          "x": 0,
+          "y": 96,
+          "w": 96,
+          "h": 96,
+          "file": "sprites/building_icons_color_96px/04_datacenter_hyperscale.png"
+        },
+        {
+          "state": "gas_power_plant",
+          "x": 96,
+          "y": 96,
+          "w": 96,
+          "h": 96,
+          "file": "sprites/building_icons_color_96px/05_gas_power_plant.png"
+        },
+        {
+          "state": "nuclear_power_plant",
+          "x": 192,
+          "y": 96,
+          "w": 96,
+          "h": 96,
+          "file": "sprites/building_icons_color_96px/06_nuclear_power_plant.png"
+        },
+        {
+          "state": "wind_onshore",
+          "x": 288,
+          "y": 96,
+          "w": 96,
+          "h": 96,
+          "file": "sprites/building_icons_color_96px/07_wind_onshore.png"
+        },
+        {
+          "state": "wind_offshore",
+          "x": 0,
+          "y": 192,
+          "w": 96,
+          "h": 96,
+          "file": "sprites/building_icons_color_96px/08_wind_offshore.png"
+        },
+        {
+          "state": "solar_farm",
+          "x": 96,
+          "y": 192,
+          "w": 96,
+          "h": 96,
+          "file": "sprites/building_icons_color_96px/09_solar_farm.png"
+        },
+        {
+          "state": "hydro_dam",
+          "x": 192,
+          "y": 192,
+          "w": 96,
+          "h": 96,
+          "file": "sprites/building_icons_color_96px/10_hydro_dam.png"
+        },
+        {
+          "state": "battery_storage",
+          "x": 288,
+          "y": 192,
+          "w": 96,
+          "h": 96,
+          "file": "sprites/building_icons_color_96px/11_battery_storage.png"
+        },
+        {
+          "state": "air_cooling",
+          "x": 0,
+          "y": 288,
+          "w": 96,
+          "h": 96,
+          "file": "sprites/building_icons_color_96px/12_air_cooling.png"
+        },
+        {
+          "state": "river_cooling",
+          "x": 96,
+          "y": 288,
+          "w": 96,
+          "h": 96,
+          "file": "sprites/building_icons_color_96px/13_river_cooling.png"
+        },
+        {
+          "state": "sea_cooling",
+          "x": 192,
+          "y": 288,
+          "w": 96,
+          "h": 96,
+          "file": "sprites/building_icons_color_96px/14_sea_cooling.png"
+        },
+        {
+          "state": "geothermal_cooling",
+          "x": 288,
+          "y": 288,
+          "w": 96,
+          "h": 96,
+          "file": "sprites/building_icons_color_96px/15_geothermal_cooling.png"
+        }
+      ]
+    },
+    "notification_icons_64px": {
+      "spritesheet": "spritesheets/notification_icons_64px.png",
+      "cell_size_px": [
+        64,
+        64
+      ],
+      "states": [
+        "power",
+        "critical",
+        "cooling",
+        "research",
+        "market",
+        "grid",
+        "supply",
+        "system"
+      ],
+      "frames": [
+        {
+          "state": "power",
+          "x": 0,
+          "y": 0,
+          "w": 64,
+          "h": 64,
+          "file": "sprites/notification_icons_64px/00_power.png"
+        },
+        {
+          "state": "critical",
+          "x": 64,
+          "y": 0,
+          "w": 64,
+          "h": 64,
+          "file": "sprites/notification_icons_64px/01_critical.png"
+        },
+        {
+          "state": "cooling",
+          "x": 128,
+          "y": 0,
+          "w": 64,
+          "h": 64,
+          "file": "sprites/notification_icons_64px/02_cooling.png"
+        },
+        {
+          "state": "research",
+          "x": 192,
+          "y": 0,
+          "w": 64,
+          "h": 64,
+          "file": "sprites/notification_icons_64px/03_research.png"
+        },
+        {
+          "state": "market",
+          "x": 0,
+          "y": 64,
+          "w": 64,
+          "h": 64,
+          "file": "sprites/notification_icons_64px/04_market.png"
+        },
+        {
+          "state": "grid",
+          "x": 64,
+          "y": 64,
+          "w": 64,
+          "h": 64,
+          "file": "sprites/notification_icons_64px/05_grid.png"
+        },
+        {
+          "state": "supply",
+          "x": 128,
+          "y": 64,
+          "w": 64,
+          "h": 64,
+          "file": "sprites/notification_icons_64px/06_supply.png"
+        },
+        {
+          "state": "system",
+          "x": 192,
+          "y": 64,
+          "w": 64,
+          "h": 64,
+          "file": "sprites/notification_icons_64px/07_system.png"
+        }
+      ]
+    },
+    "category_icons_mono_64px": {
+      "spritesheet": "spritesheets/category_icons_mono_64px.png",
+      "cell_size_px": [
+        64,
+        64
+      ],
+      "states": [
+        "energy",
+        "datacenter",
+        "cooling",
+        "research",
+        "grid"
+      ],
+      "frames": [
+        {
+          "state": "energy",
+          "x": 0,
+          "y": 0,
+          "w": 64,
+          "h": 64,
+          "file": "sprites/category_icons_mono_64px/00_energy.png"
+        },
+        {
+          "state": "datacenter",
+          "x": 64,
+          "y": 0,
+          "w": 64,
+          "h": 64,
+          "file": "sprites/category_icons_mono_64px/01_datacenter.png"
+        },
+        {
+          "state": "cooling",
+          "x": 128,
+          "y": 0,
+          "w": 64,
+          "h": 64,
+          "file": "sprites/category_icons_mono_64px/02_cooling.png"
+        },
+        {
+          "state": "research",
+          "x": 192,
+          "y": 0,
+          "w": 64,
+          "h": 64,
+          "file": "sprites/category_icons_mono_64px/03_research.png"
+        },
+        {
+          "state": "grid",
+          "x": 256,
+          "y": 0,
+          "w": 64,
+          "h": 64,
+          "file": "sprites/category_icons_mono_64px/04_grid.png"
+        }
+      ]
+    },
+    "status_icons_mono_64px": {
+      "spritesheet": "spritesheets/status_icons_mono_64px.png",
+      "cell_size_px": [
+        64,
+        64
+      ],
+      "states": [
+        "energy",
+        "cooling",
+        "compute",
+        "grid",
+        "battery",
+        "science"
+      ],
+      "frames": [
+        {
+          "state": "energy",
+          "x": 0,
+          "y": 0,
+          "w": 64,
+          "h": 64,
+          "file": "sprites/status_icons_mono_64px/00_energy.png"
+        },
+        {
+          "state": "cooling",
+          "x": 64,
+          "y": 0,
+          "w": 64,
+          "h": 64,
+          "file": "sprites/status_icons_mono_64px/01_cooling.png"
+        },
+        {
+          "state": "compute",
+          "x": 128,
+          "y": 0,
+          "w": 64,
+          "h": 64,
+          "file": "sprites/status_icons_mono_64px/02_compute.png"
+        },
+        {
+          "state": "grid",
+          "x": 192,
+          "y": 0,
+          "w": 64,
+          "h": 64,
+          "file": "sprites/status_icons_mono_64px/03_grid.png"
+        },
+        {
+          "state": "battery",
+          "x": 256,
+          "y": 0,
+          "w": 64,
+          "h": 64,
+          "file": "sprites/status_icons_mono_64px/04_battery.png"
+        },
+        {
+          "state": "science",
+          "x": 320,
+          "y": 0,
+          "w": 64,
+          "h": 64,
+          "file": "sprites/status_icons_mono_64px/05_science.png"
+        }
+      ]
     }
   }
 }

@@ -107,6 +107,11 @@ const E_GRID_COMPONENT_BITMAP_TEXT_SCRIPT := preload("res://scripts/ui/component
 		utility_icon_state = value
 		queue_redraw()
 
+@export var utility_icon_component_name := "utility_icons_48px":
+	set(value):
+		utility_icon_component_name = value
+		queue_redraw()
+
 @export var icon_size := Vector2(30.0, 30.0):
 	set(value):
 		icon_size = value
@@ -358,7 +363,7 @@ func _draw_utility_icon(fitted_rect: Rect2) -> void:
 	if utility_icon_state.is_empty():
 		return
 
-	var icon_texture := E_GRID_UI_ATLAS.get_texture("utility_icons_48px", utility_icon_state)
+	var icon_texture := E_GRID_UI_ATLAS.get_texture(utility_icon_component_name, utility_icon_state)
 	if icon_texture == null:
 		return
 
@@ -446,7 +451,7 @@ func _draw_nine_slice(source_texture: Texture2D, target_rect: Rect2) -> void:
 	if target_rect.size.x <= 0.0 or target_rect.size.y <= 0.0:
 		return
 
-	var source_size := Vector2(source_texture.get_width(), source_texture.get_height())
+	var source_size := _nine_slice_source_size(source_texture)
 	if source_size.x <= 0.0 or source_size.y <= 0.0:
 		return
 
@@ -514,6 +519,14 @@ func _draw_nine_slice_part(source_texture: Texture2D, target_rect: Rect2, source
 			draw_texture_rect_region(source_texture, target_part, source_part)
 			x += tile_width
 		y += tile_height
+
+
+func _nine_slice_source_size(source_texture: Texture2D) -> Vector2:
+	var cell_size := E_GRID_UI_ATLAS.get_cell_size(component_name)
+	if cell_size != Vector2i.ZERO:
+		return Vector2(cell_size)
+
+	return Vector2(source_texture.get_width(), source_texture.get_height())
 
 
 func _source_scale(fitted_rect: Rect2) -> Vector2:

@@ -95,6 +95,10 @@ const FULL_CELL_LAYERS := [
 	set(value):
 		building_icon = value
 		_sync_visuals()
+@export_range(0.0, 1.0, 0.01) var building_icon_alpha := 1.0:
+	set(value):
+		building_icon_alpha = clampf(value, 0.0, 1.0)
+		_sync_visuals()
 @export_range(0, 5, 1) var pips_active := 0:
 	set(value):
 		pips_active = clampi(value, 0, 5)
@@ -283,6 +287,7 @@ func _sync_visuals() -> void:
 
 	if _building_icon != null:
 		_building_icon.texture = building_icon
+		_building_icon.modulate = Color(1.0, 1.0, 1.0, building_icon_alpha)
 		_building_icon.visible = building_icon != null
 
 	_set_texture_frame_region(_pips, _pips_states_texture, pips_active, CELL_SIZE, PIPS_SOURCE_RECT)
@@ -439,13 +444,14 @@ func _is_visually_disabled() -> bool:
 
 
 func _visual_key() -> String:
-	return "%s|%s|%s|%s|%s|%s|%d|%d|%d|%s|%s|%s|%s|%s" % [
+	return "%s|%s|%s|%s|%s|%s|%.2f|%d|%d|%d|%s|%s|%s|%s|%s" % [
 		base_state,
 		semantic_state,
 		str(locked),
 		str(drop_target),
 		str(drag_ghost),
 		str(button_pressed),
+		building_icon_alpha,
 		pips_active,
 		bottom_tier,
 		top_bars,
