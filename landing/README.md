@@ -84,9 +84,22 @@ Le workflow `.github/workflows/godot-release.yml` se déclenche à chaque tag. A
 - les assets `Docs/` et `egrid_region_editor_tool/assets/map/` référencés par les pages HTML ;
 - un `index.html` racine qui redirige vers `./landing/`.
 
-Le site est publié sur GitHub Pages. Le workflow ajoute l’URL du site aux notes de release et tente de mettre à jour le champ **Website** du dépôt avec l’URL retournée par `actions/deploy-pages`.
+Le site est publié sur GitHub Pages via `actions/upload-pages-artifact@v4` et `actions/deploy-pages@v5`.
 
-Si le `GITHUB_TOKEN` n’a pas assez de droits pour modifier les métadonnées du dépôt, ajouter un secret `REPO_ADMIN_TOKEN` autorisé à éditer le dépôt, puis relancer le workflow du tag.
+### Configuration Pages
+
+Le dépôt doit avoir GitHub Pages activé avec la source **GitHub Actions**.
+
+Deux options sont possibles :
+
+1. Configuration manuelle une fois pour toutes : `Settings` -> `Pages` -> `Build and deployment` -> `Source` -> `GitHub Actions`.
+2. Configuration automatisée par le workflow : ajouter un secret `REPO_ADMIN_TOKEN` autorisé à gérer les paramètres GitHub Pages du dépôt. Le workflow créera ou mettra à jour la configuration Pages avec `build_type=workflow` avant le déploiement.
+
+Sans secret `REPO_ADMIN_TOKEN`, le workflow vérifie explicitement que Pages est déjà activé et échoue avec un message actionnable au lieu de planter dans une action GitHub Pages.
+
+Après déploiement, le workflow ajoute l’URL du site aux notes de release et tente de mettre à jour le champ **Website** du dépôt avec l’URL retournée par `actions/deploy-pages`.
+
+Le même secret `REPO_ADMIN_TOKEN` peut aussi servir à modifier le champ **Website** du dépôt. Si le token par défaut n’a pas assez de droits, cette dernière étape affiche un warning sans bloquer le déploiement.
 
 ## Notes
 
