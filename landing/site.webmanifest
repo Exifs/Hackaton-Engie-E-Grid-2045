@@ -1,0 +1,19 @@
+{
+  "name": "E-Grid 2045",
+  "short_name": "E-Grid",
+  "description": "Jeu de stratégie énergétique sur la souveraineté IA européenne, jouable sur le web ou en build desktop.",
+  "lang": "fr",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#03080f",
+  "theme_color": "#06131d",
+  "icons": [
+    {
+      "src": "./favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
