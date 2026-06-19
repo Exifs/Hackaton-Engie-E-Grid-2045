@@ -1,0 +1,114 @@
+/* Polishing layer for the download page.
+   Keep this file after download.css so it can correct page-specific conflicts. */
+
+.download-builds .section-heading h2 {
+  font-size: clamp(2rem, 4vw, 3.8rem);
+  max-width: 920px;
+  margin-inline: auto;
+}
+
+.download-builds .section-heading p {
+  max-width: 760px;
+  margin-inline: auto;
+}
+
+/* Prevent the reactor orbit class from leaking onto the Linux build card. */
+.download-card.platform-linux {
+  inset: auto;
+  right: auto;
+  bottom: auto;
+  left: auto;
+  top: auto;
+  align-self: stretch;
+  animation: none;
+  transform: perspective(1000px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+}
+
+.download-card.platform-linux:hover,
+.download-card.platform-linux.is-recommended {
+  transform: perspective(1000px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+}
+
+.download-card {
+  min-height: 430px;
+}
+
+.download-card.is-recommended::after {
+  content: 'Build conseillé';
+}
+
+.download-card p {
+  margin-bottom: 30px;
+}
+
+.download-card .download-button {
+  margin-top: auto;
+}
+
+.download-flags span {
+  letter-spacing: 0.02em;
+}
+
+.partners-card {
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 0.8fr) auto;
+}
+
+.partner-pills {
+  display: grid;
+  gap: 12px;
+}
+
+.partner-pills span {
+  display: grid;
+  gap: 4px;
+  padding: 16px 18px;
+  border: 1px solid rgba(143, 247, 255, 0.16);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.04);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.partner-pills strong {
+  color: #fff;
+  font-weight: 950;
+  letter-spacing: -0.02em;
+}
+
+.partner-pills small {
+  color: var(--muted);
+}
+
+.discreet-source-actions {
+  min-width: 170px;
+}
+
+.discreet-source-actions .btn {
+  min-height: 46px;
+  font-size: 0.92rem;
+}
+
+.reward-terminal pre {
+  min-height: 260px;
+}
+
+@media (max-width: 1060px) {
+  .partners-card {
+    grid-template-columns: 1fr;
+  }
+
+  .discreet-source-actions {
+    display: flex;
+    flex-wrap: wrap;
+    min-width: 0;
+  }
+}
+
+@media (max-width: 760px) {
+  .download-builds .section-heading h2 {
+    font-size: clamp(2rem, 11vw, 3.2rem);
+  }
+
+  .download-card {
+    min-height: auto;
+  }
+}
