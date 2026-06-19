@@ -76,6 +76,18 @@ e-grid-2045-linux-x86_64-<tag>.zip
 
 Ces préfixes viennent de `.github/workflows/godot-release.yml` et le suffixe `<tag>` correspond au tag GitHub qui déclenche la release.
 
+## Déploiement GitHub Pages
+
+Le workflow `.github/workflows/godot-release.yml` se déclenche à chaque tag. Après la création de la GitHub Release, il prépare un artefact GitHub Pages contenant :
+
+- le répertoire `landing/` ;
+- les assets `Docs/` et `egrid_region_editor_tool/assets/map/` référencés par les pages HTML ;
+- un `index.html` racine qui redirige vers `./landing/`.
+
+Le site est publié sur GitHub Pages. Le workflow ajoute l’URL du site aux notes de release et tente de mettre à jour le champ **Website** du dépôt avec l’URL retournée par `actions/deploy-pages`.
+
+Si le `GITHUB_TOKEN` n’a pas assez de droits pour modifier les métadonnées du dépôt, ajouter un secret `REPO_ADMIN_TOKEN` autorisé à éditer le dépôt, puis relancer le workflow du tag.
+
 ## Notes
 
 - Aucun framework ni dépendance externe.
