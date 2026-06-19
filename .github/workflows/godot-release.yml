@@ -266,6 +266,12 @@ jobs:
             echo "No Web artifact zip found in web-artifact" >&2
             exit 1
           fi
+          web_zip_name="$(basename "${web_zip}")"
+          expected_web_zip="e-grid-2045-web-${GITHUB_REF_NAME}.zip"
+          if [[ "${web_zip_name}" != "${expected_web_zip}" ]]; then
+            echo "Downloaded Web artifact ${web_zip_name} does not match current release tag ${expected_web_zip}" >&2
+            exit 1
+          fi
 
           mkdir -p "${WEB_DIR}"
           unzip -q "${web_zip}" -d "${WEB_DIR}"
@@ -275,6 +281,20 @@ jobs:
               exit 1
             fi
           done
+
+          jq -n \
+            --arg tag "${GITHUB_REF_NAME}" \
+            --arg sha "${GITHUB_SHA}" \
+            --arg webArtifact "${web_zip_name}" \
+            --arg releaseUrl "https://github.com/${GITHUB_REPOSITORY}/releases/tag/${GITHUB_REF_NAME}" \
+            --arg playUrl "${ROOT_URL}play/" \
+            '{
+              tag: $tag,
+              sha: $sha,
+              web_artifact: $webArtifact,
+              release_url: $releaseUrl,
+              play_url: $playUrl
+            }' > "${SITE_DIR}/build-manifest.json"
 
           cat > "${SITE_DIR}/index.html" <<HTML
           <!doctype html>

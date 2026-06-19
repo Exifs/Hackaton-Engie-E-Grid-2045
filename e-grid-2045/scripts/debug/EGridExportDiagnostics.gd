@@ -74,9 +74,24 @@ static func log_tutorial_target(target_id: String, target: Variant, palette: Var
 	if palette is Control and target is Control:
 		var palette_rect := (palette as Control).get_global_rect().grow(1.0)
 		var target_rect := (target as Control).get_global_rect()
-		palette_state = " inside_palette=%s" % str(_rect_contains(palette_rect, target_rect))
+		palette_state = " palette_rect=%s inside_palette=%s" % [
+			_rect_to_string((palette as Control).get_global_rect()),
+			str(_rect_contains(palette_rect, target_rect)),
+		]
 
 	_log("tutorial_target id=%s target=%s%s" % [target_id, target_description, palette_state])
+
+
+static func log_tutorial_target_rejected(target_id: String, target: Variant, palette: Control) -> void:
+	if not is_enabled():
+		return
+
+	var palette_rect := palette.get_global_rect() if palette != null else Rect2()
+	_log("tutorial_target_rejected id=%s target=%s palette_rect=%s" % [
+		target_id,
+		_target_to_string(target),
+		_rect_to_string(palette_rect),
+	])
 
 
 static func log_tutorial_fallback(target_id: String, fallback: Rect2) -> void:

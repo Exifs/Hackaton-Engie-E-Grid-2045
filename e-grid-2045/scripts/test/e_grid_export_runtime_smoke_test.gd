@@ -22,6 +22,12 @@ const EXPECTED_BUILD_TARGETS := [
 	"build_menu.datacenter_button",
 	"build_menu.ai_research_center_button",
 ]
+const EXPECTED_BUILD_TARGET_IDS := {
+	"build_menu.river_cooling_button": "river_cooling",
+	"build_menu.datacenter_button": "datacenter_standard",
+	"build_menu.ai_research_center_button": "ai_research_center",
+}
+const COOLING_OVERLAY_PATH_SUFFIX := "ContentMargin/PaletteStack/OverlayPanel/CongestionRow/CongestionCheck"
 const EXPECTED_COOLING_BUILDINGS := [
 	"air_cooling",
 	"river_cooling",
@@ -156,6 +162,15 @@ func _validate_tutorial_target(target_id: String, palette: Control, target: Vari
 
 	if not _rect_contains(palette.get_global_rect().grow(1.0), target_rect):
 		_failures.append("Exported tutorial target is outside build palette bounds: %s" % target_id)
+
+	if EXPECTED_BUILD_TARGET_IDS.has(target_id):
+		var expected_building_id := str(EXPECTED_BUILD_TARGET_IDS[target_id])
+		var actual_building_id := str(control.get_meta("tutorial_building_id", ""))
+		if actual_building_id != expected_building_id:
+			_failures.append("Exported tutorial target %s resolved to %s instead of %s" % [target_id, actual_building_id, expected_building_id])
+
+	if target_id == "build_menu.cooling_overlay_button" and not str(control.get_path()).ends_with(COOLING_OVERLAY_PATH_SUFFIX):
+		_failures.append("Exported cooling overlay tutorial target resolved to unexpected path: %s" % str(control.get_path()))
 
 	var scroll := palette.get_node_or_null(CATEGORIES_SCROLL_PATH) as ScrollContainer
 	if scroll != null and scroll.is_ancestor_of(control):

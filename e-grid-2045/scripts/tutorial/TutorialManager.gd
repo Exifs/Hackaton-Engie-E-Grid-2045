@@ -5,6 +5,7 @@ signal tutorial_started
 signal tutorial_completed
 signal tutorial_skipped
 
+const EXPORT_DIAGNOSTICS := preload("res://scripts/debug/EGridExportDiagnostics.gd")
 const OVERLAY_SCENE := preload("res://scenes/ui/tutorial/TutorialOverlay.tscn")
 const DATA_PATH := "res://data/tutorial_first_loop.json"
 const CONFIG_PATH := "user://settings.cfg"
@@ -36,6 +37,7 @@ var _alert_signatures_seen := {}
 var _research_started_by_id := {}
 var _last_resource_values := {}
 var _last_construction_region_id := ""
+var _target_resolution_token := 0
 
 
 func setup(game_scene: Control, simulation_core: Node, targets: Dictionary) -> void:
@@ -239,11 +241,13 @@ func _reset_runtime_state() -> void:
 	_last_resource_values.clear()
 	_last_construction_region_id = ""
 	_timeout_token += 1
+	_target_resolution_token += 1
 
 
 func _stop_tutorial() -> void:
 	_active = false
 	_timeout_token += 1
+	_target_resolution_token += 1
 	_restore_pause_snapshot()
 	if _overlay != null and is_instance_valid(_overlay):
 		_overlay.hide_tutorial()
@@ -270,9 +274,21 @@ func _show_current_step() -> void:
 	if _overlay == null:
 		return
 
-	var target = _resolve_target(str(step.get("target", "")))
-	_overlay.show_step(step, _current_step_index + 1, _steps.size(), target)
-	_arm_step_timeout(step)
+	var step_index := _current_step_index
+	var step_snapshot := step.duplicate(true)
+	var target_id := str(step_snapshot.get("target", ""))
+	_target_resolution_token += 1
+	var resolution_token := _target_resolution_token
+	_prepare_target(target_id)
+	await get_tree().process_frame
+	await get_tree().process_frame
+	if not _active or resolution_token != _target_resolution_token or step_index != _current_step_index:
+		return
+
+	var target = _constrain_palette_target(target_id, _resolve_target(target_id))
+	EXPORT_DIAGNOSTICS.log_tutorial_target(target_id, target, _build_palette_target())
+	_overlay.show_step(step_snapshot, step_index + 1, _steps.size(), target)
+	_arm_step_timeout(step_snapshot)
 
 
 func _current_step() -> Dictionary:
@@ -575,9 +591,56 @@ func _array_contains_string(values: Array, needle: String) -> bool:
 	return false
 
 
+func _prepare_target(target_id: String) -> void:
+	if target_id.is_empty():
+		return
+
+	for target_variant in _targets.values():
+		if not (target_variant is Object):
+			continue
+		var target_object := target_variant as Object
+		if target_object.has_method("prepare_tutorial_target"):
+			target_object.call("prepare_tutorial_target", target_id)
+
+
+func _build_palette_target() -> Control:
+	var palette = _targets.get("build_menu.root", null)
+	if palette is Control and is_instance_valid(palette):
+		return palette
+	return null
+
+
+func _constrain_palette_target(target_id: String, target: Variant) -> Variant:
+	if not target_id.begins_with("build_menu."):
+		return target
+
+	var palette := _build_palette_target()
+	if palette == null:
+		return target
+
+	if target is Control and is_instance_valid(target):
+		var control := target as Control
+		var target_rect := control.get_global_rect()
+		if target_rect.size.x > 0.0 and target_rect.size.y > 0.0:
+			if _rect_contains(palette.get_global_rect().grow(1.0), target_rect):
+				return target
+		EXPORT_DIAGNOSTICS.log_tutorial_target_rejected(target_id, target, palette)
+		return palette
+
+	if target is Rect2:
+		var rect: Rect2 = target
+		if not _rect_contains(palette.get_global_rect().grow(1.0), rect):
+			EXPORT_DIAGNOSTICS.log_tutorial_target_rejected(target_id, target, palette)
+			return palette
+
+	return target
+
+
 func _resolve_target(target_id: String) -> Variant:
 	if target_id.is_empty():
-		return _fallback_rect()
+		var empty_fallback := _fallback_rect()
+		EXPORT_DIAGNOSTICS.log_tutorial_fallback(target_id, empty_fallback)
+		return empty_fallback
 	if _targets.has(target_id):
 		var direct = _targets[target_id]
 		if direct is Node and is_instance_valid(direct):
@@ -599,7 +662,18 @@ func _resolve_target(target_id: String) -> Variant:
 			if rect is Rect2 and rect.size.x > 0.0 and rect.size.y > 0.0:
 				return rect
 
-	return _fallback_rect()
+	var fallback := _fallback_rect()
+	EXPORT_DIAGNOSTICS.log_tutorial_fallback(target_id, fallback)
+	return fallback
+
+
+func _rect_contains(outer: Rect2, inner: Rect2) -> bool:
+	return (
+		inner.position.x >= outer.position.x
+		and inner.position.y >= outer.position.y
+		and inner.end.x <= outer.end.x
+		and inner.end.y <= outer.end.y
+	)
 
 
 func _target_context() -> Dictionary:

@@ -135,6 +135,10 @@ if [[ "${TARGET}" == "web" ]]; then
   done
 fi
 
+if [[ "${SKIP_EXPORT_AUDIT:-0}" != "1" ]]; then
+  bash "${ROOT_DIR}/.github/scripts/audit-godot-export.sh" "${GODOT_BIN}" "${PROJECT_ABS}" "${BUILD_DIR}" "${TARGET}"
+fi
+
 if [[ "${TARGET}" == "macos" ]]; then
   cp "${EXPORT_PATH}" "${PACKAGE_PATH}"
 else

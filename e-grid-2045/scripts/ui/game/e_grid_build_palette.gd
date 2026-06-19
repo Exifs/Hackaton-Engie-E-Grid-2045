@@ -5,6 +5,7 @@ signal build_requested(building_id: String)
 signal heatmap_mode_requested(mode: String)
 signal category_opened(category_id: String)
 
+const EXPORT_DIAGNOSTICS := preload("res://scripts/debug/EGridExportDiagnostics.gd")
 const COLLAPSIBLE_CONTENT_PATHS := [
 	^"ContentMargin/PaletteStack/OverlayPanel",
 	^"ContentMargin/PaletteStack/CategoriesScroll",
@@ -12,6 +13,7 @@ const COLLAPSIBLE_CONTENT_PATHS := [
 ]
 
 const CATEGORIES_SCROLL_PATH := ^"ContentMargin/PaletteStack/CategoriesScroll"
+const CATEGORY_SLOTS_GRID_PATH := ^"ContentMargin/CategoryRow/ToolsStack/SlotsGrid"
 const TUTORIAL_TARGET_SCROLL_PADDING := 14.0
 
 const CATEGORY_PATHS := {
@@ -282,6 +284,8 @@ func _sync_build_options() -> void:
 			category_node.set("disabled_tool_indices", disabled_indices)
 			category_node.set("selected_tool_index", selected_index)
 
+	EXPORT_DIAGNOSTICS.log_palette("build_palette_sync", self)
+
 
 func _group_buildings_by_category() -> Dictionary:
 	var grouped := {
@@ -339,6 +343,111 @@ func _sync_collapsed_state() -> void:
 		_set_property_if_available(button, "label_text", ">" if collapsed else "<")
 		_set_property_if_available(button, "text", "")
 		button.tooltip_text = "Expand build palette" if collapsed else "Collapse build palette"
+
+
+func get_export_diagnostics_snapshot() -> Dictionary:
+	var categories := {}
+	for category in CATEGORY_PATHS.keys():
+		var category_id := str(category)
+		var category_node := get_node_or_null(CATEGORY_PATHS[category_id]) as Control
+		categories[category_id] = _category_export_diagnostics(category_id, category_node)
+
+	return {
+		"collapsed": collapsed,
+		"rect": _rect_to_dictionary(get_global_rect()),
+		"size": _vector_to_dictionary(size),
+		"scroll": _scroll_export_diagnostics(),
+		"categories": categories,
+	}
+
+
+func _category_export_diagnostics(category_id: String, category_node: Control) -> Dictionary:
+	if category_node == null:
+		return {
+			"exists": false,
+			"ids": [],
+			"visible_ids": [],
+			"visible_count": 0,
+			"buttons": [],
+		}
+
+	var ids := _variant_to_string_array(category_node.get("tool_ids"))
+	var buttons := []
+	var visible_ids := []
+	var visible_count := 0
+	var slots_grid := category_node.get_node_or_null(CATEGORY_SLOTS_GRID_PATH) as GridContainer
+	if slots_grid != null:
+		for index in range(slots_grid.get_child_count()):
+			var button := slots_grid.get_child(index) as Control
+			if button == null:
+				continue
+			var button_id := str(button.get_meta("tutorial_building_id", ""))
+			if button_id.is_empty() and index < ids.size():
+				button_id = str(ids[index])
+			var is_button_visible := button.visible and button.is_visible_in_tree()
+			if is_button_visible:
+				visible_count += 1
+				if not button_id.is_empty():
+					visible_ids.append(button_id)
+			buttons.append({
+				"index": index,
+				"name": str(button.name),
+				"id": button_id,
+				"visible": is_button_visible,
+				"rect": _rect_to_dictionary(button.get_global_rect()),
+			})
+
+	return {
+		"exists": true,
+		"title": str(category_node.get("category_title")),
+		"rect": _rect_to_dictionary(category_node.get_global_rect()),
+		"ids": ids,
+		"visible_ids": visible_ids,
+		"visible_count": visible_count,
+		"buttons": buttons,
+	}
+
+
+func _scroll_export_diagnostics() -> Dictionary:
+	var scroll := get_node_or_null(CATEGORIES_SCROLL_PATH) as ScrollContainer
+	if scroll == null:
+		return {"exists": false}
+
+	var vertical_bar := scroll.get_v_scroll_bar()
+	var horizontal_bar := scroll.get_h_scroll_bar()
+	return {
+		"exists": true,
+		"rect": _rect_to_dictionary(scroll.get_global_rect()),
+		"scroll_vertical": scroll.scroll_vertical,
+		"scroll_vertical_max": vertical_bar.max_value if vertical_bar != null else 0.0,
+		"scroll_horizontal": scroll.scroll_horizontal,
+		"scroll_horizontal_max": horizontal_bar.max_value if horizontal_bar != null else 0.0,
+	}
+
+
+func _variant_to_string_array(value: Variant) -> Array:
+	var result := []
+	match typeof(value):
+		TYPE_ARRAY, TYPE_PACKED_STRING_ARRAY:
+			for item in value:
+				result.append(str(item))
+	return result
+
+
+func _rect_to_dictionary(rect: Rect2) -> Dictionary:
+	return {
+		"x": snappedf(rect.position.x, 0.1),
+		"y": snappedf(rect.position.y, 0.1),
+		"w": snappedf(rect.size.x, 0.1),
+		"h": snappedf(rect.size.y, 0.1),
+	}
+
+
+func _vector_to_dictionary(vector: Vector2) -> Dictionary:
+	return {
+		"x": snappedf(vector.x, 0.1),
+		"y": snappedf(vector.y, 0.1),
+	}
 
 
 func _set_property_if_available(target: Object, property_name: String, property_value: Variant) -> void:
