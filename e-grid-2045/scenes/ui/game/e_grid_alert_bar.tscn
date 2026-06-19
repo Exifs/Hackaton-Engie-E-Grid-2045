@@ -3,7 +3,7 @@
 [ext_resource type="Script" path="res://scripts/ui/game/e_grid_alert_bar.gd" id="1_alert_bar"]
 [ext_resource type="PackedScene" path="res://scenes/ui/game/e_grid_alert_item.tscn" id="2_alert_item"]
 [ext_resource type="PackedScene" path="res://scenes/ui/components/e_grid_panel.tscn" id="3_panel"]
-[ext_resource type="PackedScene" path="res://scenes/ui/components/e_grid_mini_button.tscn" id="4_mini_button"]
+[ext_resource type="PackedScene" path="res://scenes/ui/components/e_grid_chevron_button.tscn" id="4_chevron_button"]
 
 [node name="EGridAlertBar" type="Control"]
 custom_minimum_size = Vector2(0, 96)
@@ -85,12 +85,9 @@ body_text = "Battery prices decreased"
 action_name = "market_update"
 alert_state = "market_info"
 
-[node name="CollapseButton" parent="ContentMargin/AlertRow" instance=ExtResource("4_mini_button")]
+[node name="CollapseButton" parent="ContentMargin/AlertRow" instance=ExtResource("4_chevron_button")]
 custom_minimum_size = Vector2(46, 72)
 layout_mode = 2
-fit_to_source_size = false
-stretch_to_bounds = true
-nine_slice_enabled = true
-nine_slice_margins = Vector4(16, 16, 16, 16)
-nine_slice_tile_inner_regions = true
+direction = "down"
+chevron_count = 2
 label_text = "V"
