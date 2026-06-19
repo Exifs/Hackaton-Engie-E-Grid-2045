@@ -160,8 +160,9 @@ jobs:
             echo "GitHub Pages source branch: ${source_branch}${source_path}"
           fi
 
-          if [[ "${build_type:-workflow}" != "workflow" && "${HAS_REPO_ADMIN_TOKEN}" != "true" ]]; then
-            echo "::warning::GitHub Pages exists but may not be configured with Source = GitHub Actions. If deployment fails, switch Settings → Pages → Source to GitHub Actions or add REPO_ADMIN_TOKEN."
+          if [[ "${HAS_REPO_ADMIN_TOKEN}" != "true" && "${build_type}" != "workflow" && -n "${source_branch}" ]]; then
+            echo "::error::GitHub Pages is configured from branch ${source_branch}${source_path}. Switch Settings → Pages → Source to GitHub Actions, or add REPO_ADMIN_TOKEN so the workflow can set build_type=workflow."
+            exit 1
           fi
 
       - name: Prepare landing static website
