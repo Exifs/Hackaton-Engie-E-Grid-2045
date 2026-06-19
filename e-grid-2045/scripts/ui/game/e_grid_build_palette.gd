@@ -127,10 +127,16 @@ func get_tutorial_target_node(target_id: String) -> Control:
 			return get_node_or_null(CATEGORY_PATHS["cooling"]) as Control
 		"build_menu.research_category":
 			return get_node_or_null(CATEGORY_PATHS["research"]) as Control
+		"build_menu.wind_onshore_button":
+			return _button_for_building_id("energy", "wind_onshore")
+		"build_menu.river_cooling_button":
+			return _button_for_building_id("cooling", "river_cooling")
 		"build_menu.datacenter_button":
 			return _button_for_building_id("compute", "datacenter_standard")
 		"build_menu.university_button":
 			return _button_for_building_id("research", "university")
+		"build_menu.ai_research_center_button":
+			return _button_for_building_id("research", "ai_research_center")
 	return null
 
 
