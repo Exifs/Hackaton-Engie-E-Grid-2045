@@ -2,9 +2,13 @@ extends SceneTree
 
 const DATA_LOADER := preload("res://scripts/simulation/DataLoader.gd")
 const BUILD_PALETTE_SCENE := preload("res://scenes/ui/game/e_grid_build_palette.tscn")
+const TUTORIAL_MANAGER := preload("res://scripts/tutorial/TutorialManager.gd")
 const TUTORIAL_PATH := "res://data/tutorial_first_loop.json"
+const TEST_CONFIG_PATH := "user://tutorial_state_reset_test.cfg"
+const TEST_CONFIG_FILE := "tutorial_state_reset_test.cfg"
 const REQUIRED_STEP_KEYS := ["id", "title", "body", "objective", "required_event"]
 const NEW_BUILD_TARGETS := [
+	"build_menu.cooling_overlay_button",
 	"build_menu.wind_onshore_button",
 	"build_menu.river_cooling_button",
 	"build_menu.ai_research_center_button",
@@ -25,7 +29,9 @@ func _run() -> void:
 
 	_validate_step_shape(steps)
 	_validate_recommended_targets_present(steps)
+	_validate_cooling_heatmap_step(steps)
 	_validate_final_completion_step(steps)
+	_validate_tutorial_state_flags()
 	await _validate_palette_targets_resolve()
 	_report()
 
@@ -77,6 +83,36 @@ func _validate_recommended_targets_present(steps: Array) -> void:
 			_failures.append("Tutorial does not use new target: %s" % target_id)
 
 
+func _validate_cooling_heatmap_step(steps: Array) -> void:
+	var step := _find_step(steps, "cooling_heatmap")
+	if step.is_empty():
+		_failures.append("Tutorial is missing cooling_heatmap step")
+		return
+
+	if str(step.get("target", "")) != "build_menu.cooling_overlay_button":
+		_failures.append("Cooling heatmap step must highlight the clickable cooling overlay button")
+
+	if str(step.get("required_event", "")) != "heatmap_enabled":
+		_failures.append("Cooling heatmap step must be completed by enabling a heatmap")
+
+	var params: Dictionary = step.get("required_params", {})
+	if str(params.get("heatmap_id", "")) != "cooling":
+		_failures.append("Cooling heatmap step must require the cooling heatmap")
+
+	if step.has("allow_alternative_event"):
+		_failures.append("Cooling heatmap step must not be skippable by starting a cooling building")
+
+
+func _find_step(steps: Array, step_id: String) -> Dictionary:
+	for step_variant in steps:
+		if typeof(step_variant) != TYPE_DICTIONARY:
+			continue
+		var step: Dictionary = step_variant
+		if str(step.get("id", "")) == step_id:
+			return step
+	return {}
+
+
 func _validate_final_completion_step(steps: Array) -> void:
 	var final_step_variant = steps[steps.size() - 1]
 	if typeof(final_step_variant) != TYPE_DICTIONARY:
@@ -90,6 +126,60 @@ func _validate_final_completion_step(steps: Array) -> void:
 	var final_text := "%s %s" % [str(final_step.get("title", "")), str(final_step.get("body", ""))]
 	if not final_text.contains("Fin du tutoriel") or not final_text.contains("bats les USA"):
 		_failures.append("Final tutorial step must clearly announce autonomy and the USA objective")
+
+
+func _validate_tutorial_state_flags() -> void:
+	_delete_test_config()
+
+	var config := ConfigFile.new()
+	config.set_value("tutorial", "tutorial_first_loop_completed", true)
+	config.set_value("tutorial", "tutorial_first_loop_skipped", true)
+	config.set_value("sound", "master_volume", 42.0)
+	var error := config.save(TEST_CONFIG_PATH)
+	if error != OK:
+		_failures.append("Unable to save tutorial state test config: %s" % error_string(error))
+		return
+
+	if TUTORIAL_MANAGER.has_saved_completion_state(TEST_CONFIG_PATH):
+		_failures.append("Legacy tutorial flags must not block the v2 tutorial")
+
+	config.set_value("tutorial", "tutorial_first_loop_v2_skipped", true)
+	error = config.save(TEST_CONFIG_PATH)
+	if error != OK:
+		_failures.append("Unable to save active tutorial state test config: %s" % error_string(error))
+		_delete_test_config()
+		return
+
+	if not TUTORIAL_MANAGER.has_saved_completion_state(TEST_CONFIG_PATH):
+		_failures.append("Active v2 tutorial flags must block tutorial startup")
+
+	error = TUTORIAL_MANAGER.reset_saved_state_flags(TEST_CONFIG_PATH)
+	if error != OK:
+		_failures.append("Unable to reset tutorial state test config: %s" % error_string(error))
+		_delete_test_config()
+		return
+
+	var loaded := ConfigFile.new()
+	error = loaded.load(TEST_CONFIG_PATH)
+	if error != OK:
+		_failures.append("Unable to reload tutorial state test config: %s" % error_string(error))
+		_delete_test_config()
+		return
+
+	for key in TUTORIAL_MANAGER.get_reset_state_keys():
+		if loaded.has_section_key("tutorial", key):
+			_failures.append("Tutorial reset left state key in config: %s" % key)
+
+	if float(loaded.get_value("sound", "master_volume", -1.0)) != 42.0:
+		_failures.append("Tutorial reset must preserve unrelated settings sections")
+
+	_delete_test_config()
+
+
+func _delete_test_config() -> void:
+	var user_dir := DirAccess.open("user://")
+	if user_dir != null and user_dir.file_exists(TEST_CONFIG_FILE):
+		user_dir.remove(TEST_CONFIG_FILE)
 
 
 func _validate_palette_targets_resolve() -> void:
@@ -109,15 +199,39 @@ func _validate_palette_targets_resolve() -> void:
 	await process_frame
 	palette.call("set_build_context", buildings, {})
 	await process_frame
+	var emitted_heatmaps: Array[String] = []
+	if palette.has_signal("heatmap_mode_requested"):
+		palette.connect("heatmap_mode_requested", func(mode: String) -> void:
+			emitted_heatmaps.append(mode)
+		)
 
 	for target_id in NEW_BUILD_TARGETS:
 		var target = palette.call("get_tutorial_target_node", target_id)
 		if not (target is Control) or not is_instance_valid(target):
 			_failures.append("Palette target did not resolve to a valid Control: %s" % target_id)
+			continue
+		if target_id == "build_menu.cooling_overlay_button":
+			_validate_cooling_overlay_target(target, emitted_heatmaps)
 
 	root.remove_child(palette)
 	palette.free()
 	await process_frame
+
+
+func _validate_cooling_overlay_target(target: Variant, emitted_heatmaps: Array[String]) -> void:
+	if not (target is BaseButton):
+		_failures.append("Cooling overlay tutorial target must resolve to a clickable BaseButton")
+		return
+
+	var button := target as BaseButton
+	if button.disabled:
+		_failures.append("Cooling overlay tutorial target must be enabled")
+	if not button.is_visible_in_tree():
+		_failures.append("Cooling overlay tutorial target must be visible")
+
+	button.emit_signal("pressed")
+	if not emitted_heatmaps.has("cooling"):
+		_failures.append("Clicking the cooling overlay tutorial target must request the cooling heatmap")
 
 
 func _report() -> void:

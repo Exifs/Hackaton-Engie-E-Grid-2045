@@ -57,18 +57,14 @@
   },
   {
     "id": "cooling_heatmap",
-    "target": "dashboard.cooling_kpi",
+    "target": "build_menu.cooling_overlay_button",
     "title": "Repère le refroidissement",
-    "body": "Un datacenter a besoin de froid pour tourner à plein régime. France Nord a un bon potentiel et un tag fleuve, ce qui prépare bien le choix suivant.",
-    "objective": "Active l'overlay de refroidissement ou ouvre la catégorie Froid pour vérifier le potentiel.",
+    "body": "Un datacenter a besoin de froid pour tourner à plein régime. Active l'overlay froid dans la palette pour visualiser les régions les plus favorables avant de construire.",
+    "objective": "Clique sur le bouton d'overlay Froid mis en évidence.",
     "pause_simulation": false,
     "required_event": "heatmap_enabled",
     "required_params": {
       "heatmap_id": "cooling"
-    },
-    "allow_alternative_event": "build_menu_category_opened",
-    "alternative_params": {
-      "category_id": "cooling"
     }
   },
   {

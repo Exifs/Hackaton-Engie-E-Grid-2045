@@ -9,8 +9,10 @@ const OVERLAY_SCENE := preload("res://scenes/ui/tutorial/TutorialOverlay.tscn")
 const DATA_PATH := "res://data/tutorial_first_loop.json"
 const CONFIG_PATH := "user://settings.cfg"
 const CONFIG_SECTION := "tutorial"
-const COMPLETED_KEY := "tutorial_first_loop_completed"
-const SKIPPED_KEY := "tutorial_first_loop_skipped"
+const COMPLETED_KEY := "tutorial_first_loop_v2_completed"
+const SKIPPED_KEY := "tutorial_first_loop_v2_skipped"
+const LEGACY_COMPLETED_KEY := "tutorial_first_loop_completed"
+const LEGACY_SKIPPED_KEY := "tutorial_first_loop_skipped"
 const DEFAULT_RECOMMENDED_REGION := "fr_nord"
 
 var _game_scene: Control
@@ -55,7 +57,7 @@ func register_target(target_id: String, node: Node) -> void:
 func start_if_needed() -> void:
 	if _active:
 		return
-	if _has_saved_flag(COMPLETED_KEY) or _has_saved_flag(SKIPPED_KEY):
+	if has_saved_completion_state():
 		return
 	start(false)
 
@@ -66,7 +68,7 @@ func start(force: bool = false) -> void:
 	if _steps.is_empty():
 		push_warning("TutorialManager cannot start: no tutorial steps loaded.")
 		return
-	if not force and (_has_saved_flag(COMPLETED_KEY) or _has_saved_flag(SKIPPED_KEY)):
+	if not force and has_saved_completion_state():
 		return
 
 	_reset_runtime_state()
@@ -97,15 +99,50 @@ func complete() -> void:
 
 
 func reset_saved_state() -> void:
-	var config := ConfigFile.new()
-	config.load(CONFIG_PATH)
-	if config.has_section_key(CONFIG_SECTION, COMPLETED_KEY):
-		config.erase_section_key(CONFIG_SECTION, COMPLETED_KEY)
-	if config.has_section_key(CONFIG_SECTION, SKIPPED_KEY):
-		config.erase_section_key(CONFIG_SECTION, SKIPPED_KEY)
-	var error := config.save(CONFIG_PATH)
+	var error := reset_saved_state_flags()
 	if error != OK:
 		push_warning("TutorialManager could not reset tutorial flags. Error code: %d." % error)
+
+
+static func get_active_state_keys() -> Array[String]:
+	return [
+		COMPLETED_KEY,
+		SKIPPED_KEY,
+	]
+
+
+static func get_reset_state_keys() -> Array[String]:
+	return [
+		COMPLETED_KEY,
+		SKIPPED_KEY,
+		LEGACY_COMPLETED_KEY,
+		LEGACY_SKIPPED_KEY,
+	]
+
+
+static func has_saved_completion_state(config_path: String = CONFIG_PATH) -> bool:
+	var config := ConfigFile.new()
+	if config.load(config_path) != OK:
+		return false
+
+	for key in get_active_state_keys():
+		if bool(config.get_value(CONFIG_SECTION, key, false)):
+			return true
+
+	return false
+
+
+static func reset_saved_state_flags(config_path: String = CONFIG_PATH) -> int:
+	var config := ConfigFile.new()
+	var load_error := config.load(config_path)
+	if load_error != OK and load_error != ERR_FILE_NOT_FOUND:
+		return load_error
+
+	for key in get_reset_state_keys():
+		if config.has_section_key(CONFIG_SECTION, key):
+			config.erase_section_key(CONFIG_SECTION, key)
+
+	return config.save(config_path)
 
 
 func record_event(event_name: String, params: Dictionary = {}) -> void:
@@ -580,13 +617,6 @@ func _fallback_rect() -> Rect2:
 		return Rect2(Vector2(700.0, 360.0), Vector2(200.0, 120.0))
 	var screen_size := _game_scene.size
 	return Rect2(screen_size * 0.5 - Vector2(100.0, 60.0), Vector2(200.0, 120.0))
-
-
-func _has_saved_flag(key: String) -> bool:
-	var config := ConfigFile.new()
-	if config.load(CONFIG_PATH) != OK:
-		return false
-	return bool(config.get_value(CONFIG_SECTION, key, false))
 
 
 func _save_flag(key: String, value: bool) -> void:
