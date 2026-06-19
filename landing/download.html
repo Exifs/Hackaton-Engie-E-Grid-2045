@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang='fr'>
+<head>
+  <meta charset='utf-8'>
+  <meta name='viewport' content='width=device-width, initial-scale=1'>
+  <meta name='theme-color' content='#06131d'>
+  <meta name='description' content='Télécharger E-Grid 2045 pour Windows, macOS ou Linux depuis la page de download hackathon.'>
+  <title>Télécharger E-Grid 2045 — Hackathon Energie</title>
+  <link rel='stylesheet' href='./styles.css'>
+  <link rel='stylesheet' href='./download.css'>
+  <script src='./main.js' defer></script>
+  <script src='./download.js' defer></script>
+</head>
+<body class='download-page-body'>
+  <canvas id='energy-canvas' aria-hidden='true'></canvas>
+  <div class='noise' aria-hidden='true'></div>
+  <div class='aurora aurora-a' aria-hidden='true'></div>
+  <div class='aurora aurora-b' aria-hidden='true'></div>
+  <div class='scanline' aria-hidden='true'></div>
+  <div class='scroll-progress' aria-hidden='true'></div>
+
+  <header class='site-header'>
+    <a class='brand' href='./index.html#top' aria-label='Retour à la landing'>
+      <span class='brand-mark'>E</span>
+      <span class='brand-text'>E-GRID 2045</span>
+    </a>
+    <nav class='nav-links' aria-label='Navigation principale'>
+      <a href='./index.html#pitch'>Pitch</a>
+      <a href='./index.html#screens'>Captures</a>
+      <a href='./index.html#tooling'>Outils</a>
+      <a href='./download.html'>Télécharger</a>
+      <a href='https://github.com/Exifs/Hackaton-Engie-E-Grid-2045' target='_blank' rel='noreferrer'>GitHub</a>
+    </nav>
+    <a class='nav-cta' href='#builds'>Choisir un build</a>
+  </header>
+
+  <main>
+    <section class='download-hero section-shell'>
+      <div class='download-hero-copy reveal'>
+        <div class='eyebrow'>Prototype desktop · Windows · macOS · Linux</div>
+        <h1>Choisis ton build. Mets le réseau sous tension.</h1>
+        <p class='hero-lead'>Le téléchargement devient une mini-cérémonie : sélectionne ta plateforme, charge le cœur énergétique, récupère l’archive et lance E-Grid 2045 sur ta machine.</p>
+        <div class='hero-actions'>
+          <a class='btn btn-primary magnetic' href='#builds'>Télécharger maintenant</a>
+          <a class='btn btn-ghost magnetic' href='https://github.com/Exifs/Hackaton-Engie-E-Grid-2045' target='_blank' rel='noreferrer'>Voir le GitHub public</a>
+          <a class='btn btn-ghost magnetic' href='./index.html'>Retour landing</a>
+        </div>
+        <div class='download-flags' aria-label='Informations rapides'>
+          <span>Build desktop</span>
+          <span>Godot 4</span>
+          <span>Prototype hackathon</span>
+          <span>Release-ready links</span>
+        </div>
+      </div>
+
+      <div class='download-hero-visual reveal' data-depth='0.14'>
+        <div class='download-reactor' data-tilt>
+          <div class='reactor-ring reactor-ring-a'></div>
+          <div class='reactor-ring reactor-ring-b'></div>
+          <div class='reactor-ring reactor-ring-c'></div>
+          <div class='reactor-core'>
+            <span>BUILD CORE</span>
+            <strong>E-GRID</strong>
+            <small>2045</small>
+          </div>
+          <div class='platform-orbit platform-win' data-depth='0.34'>WIN</div>
+          <div class='platform-orbit platform-mac' data-depth='0.42'>MAC</div>
+          <div class='platform-orbit platform-linux' data-depth='0.38'>LINUX</div>
+          <div class='reactor-status'>
+            <span>DOWNLOAD BUS</span>
+            <strong>ARMED</strong>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id='builds' class='section-shell download-builds'>
+      <div class='section-heading centered reveal'>
+        <div class='section-kicker'>Choisir une plateforme</div>
+        <h2>Trois builds. Un même objectif : alimenter l’Europe sans la griller.</h2>
+        <p id='detected-platform'>Détection de la plateforme en cours…</p>
+      </div>
+
+      <div class='build-grid'>
+        <article class='download-card platform-windows reveal' data-tilt data-os='windows'>
+          <div class='card-glow'></div>
+          <div class='platform-badge'>Windows</div>
+          <div class='platform-symbol'>⊞</div>
+          <h3>Windows build</h3>
+          <p>Archive prête pour le demo day, pensée pour lancer vite sur une machine de présentation.</p>
+          <ul>
+            <li>Format attendu : `.zip`</li>
+            <li>Clavier / souris</li>
+            <li>Desktop export Godot</li>
+          </ul>
+          <a class='btn btn-primary magnetic download-button' href='https://github.com/Exifs/Hackaton-Engie-E-Grid-2045/releases/latest/download/E-Grid-2045-Windows.zip' data-platform='Windows' data-file='E-Grid-2045-Windows.zip'>Télécharger Windows</a>
+        </article>
+
+        <article class='download-card platform-macos reveal' data-tilt data-os='macos'>
+          <div class='card-glow'></div>
+          <div class='platform-badge'>macOS</div>
+          <div class='platform-symbol'>⌘</div>
+          <h3>macOS build</h3>
+          <p>Build Mac pour tester le prototype sur portable, branché à l’écran ou en présentation rapide.</p>
+          <ul>
+            <li>Format attendu : `.zip`</li>
+            <li>Apple Silicon / Intel selon export</li>
+            <li>Desktop export Godot</li>
+          </ul>
+          <a class='btn btn-primary magnetic download-button' href='https://github.com/Exifs/Hackaton-Engie-E-Grid-2045/releases/latest/download/E-Grid-2045-macOS.zip' data-platform='macOS' data-file='E-Grid-2045-macOS.zip'>Télécharger macOS</a>
+        </article>
+
+        <article class='download-card platform-linux reveal' data-tilt data-os='linux'>
+          <div class='card-glow'></div>
+          <div class='platform-badge'>Linux</div>
+          <div class='platform-symbol'>λ</div>
+          <h3>Linux build</h3>
+          <p>Build Linux pour les machines de dev, les stations de démo et les setups hackathon rapides.</p>
+          <ul>
+            <li>Format attendu : `.zip`</li>
+            <li>Exécutable desktop</li>
+            <li>Desktop export Godot</li>
+          </ul>
+          <a class='btn btn-primary magnetic download-button' href='https://github.com/Exifs/Hackaton-Engie-E-Grid-2045/releases/latest/download/E-Grid-2045-Linux.zip' data-platform='Linux' data-file='E-Grid-2045-Linux.zip'>Télécharger Linux</a>
+        </article>
+      </div>
+
+      <p class='release-note reveal'>Les boutons pointent vers les assets de la dernière GitHub Release. Quand le dépôt sera public, il suffira de publier les archives avec les noms indiqués pour activer les téléchargements directs.</p>
+    </section>
+
+    <section class='section-shell reward-section'>
+      <div class='reward-panel reveal' data-tilt>
+        <div class='reward-copy'>
+          <div class='section-kicker'>Récompense de téléchargement</div>
+          <h2>Chaque clic charge le cœur et déclenche la séquence.</h2>
+          <p>Au clic sur un build, la page affiche un overlay de lancement avec charge énergétique, confettis de particules et redirection vers l’archive. Le téléchargement devient un moment de démo, pas juste un bouton.</p>
+        </div>
+        <div class='reward-terminal' aria-label='Journal de build'>
+          <div class='terminal-top'><span></span><span></span><span></span><strong>egrid-download-bus</strong></div>
+          <pre id='download-log'>booting download bus...
+checking platform matrix...
+arming release channels...
+waiting for player input...</pre>
+        </div>
+      </div>
+    </section>
+
+    <section class='section-shell source-section'>
+      <div class='source-card reveal'>
+        <div>
+          <div class='section-kicker'>Code source</div>
+          <h2>Le GitHub sera la vitrine publique du prototype.</h2>
+          <p>Le lien est déjà posé pour le passage en public : landing, outil d’édition des régions, données data-driven et projet Godot restent accessibles depuis un seul repo.</p>
+        </div>
+        <div class='source-actions'>
+          <a class='btn btn-primary magnetic' href='https://github.com/Exifs/Hackaton-Engie-E-Grid-2045' target='_blank' rel='noreferrer'>Ouvrir le GitHub</a>
+          <a class='btn btn-ghost magnetic' href='https://github.com/Exifs/Hackaton-Engie-E-Grid-2045/releases/latest' target='_blank' rel='noreferrer'>Voir les Releases</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div id='downloadCeremony' class='download-ceremony' hidden aria-live='polite'>
+    <canvas id='confettiCanvas' aria-hidden='true'></canvas>
+    <div class='ceremony-panel'>
+      <button class='ceremony-close' type='button' aria-label='Fermer la séquence'>×</button>
+      <div class='ceremony-core'>
+        <div class='ceremony-ring'></div>
+        <strong>READY</strong>
+      </div>
+      <span class='ceremony-kicker'>DOWNLOAD UNLOCKED</span>
+      <h2 id='ceremony-title'>Build déverrouillé</h2>
+      <p id='ceremony-copy'>Préparation du téléchargement…</p>
+      <div class='ceremony-progress'><span></span></div>
+      <small>Si un asset n’est pas encore publié, ouvrir « Voir les Releases » pour vérifier les fichiers disponibles.</small>
+    </div>
+  </div>
+
+  <footer class='site-footer'>
+    <span>E-Grid 2045 · Téléchargements desktop</span>
+    <span><a href='./index.html'>Landing</a> · <a href='https://github.com/Exifs/Hackaton-Engie-E-Grid-2045' target='_blank' rel='noreferrer'>GitHub</a></span>
+  </footer>
+</body>
+</html>
