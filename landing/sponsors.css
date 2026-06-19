@@ -203,47 +203,59 @@
   text-underline-offset: 3px;
 }
 
-/* Hero readability hotfix: keep the first-screen title fully visible.
-   The previous title used a very tight line-height/letter-spacing combo that could clip
-   glyphs or overflow the hero column on narrow and intermediate widths. */
-.hero-copy {
-  min-width: 0;
+/* Keep the cinematic hero typography, but make the text layer win the stack. */
+.hero {
+  isolation: isolate;
   overflow: visible;
 }
 
+.hero-copy {
+  min-width: 0;
+  position: relative;
+  z-index: 30;
+  overflow: visible;
+}
+
+.hero-visual {
+  position: relative;
+  z-index: 5;
+}
+
 .hero h1 {
-  max-width: min(100%, 820px);
-  padding: 0.08em 0.08em 0.14em 0;
-  font-size: clamp(2.9rem, 6.6vw, 6.45rem);
-  line-height: 0.98;
-  letter-spacing: clamp(-0.055em, -0.65vw, -0.025em);
+  position: relative;
+  z-index: 31;
+  max-width: 900px;
+  padding: 0.08em 0.1em 0.16em 0;
+  font-size: clamp(3.4rem, 8vw, 7.8rem);
+  line-height: 0.86;
+  letter-spacing: -0.075em;
   text-wrap: balance;
-  overflow-wrap: normal;
+  overflow: visible;
 }
 
 @media (max-width: 1060px) {
   .hero h1 {
     max-width: min(100%, 900px);
-    font-size: clamp(3rem, 9vw, 5.6rem);
-    line-height: 1;
-    letter-spacing: -0.045em;
+    font-size: clamp(3.35rem, 9.6vw, 6.5rem);
+    line-height: 0.9;
+    letter-spacing: -0.068em;
   }
 }
 
 @media (max-width: 760px) {
   .hero h1 {
-    font-size: clamp(2.55rem, 12.5vw, 4.15rem);
-    line-height: 1.03;
-    letter-spacing: -0.035em;
+    font-size: clamp(3rem, 13.5vw, 5rem);
+    line-height: 0.95;
+    letter-spacing: -0.055em;
     padding-right: 0;
   }
 }
 
 @media (max-width: 480px) {
   .hero h1 {
-    font-size: clamp(2.35rem, 11.5vw, 3rem);
-    line-height: 1.06;
-    letter-spacing: -0.02em;
+    font-size: clamp(2.75rem, 13vw, 3.8rem);
+    line-height: 1;
+    letter-spacing: -0.04em;
     text-wrap: auto;
   }
 }
