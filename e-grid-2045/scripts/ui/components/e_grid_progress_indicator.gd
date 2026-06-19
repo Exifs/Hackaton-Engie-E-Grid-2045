@@ -41,6 +41,10 @@ var _value := 50.0
 	set(value):
 		value_label_color = value
 		_sync_label()
+@export var stretch_bar_to_bounds := true:
+	set(value):
+		stretch_bar_to_bounds = value
+		queue_redraw()
 
 var _display_value := 50.0
 var _value_label: Control
@@ -65,7 +69,7 @@ func _process(delta: float) -> void:
 
 
 func _draw() -> void:
-	var fitted_rect := E_GRID_UI_ATLAS.get_aspect_fit_rect(component_name, size)
+	var fitted_rect := _get_fitted_rect()
 	var base_texture := E_GRID_UI_ATLAS.get_texture(component_name, _base_state())
 	if base_texture == null:
 		draw_rect(fitted_rect, Color("#081115e6"), true)
@@ -212,8 +216,22 @@ func _progress_color() -> Color:
 
 
 func _source_rect_to_fitted(source_rect: Rect2, fitted_rect: Rect2) -> Rect2:
-	var source_scale := _source_scale(fitted_rect)
+	var source_size := E_GRID_UI_ATLAS.get_cell_size(component_name)
+	if source_size == Vector2i.ZERO:
+		return Rect2(fitted_rect.position + source_rect.position, source_rect.size)
+
+	var source_scale := Vector2(
+		fitted_rect.size.x / float(source_size.x),
+		fitted_rect.size.y / float(source_size.y)
+	)
 	return Rect2(fitted_rect.position + source_rect.position * source_scale, source_rect.size * source_scale)
+
+
+func _get_fitted_rect() -> Rect2:
+	if component_name == "progress_bar_states" and stretch_bar_to_bounds:
+		return Rect2(Vector2.ZERO, size)
+
+	return E_GRID_UI_ATLAS.get_aspect_fit_rect(component_name, size)
 
 
 func _source_scale(fitted_rect: Rect2) -> float:

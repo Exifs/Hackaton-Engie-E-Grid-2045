@@ -124,6 +124,12 @@ const FULL_CELL_LAYERS := [
 		status_badge_source_rect = value
 		_layout_layers()
 
+@export var preferred_size := CELL_SIZE:
+	set(value):
+		preferred_size = value
+		_apply_preferred_size()
+		_layout_layers()
+
 var _base: TextureRect
 var _building_icon: TextureRect
 var _pips: TextureRect
@@ -148,7 +154,7 @@ func _ready() -> void:
 	text = ""
 	flat = true
 	focus_mode = Control.FOCUS_ALL
-	custom_minimum_size = CELL_SIZE
+	_apply_preferred_size()
 	mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	_install_empty_button_styles()
 	_cache_layers()
@@ -185,6 +191,10 @@ func _connect_state_signals() -> void:
 	var toggled_call := Callable(self, "_on_toggled")
 	if not toggled.is_connected(toggled_call):
 		toggled.connect(toggled_call)
+
+
+func _apply_preferred_size() -> void:
+	custom_minimum_size = preferred_size
 
 
 func _on_toggled(_pressed: bool) -> void:

@@ -26,6 +26,27 @@ const E_GRID_COMPONENT_BITMAP_TEXT_SCRIPT := preload("res://scripts/ui/component
 		_sync_stretch_mode()
 		queue_redraw()
 
+@export var nine_slice_enabled := false:
+	set(value):
+		nine_slice_enabled = value
+		_sync_stretch_mode()
+		_sync_texture()
+
+@export var nine_slice_margins := Vector4(22.0, 22.0, 22.0, 22.0):
+	set(value):
+		nine_slice_margins = value
+		queue_redraw()
+
+@export var nine_slice_tile_inner_regions := false:
+	set(value):
+		nine_slice_tile_inner_regions = value
+		queue_redraw()
+
+@export var nine_slice_inner_fill_color := Color.TRANSPARENT:
+	set(value):
+		nine_slice_inner_fill_color = value
+		queue_redraw()
+
 @export var clear_placeholder_lines := true:
 	set(value):
 		clear_placeholder_lines = value
@@ -35,6 +56,7 @@ const E_GRID_COMPONENT_BITMAP_TEXT_SCRIPT := preload("res://scripts/ui/component
 @export var text_color := Color("#e0e8e8")
 
 var _text_layer: Control
+var _resolved_texture: Texture2D
 
 
 func _ready() -> void:
@@ -56,13 +78,18 @@ func set_state(value: String) -> void:
 	_sync_texture()
 
 
+func get_resolved_texture() -> Texture2D:
+	return _resolved_texture
+
+
 func _sync_texture() -> void:
 	var resolved_state := state_name
 
 	if not E_GRID_UI_ATLAS.has_state(component_name, resolved_state):
 		resolved_state = E_GRID_UI_ATLAS.get_first_available_state(component_name, [resolved_state])
 
-	texture = E_GRID_UI_ATLAS.get_texture(component_name, resolved_state)
+	_resolved_texture = E_GRID_UI_ATLAS.get_texture(component_name, resolved_state)
+	texture = null if nine_slice_enabled else _resolved_texture
 
 	if fit_to_source_size:
 		var cell_size := E_GRID_UI_ATLAS.get_cell_size(component_name)
@@ -73,6 +100,14 @@ func _sync_texture() -> void:
 
 
 func _draw() -> void:
+	if nine_slice_enabled:
+		var target_rect := _texture_rect()
+		if _resolved_texture != null:
+			_draw_nine_slice(_resolved_texture, target_rect)
+			_draw_nine_slice_inner_fill(target_rect)
+		else:
+			draw_rect(target_rect, Color("#081115e6"), true)
+
 	if not clear_placeholder_lines:
 		return
 
@@ -135,6 +170,10 @@ func _sync_text_layer_layout() -> void:
 
 
 func _sync_stretch_mode() -> void:
+	if nine_slice_enabled:
+		stretch_mode = TextureRect.STRETCH_KEEP
+		return
+
 	stretch_mode = TextureRect.STRETCH_SCALE if stretch_to_bounds else TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 
 
@@ -143,6 +182,95 @@ func _texture_rect() -> Rect2:
 		return Rect2(Vector2.ZERO, size)
 
 	return E_GRID_UI_ATLAS.get_aspect_fit_rect(component_name, size)
+
+
+func _draw_nine_slice_inner_fill(target_rect: Rect2) -> void:
+	if nine_slice_inner_fill_color.a <= 0.0:
+		return
+
+	var left := minf(nine_slice_margins.x, target_rect.size.x * 0.5)
+	var top := minf(nine_slice_margins.y, target_rect.size.y * 0.5)
+	var right := minf(nine_slice_margins.z, target_rect.size.x * 0.5)
+	var bottom := minf(nine_slice_margins.w, target_rect.size.y * 0.5)
+	var fill_size := target_rect.size - Vector2(left + right, top + bottom)
+	if fill_size.x <= 0.0 or fill_size.y <= 0.0:
+		return
+
+	draw_rect(Rect2(target_rect.position + Vector2(left, top), fill_size), nine_slice_inner_fill_color, true)
+
+
+func _draw_nine_slice(source_texture: Texture2D, target_rect: Rect2) -> void:
+	if target_rect.size.x <= 0.0 or target_rect.size.y <= 0.0:
+		return
+
+	var source_size := Vector2(source_texture.get_width(), source_texture.get_height())
+	if source_size.x <= 0.0 or source_size.y <= 0.0:
+		return
+
+	var source_left := clampf(nine_slice_margins.x, 0.0, source_size.x * 0.5)
+	var source_top := clampf(nine_slice_margins.y, 0.0, source_size.y * 0.5)
+	var source_right := clampf(nine_slice_margins.z, 0.0, source_size.x * 0.5)
+	var source_bottom := clampf(nine_slice_margins.w, 0.0, source_size.y * 0.5)
+	var target_left := minf(source_left, target_rect.size.x * 0.5)
+	var target_top := minf(source_top, target_rect.size.y * 0.5)
+	var target_right := minf(source_right, target_rect.size.x * 0.5)
+	var target_bottom := minf(source_bottom, target_rect.size.y * 0.5)
+
+	var source_x := PackedFloat32Array([0.0, source_left, source_size.x - source_right, source_size.x])
+	var source_y := PackedFloat32Array([0.0, source_top, source_size.y - source_bottom, source_size.y])
+	var target_x := PackedFloat32Array([
+		target_rect.position.x,
+		target_rect.position.x + target_left,
+		target_rect.end.x - target_right,
+		target_rect.end.x,
+	])
+	var target_y := PackedFloat32Array([
+		target_rect.position.y,
+		target_rect.position.y + target_top,
+		target_rect.end.y - target_bottom,
+		target_rect.end.y,
+	])
+
+	for y_index in range(3):
+		for x_index in range(3):
+			var source_part := Rect2(
+				Vector2(source_x[x_index], source_y[y_index]),
+				Vector2(source_x[x_index + 1] - source_x[x_index], source_y[y_index + 1] - source_y[y_index])
+			)
+			var target_part := Rect2(
+				Vector2(target_x[x_index], target_y[y_index]),
+				Vector2(target_x[x_index + 1] - target_x[x_index], target_y[y_index + 1] - target_y[y_index])
+			)
+
+			if source_part.size.x <= 0.0 or source_part.size.y <= 0.0:
+				continue
+			if target_part.size.x <= 0.0 or target_part.size.y <= 0.0:
+				continue
+
+			_draw_nine_slice_part(
+				source_texture,
+				target_part,
+				source_part,
+				nine_slice_tile_inner_regions and (x_index == 1 or y_index == 1)
+			)
+
+
+func _draw_nine_slice_part(source_texture: Texture2D, target_rect: Rect2, source_rect: Rect2, tile_region: bool) -> void:
+	if not tile_region:
+		draw_texture_rect_region(source_texture, target_rect, source_rect)
+		return
+
+	var y := target_rect.position.y
+	while y < target_rect.end.y - 0.01:
+		var tile_height := minf(source_rect.size.y, target_rect.end.y - y)
+		var x := target_rect.position.x
+		while x < target_rect.end.x - 0.01:
+			var tile_width := minf(source_rect.size.x, target_rect.end.x - x)
+			var source_part := Rect2(source_rect.position, Vector2(tile_width, tile_height))
+			var target_part := Rect2(Vector2(x, y), Vector2(tile_width, tile_height))
+			draw_texture_rect_region(source_texture, target_part, source_part)
+			x += tile_width
+		y += tile_height
 
 
 func _source_scale(fitted_rect: Rect2) -> float:

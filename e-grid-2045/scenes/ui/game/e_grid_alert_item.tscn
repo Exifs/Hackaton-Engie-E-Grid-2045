@@ -1,20 +1,32 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=7 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/game/e_grid_alert_item.gd" id="1_alert_item"]
 [ext_resource type="PackedScene" path="res://scenes/ui/components/e_grid_alert_toast.tscn" id="2_alert_toast"]
 [ext_resource type="PackedScene" path="res://scenes/ui/components/e_grid_mini_button.tscn" id="3_mini_button"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_title"]
-font_size = 10
+font_size = 9
 font_color = Color(0.933333, 0.345098, 0.141176, 1)
 
 [sub_resource type="LabelSettings" id="LabelSettings_body"]
-font_size = 9
+font_size = 8
 font_color = Color(0.878431, 0.909804, 0.909804, 0.86)
 
+[sub_resource type="StyleBoxFlat" id="StyleBox_icon_frame"]
+bg_color = Color(0.0352941, 0.0588235, 0.0666667, 0.62)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.27451, 0.372549, 0.388235, 0.72)
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 2
+
 [node name="EGridAlertItem" type="Control"]
-custom_minimum_size = Vector2(340, 68)
-size_flags_horizontal = 3
+custom_minimum_size = Vector2(284, 72)
+size_flags_horizontal = 0
 script = ExtResource("1_alert_item")
 
 [node name="ToastButton" parent="." instance=ExtResource("2_alert_toast")]
@@ -24,47 +36,86 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+component_name = "tab_states"
 label_text = ""
+fit_to_source_size = false
+stretch_to_bounds = true
+nine_slice_enabled = true
+nine_slice_margins = Vector4(18, 18, 18, 18)
+nine_slice_tile_inner_regions = true
+normal_state = "normal"
+hover_state = "hover"
+pressed_state = "pressed"
+selected_state = "selected"
+disabled_state = "disabled"
 
-[node name="TitleLabel" type="Label" parent="."]
+[node name="ContentMargin" type="MarginContainer" parent="."]
 layout_mode = 1
-anchors_preset = -1
+anchors_preset = 15
 anchor_right = 1.0
-offset_left = 72.0
-offset_top = 13.0
-offset_right = -88.0
-offset_bottom = 30.0
+anchor_bottom = 1.0
 grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="ContentRow" type="HBoxContainer" parent="ContentMargin"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="IconFrame" type="PanelContainer" parent="ContentMargin/ContentRow"]
+custom_minimum_size = Vector2(42, 42)
+layout_mode = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_icon_frame")
+
+[node name="Icon" type="TextureRect" parent="ContentMargin/ContentRow/IconFrame"]
+custom_minimum_size = Vector2(28, 28)
+layout_mode = 2
+mouse_filter = 2
+stretch_mode = 5
+
+[node name="TextBlock" type="VBoxContainer" parent="ContentMargin/ContentRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+theme_override_constants/separation = 5
+alignment = 1
+
+[node name="TitleLabel" type="Label" parent="ContentMargin/ContentRow/TextBlock"]
+layout_mode = 2
 text = "ALERT"
 label_settings = SubResource("LabelSettings_title")
 clip_text = true
 mouse_filter = 2
 
-[node name="BodyLabel" type="Label" parent="."]
-layout_mode = 1
-anchors_preset = -1
-anchor_right = 1.0
-offset_left = 72.0
-offset_top = 34.0
-offset_right = -88.0
-offset_bottom = 51.0
-grow_horizontal = 2
+[node name="BodyLabel" type="Label" parent="ContentMargin/ContentRow/TextBlock"]
+layout_mode = 2
 text = "Alert details"
 label_settings = SubResource("LabelSettings_body")
 clip_text = true
 mouse_filter = 2
 
-[node name="ActionButton" parent="." instance=ExtResource("3_mini_button")]
+[node name="ActionButton" parent="ContentMargin/ContentRow" instance=ExtResource("3_mini_button")]
+custom_minimum_size = Vector2(52, 30)
+layout_mode = 2
+label_text = "VIEW"
+label_scale_px = 0.16
+
+[node name="BottomAccent" type="ColorRect" parent="."]
 layout_mode = 1
 anchors_preset = -1
-anchor_left = 1.0
-anchor_top = 0.5
+anchor_top = 1.0
 anchor_right = 1.0
-anchor_bottom = 0.5
-offset_left = -68.0
-offset_top = -16.0
-offset_right = -10.0
-offset_bottom = 16.0
-grow_horizontal = 0
-grow_vertical = 2
-label_text = "VIEW"
+anchor_bottom = 1.0
+offset_left = 12.0
+offset_top = -3.0
+offset_right = -12.0
+offset_bottom = -2.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+color = Color(0.933333, 0.345098, 0.141176, 0.82)

@@ -15,6 +15,33 @@ const E_GRID_COMPONENT_BITMAP_TEXT_SCRIPT := preload("res://scripts/ui/component
 		label_text = value
 		_sync_label()
 
+@export var fit_to_source_size := true:
+	set(value):
+		fit_to_source_size = value
+		_sync_component()
+
+@export var stretch_to_bounds := false:
+	set(value):
+		stretch_to_bounds = value
+		_sync_label()
+		queue_redraw()
+
+@export var nine_slice_enabled := false:
+	set(value):
+		nine_slice_enabled = value
+		_sync_label()
+		queue_redraw()
+
+@export var nine_slice_margins := Vector4(12.0, 12.0, 12.0, 12.0):
+	set(value):
+		nine_slice_margins = value
+		queue_redraw()
+
+@export var nine_slice_tile_inner_regions := false:
+	set(value):
+		nine_slice_tile_inner_regions = value
+		queue_redraw()
+
 @export var normal_state := "normal":
 	set(value):
 		normal_state = value
@@ -95,6 +122,16 @@ const E_GRID_COMPONENT_BITMAP_TEXT_SCRIPT := preload("res://scripts/ui/component
 		disabled_label_color = value
 		_sync_label()
 
+@export var label_horizontal_alignment_override := "":
+	set(value):
+		label_horizontal_alignment_override = value
+		_sync_label()
+
+@export_range(0.0, 0.32, 0.01) var label_scale_px := 0.0:
+	set(value):
+		label_scale_px = value
+		_sync_label()
+
 var _label: Control
 
 
@@ -119,10 +156,13 @@ func _notification(what: int) -> void:
 func _draw() -> void:
 	var state := _get_state_name()
 	var texture := E_GRID_UI_ATLAS.get_texture(component_name, state)
-	var fitted_rect := E_GRID_UI_ATLAS.get_aspect_fit_rect(component_name, size)
+	var fitted_rect := _button_rect()
 
 	if texture != null:
-		draw_texture_rect(texture, fitted_rect, false)
+		if nine_slice_enabled:
+			_draw_nine_slice(texture, fitted_rect)
+		else:
+			draw_texture_rect(texture, fitted_rect, false)
 	else:
 		draw_rect(fitted_rect, Color("#081115e6"), true)
 
@@ -176,9 +216,10 @@ func _cache_label() -> void:
 func _sync_component() -> void:
 	var cell_size := E_GRID_UI_ATLAS.get_cell_size(component_name)
 
-	if cell_size != Vector2i.ZERO:
+	if fit_to_source_size and cell_size != Vector2i.ZERO:
 		custom_minimum_size = Vector2(cell_size)
 
+	_sync_label()
 	queue_redraw()
 
 
@@ -191,6 +232,8 @@ func _sync_label() -> void:
 
 	_label.set("text", label_text)
 	_label.set("font_color", disabled_label_color if disabled else label_color)
+	if label_scale_px > 0.0:
+		_label.set("scale_px", label_scale_px)
 	_apply_label_layout()
 	_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_label.queue_redraw()
@@ -216,7 +259,7 @@ func _apply_label_layout() -> void:
 		return
 
 	var source_rect := _label_source_rect()
-	var fitted_rect := E_GRID_UI_ATLAS.get_aspect_fit_rect(component_name, size)
+	var fitted_rect := _button_rect()
 	var source_scale := _source_scale(fitted_rect)
 
 	_label.set_anchors_preset(Control.PRESET_TOP_LEFT)
@@ -247,6 +290,9 @@ func _label_source_rect() -> Rect2:
 
 
 func _label_horizontal_alignment() -> String:
+	if not label_horizontal_alignment_override.is_empty():
+		return label_horizontal_alignment_override
+
 	if component_name in ["mini_button_states", "tab_states"]:
 		return "center"
 
@@ -332,6 +378,9 @@ func _draw_content_clear_rects(fitted_rect: Rect2) -> void:
 
 
 func _content_clear_rects() -> Array[Rect2]:
+	if component_name == "mini_button_states":
+		return [Rect2(12.0, 7.0, 34.0, 18.0)]
+
 	if component_name == "resource_chip_states":
 		return [Rect2(42.0, 7.0, 102.0, 18.0)]
 
@@ -341,12 +390,96 @@ func _content_clear_rects() -> Array[Rect2]:
 	return []
 
 
-func _source_scale(fitted_rect: Rect2) -> float:
+func _button_rect() -> Rect2:
+	if stretch_to_bounds or nine_slice_enabled:
+		return Rect2(Vector2.ZERO, size)
+
+	return E_GRID_UI_ATLAS.get_aspect_fit_rect(component_name, size)
+
+
+func _draw_nine_slice(source_texture: Texture2D, target_rect: Rect2) -> void:
+	if target_rect.size.x <= 0.0 or target_rect.size.y <= 0.0:
+		return
+
+	var source_size := Vector2(source_texture.get_width(), source_texture.get_height())
+	if source_size.x <= 0.0 or source_size.y <= 0.0:
+		return
+
+	var source_left := clampf(nine_slice_margins.x, 0.0, source_size.x * 0.5)
+	var source_top := clampf(nine_slice_margins.y, 0.0, source_size.y * 0.5)
+	var source_right := clampf(nine_slice_margins.z, 0.0, source_size.x * 0.5)
+	var source_bottom := clampf(nine_slice_margins.w, 0.0, source_size.y * 0.5)
+	var target_left := minf(source_left, target_rect.size.x * 0.5)
+	var target_top := minf(source_top, target_rect.size.y * 0.5)
+	var target_right := minf(source_right, target_rect.size.x * 0.5)
+	var target_bottom := minf(source_bottom, target_rect.size.y * 0.5)
+
+	var source_x := PackedFloat32Array([0.0, source_left, source_size.x - source_right, source_size.x])
+	var source_y := PackedFloat32Array([0.0, source_top, source_size.y - source_bottom, source_size.y])
+	var target_x := PackedFloat32Array([
+		target_rect.position.x,
+		target_rect.position.x + target_left,
+		target_rect.end.x - target_right,
+		target_rect.end.x,
+	])
+	var target_y := PackedFloat32Array([
+		target_rect.position.y,
+		target_rect.position.y + target_top,
+		target_rect.end.y - target_bottom,
+		target_rect.end.y,
+	])
+
+	for y_index in range(3):
+		for x_index in range(3):
+			var source_part := Rect2(
+				Vector2(source_x[x_index], source_y[y_index]),
+				Vector2(source_x[x_index + 1] - source_x[x_index], source_y[y_index + 1] - source_y[y_index])
+			)
+			var target_part := Rect2(
+				Vector2(target_x[x_index], target_y[y_index]),
+				Vector2(target_x[x_index + 1] - target_x[x_index], target_y[y_index + 1] - target_y[y_index])
+			)
+
+			if source_part.size.x <= 0.0 or source_part.size.y <= 0.0:
+				continue
+			if target_part.size.x <= 0.0 or target_part.size.y <= 0.0:
+				continue
+
+			_draw_nine_slice_part(
+				source_texture,
+				target_part,
+				source_part,
+				nine_slice_tile_inner_regions and (x_index == 1 or y_index == 1)
+			)
+
+
+func _draw_nine_slice_part(source_texture: Texture2D, target_rect: Rect2, source_rect: Rect2, tile_region: bool) -> void:
+	if not tile_region:
+		draw_texture_rect_region(source_texture, target_rect, source_rect)
+		return
+
+	var y := target_rect.position.y
+	while y < target_rect.end.y - 0.01:
+		var tile_height := minf(source_rect.size.y, target_rect.end.y - y)
+		var x := target_rect.position.x
+		while x < target_rect.end.x - 0.01:
+			var tile_width := minf(source_rect.size.x, target_rect.end.x - x)
+			var source_part := Rect2(source_rect.position, Vector2(tile_width, tile_height))
+			var target_part := Rect2(Vector2(x, y), Vector2(tile_width, tile_height))
+			draw_texture_rect_region(source_texture, target_part, source_part)
+			x += tile_width
+		y += tile_height
+
+
+func _source_scale(fitted_rect: Rect2) -> Vector2:
 	var source_size := E_GRID_UI_ATLAS.get_cell_size(component_name)
 	if source_size == Vector2i.ZERO:
-		return 1.0
+		return Vector2.ONE
 
-	return fitted_rect.size.x / float(source_size.x)
+	return Vector2(
+		fitted_rect.size.x / float(source_size.x),
+		fitted_rect.size.y / float(source_size.y)
+	)
 
 
 func _alignment_to_string(source_alignment: HorizontalAlignment) -> String:

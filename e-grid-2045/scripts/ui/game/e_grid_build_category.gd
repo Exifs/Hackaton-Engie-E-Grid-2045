@@ -1,8 +1,11 @@
 @tool
-extends VBoxContainer
+extends Control
 class_name EGridBuildCategory
 
 const ICON_BUTTON_SCENE := preload("res://scenes/ui/components/e_grid_icon_button.tscn")
+const PRIMARY_BUTTON_PATH := ^"ContentMargin/CategoryRow/PrimaryButton"
+const TITLE_LABEL_PATH := ^"ContentMargin/CategoryRow/ToolsStack/Header/TitleLabel"
+const SLOTS_GRID_PATH := ^"ContentMargin/CategoryRow/ToolsStack/SlotsGrid"
 const BUTTON_FAMILY_SELECTED_STATE := {
 	"energy": "energy_selected",
 	"datacenter": "datacenter_selected",
@@ -29,6 +32,7 @@ const BUTTON_FAMILY_SELECTED_STATE := {
 @export_enum("energy", "datacenter", "cooling", "research", "grid") var button_family := "energy":
 	set(value):
 		button_family = value
+		_sync_primary_button()
 		_sync_slots()
 
 @export_range(-1, 7, 1) var selected_tool_index := -1:
@@ -46,7 +50,7 @@ const BUTTON_FAMILY_SELECTED_STATE := {
 		columns = value
 		_sync_slots()
 
-@export var slot_min_size := Vector2(68.0, 68.0):
+@export var slot_min_size := Vector2(40.0, 40.0):
 	set(value):
 		slot_min_size = value
 		_sync_slots()
@@ -56,9 +60,15 @@ const BUTTON_FAMILY_SELECTED_STATE := {
 		auto_build_slots = value
 		_sync_slots()
 
+@export var primary_button_size := Vector2(52.0, 52.0):
+	set(value):
+		primary_button_size = value
+		_sync_primary_button()
+
 
 func _ready() -> void:
 	_sync_title()
+	_sync_primary_button()
 	_sync_slots()
 
 
@@ -66,7 +76,7 @@ func _sync_title() -> void:
 	if not is_inside_tree():
 		return
 
-	var title_label := get_node_or_null("Header/TitleLabel") as Label
+	var title_label := get_node_or_null(TITLE_LABEL_PATH) as Label
 
 	if title_label != null:
 		title_label.text = category_title
@@ -76,7 +86,9 @@ func _sync_slots() -> void:
 	if not is_inside_tree():
 		return
 
-	var slots_grid := get_node_or_null("SlotsGrid") as GridContainer
+	_sync_primary_button()
+
+	var slots_grid := get_node_or_null(SLOTS_GRID_PATH) as GridContainer
 
 	if slots_grid == null:
 		return
@@ -102,6 +114,7 @@ func _sync_slots() -> void:
 
 		_set_property_if_available(button, "label_text", "")
 		_set_property_if_available(button, "utility_icon_state", _tool_icon_state(index))
+		_set_property_if_available(button, "icon_size", _icon_size_for(slot_min_size, 0.54, 18.0, 23.0))
 		_apply_button_family(button)
 
 
@@ -121,6 +134,27 @@ func _ensure_slot_count(slots_grid: GridContainer) -> void:
 			button.owner = get_tree().edited_scene_root
 
 
+func _sync_primary_button() -> void:
+	if not is_inside_tree():
+		return
+
+	var button := get_node_or_null(PRIMARY_BUTTON_PATH) as BaseButton
+	if button == null:
+		return
+
+	button.custom_minimum_size = primary_button_size
+	button.focus_mode = Control.FOCUS_ALL
+	button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	button.disabled = false
+	button.button_pressed = true
+	button.tooltip_text = category_title
+
+	_set_property_if_available(button, "label_text", "")
+	_set_property_if_available(button, "utility_icon_state", _category_icon_state())
+	_set_property_if_available(button, "icon_size", _icon_size_for(primary_button_size, 0.58, 28.0, 34.0))
+	_apply_button_family(button)
+
+
 func _apply_button_family(button: BaseButton) -> void:
 	var selected_state := str(BUTTON_FAMILY_SELECTED_STATE.get(button_family, "energy_selected"))
 	var normal_state := "energy_normal" if button_family == "energy" else selected_state
@@ -137,6 +171,10 @@ func _tool_icon_state(index: int) -> String:
 	if index < tool_icon_states.size():
 		return str(tool_icon_states[index])
 
+	return _category_icon_state()
+
+
+func _category_icon_state() -> String:
 	match button_family:
 		"datacenter":
 			return "datacenter"
@@ -158,3 +196,8 @@ func _set_property_if_available(target: Object, property_name: String, property_
 		if str(property.get("name", "")) == property_name:
 			target.set(property_name, property_value)
 			return
+
+
+func _icon_size_for(button_size: Vector2, scale_factor: float, min_edge: float, max_edge: float) -> Vector2:
+	var edge := clampf(minf(button_size.x, button_size.y) * scale_factor, min_edge, max_edge)
+	return Vector2(edge, edge)

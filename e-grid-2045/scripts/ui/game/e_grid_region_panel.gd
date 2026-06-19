@@ -2,6 +2,8 @@
 extends Control
 class_name EGridRegionPanel
 
+const E_GRID_UI_ATLAS := preload("res://scripts/ui/components/e_grid_ui_atlas.gd")
+
 const TAB_BUTTONS := {
 	"overview": "ContentMargin/PanelStack/TabButtons/OverviewTab",
 	"buildings": "ContentMargin/PanelStack/TabButtons/BuildingsTab",
@@ -16,7 +18,6 @@ const TAB_PAGES := {
 
 const COLLAPSIBLE_CONTENT_PATHS := [
 	^"ContentMargin/PanelStack/LevelRow",
-	^"ContentMargin/PanelStack/XpBar",
 	^"ContentMargin/PanelStack/TabButtons",
 	^"ContentMargin/PanelStack/TabPages",
 	^"ContentMargin/PanelStack/FooterRow",
@@ -49,6 +50,11 @@ const COLLAPSIBLE_CONTENT_PATHS := [
 		level_text = value
 		_sync()
 
+@export var level_badge_text := "0":
+	set(value):
+		level_badge_text = value
+		_sync()
+
 @export var xp_text := "0 / 0 XP":
 	set(value):
 		xp_text = value
@@ -74,6 +80,8 @@ const COLLAPSIBLE_CONTENT_PATHS := [
 	"HVDC Substation",
 	"Compute Campus",
 	"Liquid Cooling",
+	"Storage Hub",
+	"Control Node",
 	"Reserved Slot",
 	"Reserved Slot",
 ]):
@@ -81,20 +89,36 @@ const COLLAPSIBLE_CONTENT_PATHS := [
 		building_slot_labels = value
 		_sync_slots()
 
-@export var building_slot_locked_indices := PackedInt32Array([4, 5]):
+@export var building_slot_locked_indices := PackedInt32Array([6, 7]):
 	set(value):
 		building_slot_locked_indices = value
 		_sync_slots()
 
-@export var building_slot_pips := PackedInt32Array([5, 4, 3, 4, 0, 0]):
+@export var building_slot_pips := PackedInt32Array([5, 4, 3, 4, 4, 3, 0, 0]):
 	set(value):
 		building_slot_pips = value
+		_sync_slots()
+
+@export var building_slot_icon_states := PackedStringArray([
+	"datacenter",
+	"energy",
+	"grid",
+	"cooling",
+	"battery",
+	"compute",
+	"",
+	"",
+]):
+	set(value):
+		building_slot_icon_states = value
 		_sync_slots()
 
 @export var building_slot_semantic_states := PackedStringArray([
 	"normal",
 	"normal",
 	"warning",
+	"normal",
+	"normal",
 	"normal",
 	"disabled",
 	"disabled",
@@ -118,6 +142,11 @@ const COLLAPSIBLE_CONTENT_PATHS := [
 		module_slot_pips = value
 		_sync_slots()
 
+@export var module_slot_icon_states := PackedStringArray(["energy", "cooling", ""]):
+	set(value):
+		module_slot_icon_states = value
+		_sync_slots()
+
 
 func _ready() -> void:
 	clip_contents = true
@@ -134,15 +163,20 @@ func _sync() -> void:
 		return
 
 	var title_label := get_node_or_null("ContentMargin/PanelStack/HeaderRow/RegionNameLabel") as Label
-	var level_label := get_node_or_null("ContentMargin/PanelStack/LevelRow/LevelLabel") as Label
-	var xp_label := get_node_or_null("ContentMargin/PanelStack/LevelRow/XpLabel") as Label
-	var xp_bar := get_node_or_null("ContentMargin/PanelStack/XpBar")
+	var level_badge := get_node_or_null("ContentMargin/PanelStack/LevelRow/LevelBadge") as BaseButton
+	var level_label := get_node_or_null("ContentMargin/PanelStack/LevelRow/LevelInfoStack/LevelMetaRow/LevelLabel") as Label
+	var xp_label := get_node_or_null("ContentMargin/PanelStack/LevelRow/LevelInfoStack/LevelMetaRow/XpLabel") as Label
+	var xp_bar := get_node_or_null("ContentMargin/PanelStack/LevelRow/LevelInfoStack/XpBar")
 
 	if title_label != null:
 		title_label.text = region_name
 
 	if level_label != null:
 		level_label.text = level_text
+
+	if level_badge != null:
+		_set_property_if_available(level_badge, "label_text", level_badge_text)
+		_set_property_if_available(level_badge, "text", "")
 
 	if xp_label != null:
 		xp_label.text = xp_text
@@ -196,7 +230,7 @@ func _sync_collapsed_state() -> void:
 
 	var button := get_node_or_null(collapse_button_path) as BaseButton
 	if button != null:
-		_set_property_if_available(button, "label_text", "<" if collapsed else ">")
+		_set_property_if_available(button, "label_text", "<" if collapsed else "X")
 		_set_property_if_available(button, "text", "")
 		button.tooltip_text = "Expand region inspector" if collapsed else "Collapse region inspector"
 
@@ -225,11 +259,13 @@ func _sync_slots() -> void:
 	if not is_inside_tree():
 		return
 
+	_sync_building_slot_count()
 	_sync_slot_grid(
 		"ContentMargin/PanelStack/TabPages/Overview/BuildingSlotsGrid",
 		building_slot_labels,
 		building_slot_locked_indices,
 		building_slot_pips,
+		building_slot_icon_states,
 		building_slot_semantic_states
 	)
 	_sync_slot_grid(
@@ -237,8 +273,22 @@ func _sync_slots() -> void:
 		module_slot_labels,
 		module_slot_locked_indices,
 		module_slot_pips,
+		module_slot_icon_states,
 		PackedStringArray()
 	)
+
+
+func _sync_building_slot_count() -> void:
+	var count_label := get_node_or_null("ContentMargin/PanelStack/TabPages/Overview/BuildingSlotsHeader/BuildingSlotsCount") as Label
+	if count_label == null:
+		return
+
+	var active_count := 0
+	for index in range(building_slot_labels.size()):
+		if not building_slot_locked_indices.has(index):
+			active_count += 1
+
+	count_label.text = "%d / %d" % [active_count, building_slot_labels.size()]
 
 
 func _sync_slot_grid(
@@ -246,6 +296,7 @@ func _sync_slot_grid(
 	slot_labels: PackedStringArray,
 	locked_indices: PackedInt32Array,
 	pips: PackedInt32Array,
+	icon_states: PackedStringArray,
 	semantic_states: PackedStringArray
 ) -> void:
 	var grid := get_node_or_null(grid_path) as GridContainer
@@ -269,11 +320,19 @@ func _sync_slot_grid(
 		_set_property_if_available(slot, "locked", locked)
 		_set_property_if_available(slot, "semantic_state", semantic_state)
 		_set_property_if_available(slot, "base_state", "auto")
+		_set_property_if_available(slot, "building_icon", _slot_icon_texture(icon_states[index] if index < icon_states.size() else ""))
 		_set_property_if_available(slot, "pips_active", pips[index] if index < pips.size() else 0)
 		_set_property_if_available(slot, "bottom_tier", 1 if has_slot and not locked else 0)
 		_set_property_if_available(slot, "top_bars", 1 if semantic_state == "warning" else 0)
 		_set_property_if_available(slot, "show_state_overlay", false)
 		_set_property_if_available(slot, "show_status_badge", false)
+
+
+func _slot_icon_texture(icon_state: String) -> Texture2D:
+	if icon_state.strip_edges().is_empty():
+		return null
+
+	return E_GRID_UI_ATLAS.get_texture("utility_icons_48px", icon_state)
 
 
 func _set_property_if_available(target: Object, property_name: String, property_value: Variant) -> void:

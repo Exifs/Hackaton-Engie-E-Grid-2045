@@ -11,3 +11,7 @@ offset_bottom = 260.0
 script = ExtResource("1_state")
 component_name = "panel_states"
 state_name = "panel"
+nine_slice_enabled = true
+nine_slice_margins = Vector4(24, 24, 24, 24)
+nine_slice_tile_inner_regions = true
+nine_slice_inner_fill_color = Color(0.0627451, 0.117647, 0.137255, 0.46)

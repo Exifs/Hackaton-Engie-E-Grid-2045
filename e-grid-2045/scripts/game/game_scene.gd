@@ -10,10 +10,11 @@ const DEFAULT_MENU_SCENE := "res://scenes/main_menu.tscn"
 @export_node_path("Control") var map_view_path: NodePath = ^"SafeArea/Root/MainRow/MapView"
 @export_node_path("Control") var region_panel_path: NodePath = ^"SafeArea/Root/MainRow/RegionPanel"
 @export_node_path("Control") var alert_bar_path: NodePath = ^"SafeArea/Root/AlertBar"
-@export_node_path("Button") var menu_button_path: NodePath = ^"SafeArea/Root/TopBar/ContentMargin/MainRow/MenuButton"
-@export_node_path("Button") var pause_button_path: NodePath = ^"SafeArea/Root/TopBar/ContentMargin/MainRow/SpeedBlock/SpeedControls/PauseButton"
-@export_node_path("Button") var play_button_path: NodePath = ^"SafeArea/Root/TopBar/ContentMargin/MainRow/SpeedBlock/SpeedControls/PlayButton"
-@export_node_path("Button") var fast_button_path: NodePath = ^"SafeArea/Root/TopBar/ContentMargin/MainRow/SpeedBlock/SpeedControls/FastButton"
+@export_node_path("Button") var menu_button_path: NodePath = ^"SafeArea/Root/TopBar/ContentMargin/MainRow/MenuSegment/MenuButton"
+@export_node_path("Button") var pause_button_path: NodePath = ^"SafeArea/Root/TopBar/ContentMargin/MainRow/SpeedSegment/SpeedBlock/SpeedControls/PauseButton"
+@export_node_path("Button") var play_button_path: NodePath = ^"SafeArea/Root/TopBar/ContentMargin/MainRow/SpeedSegment/SpeedBlock/SpeedControls/PlayButton"
+@export_node_path("Button") var fast_button_path: NodePath = ^"SafeArea/Root/TopBar/ContentMargin/MainRow/SpeedSegment/SpeedBlock/SpeedControls/FastButton"
+@export_node_path("Button") var faster_button_path: NodePath = ^"SafeArea/Root/TopBar/ContentMargin/MainRow/SpeedSegment/SpeedBlock/SpeedControls/FasterButton"
 @export_node_path("Node") var input_controller_path: NodePath = ^"InputController"
 
 var _top_bar: Control
@@ -69,6 +70,7 @@ func _wire_navigation() -> void:
 	_connect_button_once(pause_button_path, Callable(self, "_on_pause_button_pressed"))
 	_connect_button_once(play_button_path, Callable(self, "_on_play_button_pressed"))
 	_connect_button_once(fast_button_path, Callable(self, "_on_fast_button_pressed"))
+	_connect_button_once(faster_button_path, Callable(self, "_on_faster_button_pressed"))
 
 
 func _request_return_to_menu() -> void:
@@ -101,6 +103,12 @@ func _on_fast_button_pressed() -> void:
 	_sync_simulation_status()
 
 
+func _on_faster_button_pressed() -> void:
+	_simulation_paused = false
+	_simulation_speed = 4.0
+	_sync_simulation_status()
+
+
 func _on_speed_requested(speed_multiplier: float) -> void:
 	_simulation_speed = maxf(speed_multiplier, 0.0)
 	_simulation_paused = false
@@ -118,7 +126,8 @@ func _sync_simulation_status() -> void:
 
 	_top_bar.set("pause_active", _simulation_paused)
 	_top_bar.set("play_active", not _simulation_paused and _simulation_speed <= 1.0)
-	_top_bar.set("fast_active", not _simulation_paused and _simulation_speed > 1.0)
+	_top_bar.set("fast_active", not _simulation_paused and _simulation_speed > 1.0 and _simulation_speed <= 2.0)
+	_top_bar.set("faster_active", not _simulation_paused and _simulation_speed > 2.0)
 
 
 func _change_scene_to_menu() -> void:
