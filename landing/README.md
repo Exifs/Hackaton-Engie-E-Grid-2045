@@ -26,12 +26,21 @@ http://127.0.0.1:8080/landing/download.html
 
 ## Contenu
 
-- `index.html` : structure de la landing, sections pitch, captures, vidéo placeholder, outil de régions, lien GitHub et CTA de téléchargement.
-- `download.html` : page dédiée aux téléchargements Windows, macOS et Linux avec hero 3D, cartes de builds et séquence de récompense au clic.
+- `index.html` : structure de la landing, sections pitch, captures, vidéo placeholder, outil de régions, lien GitHub discret et CTA de téléchargement.
+- `download.html` : page dédiée aux téléchargements Windows, macOS et Linux, avec texte centré sur le projet et les partenaires.
 - `styles.css` : DA premium commune, layout responsive, glass panels, cartes 3D, halos, ticker, video shell.
 - `download.css` : effets spécifiques à la page de download : réacteur 3D, cartes OS, overlay de cérémonie, terminal et responsive.
+- `download-polish.css` : correctifs de layout, notamment le conflit de classe Linux, plus les styles du bloc partenaires.
 - `main.js` : canvas de réseau énergétique, tilt 3D, parallax souris, magnetic buttons, reveal au scroll et barre de progression.
 - `download.js` : détection OS, mise en avant du build recommandé, terminal animé, overlay de téléchargement et confettis canvas.
+
+## Partenaires affichés
+
+La landing et la page de téléchargement mentionnent :
+
+- DefendIntelligence, streamer Twitch ;
+- ENGIE ;
+- OpenAI.
 
 ## Assets utilisés
 
