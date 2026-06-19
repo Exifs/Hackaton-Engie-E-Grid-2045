@@ -48,6 +48,7 @@ func _sync() -> void:
 	var icon := get_node_or_null("ContentMargin/ContentRow/IconFrame/Icon") as TextureRect
 	var icon_frame := get_node_or_null("ContentMargin/ContentRow/IconFrame") as PanelContainer
 	var bottom_accent := get_node_or_null("BottomAccent") as ColorRect
+	var frame_overlay := get_node_or_null("FrameOverlay") as Control
 	var composed_text := title_text if body_text.is_empty() else "%s / %s" % [title_text, body_text]
 	var accent_color := _accent_color()
 
@@ -71,6 +72,10 @@ func _sync() -> void:
 
 	if bottom_accent != null:
 		bottom_accent.color = Color(accent_color.r, accent_color.g, accent_color.b, 0.82)
+
+	if frame_overlay != null:
+		_set_property_if_available(frame_overlay, "alert_state", alert_state)
+		frame_overlay.queue_redraw()
 
 	if action_button != null:
 		_set_property_if_available(action_button, "label_text", action_text)

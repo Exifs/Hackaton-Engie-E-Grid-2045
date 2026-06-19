@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=3]
+[gd_scene load_steps=16 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/game/e_grid_region_panel.gd" id="1_region_panel"]
 [ext_resource type="PackedScene" path="res://scenes/ui/game/e_grid_stat_bar.tscn" id="2_stat_bar"]
@@ -8,6 +8,7 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/components/e_grid_tab.tscn" id="6_tab"]
 [ext_resource type="PackedScene" path="res://scenes/ui/components/e_grid_slot_card.tscn" id="7_slot_card"]
 [ext_resource type="PackedScene" path="res://scenes/ui/components/e_grid_action_button.tscn" id="8_action_button"]
+[ext_resource type="Script" path="res://scripts/ui/game/e_grid_region_panel_chrome.gd" id="9_panel_chrome"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_title"]
 font_size = 16
@@ -356,3 +357,13 @@ layout_mode = 2
 size_flags_horizontal = 3
 tooltip_text = "Manage region"
 label_text = "MANAGE REGION"
+
+[node name="SectionChrome" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("9_panel_chrome")

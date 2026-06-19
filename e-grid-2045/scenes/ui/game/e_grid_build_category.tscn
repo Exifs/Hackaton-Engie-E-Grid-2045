@@ -1,8 +1,9 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=7 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/game/e_grid_build_category.gd" id="1_build_category"]
 [ext_resource type="PackedScene" path="res://scenes/ui/components/e_grid_icon_button.tscn" id="2_icon_button"]
 [ext_resource type="PackedScene" path="res://scenes/ui/components/e_grid_panel.tscn" id="3_panel"]
+[ext_resource type="Script" path="res://scripts/ui/game/e_grid_build_category_frame.gd" id="4_category_frame"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_title"]
 font_size = 11
@@ -33,7 +34,10 @@ fit_to_source_size = false
 stretch_to_bounds = true
 state_name = "focused_panel"
 nine_slice_margins = Vector4(18, 18, 18, 18)
-nine_slice_inner_fill_color = Color(0.0627451, 0.12549, 0.145098, 0.52)
+nine_slice_inner_fill_color = Color(0.0470588, 0.0980392, 0.117647, 0.74)
+panel_outer_line_color = Color(0.243137, 0.333333, 0.34902, 0.86)
+panel_inner_line_color = Color(0.0705882, 0.141176, 0.160784, 0.82)
+panel_corner_accent_color = Color(0.54902, 0.682353, 0.705882, 0.5)
 
 [node name="ContentMargin" type="MarginContainer" parent="."]
 layout_mode = 1
@@ -118,3 +122,13 @@ layout_mode = 2
 fit_to_source_size = false
 utility_icon_state = "grid"
 icon_size = Vector2(21, 21)
+
+[node name="FrameOverlay" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("4_category_frame")

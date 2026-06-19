@@ -374,7 +374,52 @@ func _draw_content_clear_rects(fitted_rect: Rect2) -> void:
 	var source_scale := _source_scale(fitted_rect)
 	for source_rect in clear_rects:
 		var target_rect := Rect2(fitted_rect.position + source_rect.position * source_scale, source_rect.size * source_scale)
-		draw_rect(target_rect, Color("#081115f2"), true)
+		_draw_content_clear_rect(target_rect)
+
+
+func _draw_content_clear_rect(target_rect: Rect2) -> void:
+	if target_rect.size.x <= 0.0 or target_rect.size.y <= 0.0:
+		return
+
+	var fill_rect := target_rect
+	if component_name == "mini_button_states" and target_rect.size.x > 2.0 and target_rect.size.y > 2.0:
+		fill_rect = target_rect.grow(-1.0)
+
+	draw_rect(fill_rect, _content_clear_color(), true)
+
+	if component_name != "mini_button_states" or fill_rect.size.x <= 2.0 or fill_rect.size.y <= 2.0:
+		return
+
+	draw_line(
+		fill_rect.position + Vector2(1.0, 1.0),
+		Vector2(fill_rect.end.x - 1.0, fill_rect.position.y + 1.0),
+		Color("#17313966"),
+		1.0
+	)
+	draw_line(
+		Vector2(fill_rect.position.x + 1.0, fill_rect.end.y - 1.0),
+		fill_rect.end - Vector2(1.0, 1.0),
+		Color("#02080acc"),
+		1.0
+	)
+
+
+func _content_clear_color() -> Color:
+	if component_name != "mini_button_states":
+		return Color("#081115f2")
+
+	if disabled:
+		return Color("#0a1012ee")
+
+	var state := _get_state_name()
+	if state == warning_state:
+		return Color("#160d08ee")
+	if state == critical_state:
+		return Color("#15090aee")
+	if state == success_state:
+		return Color("#07140eee")
+
+	return Color("#081115ee")
 
 
 func _content_clear_rects() -> Array[Rect2]:
