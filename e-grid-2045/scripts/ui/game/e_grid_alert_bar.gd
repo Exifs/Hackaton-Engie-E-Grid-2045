@@ -82,10 +82,22 @@ func _sync_alerts() -> void:
 			var callback := Callable(self, "_on_alert_action_requested")
 			if not item.is_connected("action_requested", callback):
 				item.connect("action_requested", callback)
+		item.set_meta("tutorial_target_id", "alerts_panel.first_alert")
 
 	var count_label := get_node_or_null("ContentMargin/AlertRow/AlertCountLabel") as Label
 	if count_label != null:
 		count_label.text = "%d ALERTS" % _alerts.size()
+
+
+func get_tutorial_target_node(target_id: String) -> Control:
+	if target_id != "alerts_panel.first_alert":
+		return null
+
+	var container := get_node_or_null(alert_container_path) as Container
+	if container == null or container.get_child_count() <= 0:
+		return self
+
+	return container.get_child(0) as Control
 
 
 func _wire_collapse_button() -> void:
@@ -143,4 +155,3 @@ func _set_property_if_available(target: Object, property_name: String, property_
 		if str(property.get("name", "")) == property_name:
 			target.set(property_name, property_value)
 			return
-

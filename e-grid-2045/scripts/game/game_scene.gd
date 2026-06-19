@@ -3,6 +3,7 @@ class_name EGridGameScene
 
 const E_GRID_SCENE_TRANSITION := preload("res://scripts/ui/e_grid_scene_transition.gd")
 const SIMULATION_CORE := preload("res://scripts/simulation/SimulationCore.gd")
+const TUTORIAL_MANAGER := preload("res://scripts/tutorial/TutorialManager.gd")
 const DEFAULT_MENU_SCENE := "res://scenes/main_menu.tscn"
 
 @export_file("*.tscn") var menu_scene_path := DEFAULT_MENU_SCENE
@@ -25,6 +26,7 @@ var _region_panel: Control
 var _alert_bar: Control
 var _input_controller: Node
 var _simulation_core: EGridSimulationCore
+var _tutorial_manager: EGridTutorialManager
 var _is_changing_scene := false
 var _selected_building_id := ""
 var _heatmap_mode := "energy"
@@ -40,6 +42,7 @@ func _ready() -> void:
 	_wire_navigation()
 	_wire_gameplay_ui()
 	_start_new_game()
+	_setup_tutorial()
 
 
 func get_layout_regions() -> Dictionary:
@@ -88,6 +91,7 @@ func _wire_gameplay_ui() -> void:
 	if _build_palette != null:
 		_connect_signal_once(_build_palette, "build_requested", Callable(self, "_on_build_requested"))
 		_connect_signal_once(_build_palette, "heatmap_mode_requested", Callable(self, "_on_heatmap_mode_requested"))
+		_connect_signal_once(_build_palette, "category_opened", Callable(self, "_on_build_menu_category_opened"))
 
 	if _region_panel != null:
 		_connect_signal_once(_region_panel, "cancel_construction_requested", Callable(self, "_on_cancel_construction_requested"))
@@ -151,6 +155,7 @@ func _on_speed_requested(speed_multiplier: float) -> void:
 
 func _on_map_region_pressed(_region_id: int, slug: String, _display_name: String) -> void:
 	_simulation_core.select_region(slug)
+	_record_tutorial_event("region_selected", {"region_id": slug})
 	_last_feedback = "Selected %s" % slug
 	_request_refresh_game_ui()
 
@@ -186,11 +191,18 @@ func _on_cancel_construction_requested(region_id: String, queue_index: int) -> v
 
 func _on_heatmap_mode_requested(mode: String) -> void:
 	_heatmap_mode = mode
+	if mode != "none":
+		_record_tutorial_event("heatmap_enabled", {"heatmap_id": mode})
 	_request_refresh_game_ui()
+
+
+func _on_build_menu_category_opened(category_id: String) -> void:
+	_record_tutorial_event("build_menu_category_opened", {"category_id": category_id})
 
 
 func _on_alert_region_requested(region_id: String) -> void:
 	_simulation_core.select_region(region_id)
+	_record_tutorial_event("region_selected", {"region_id": region_id})
 	_request_refresh_game_ui()
 
 
@@ -305,6 +317,47 @@ func _on_game_ended(result: String, score: Dictionary) -> void:
 	_show_endgame_panel(result, score)
 
 
+func _setup_tutorial() -> void:
+	if _tutorial_manager != null and is_instance_valid(_tutorial_manager):
+		return
+
+	_tutorial_manager = TUTORIAL_MANAGER.new()
+	_tutorial_manager.name = "TutorialManager"
+	add_child(_tutorial_manager)
+	_tutorial_manager.setup(self, _simulation_core, _build_tutorial_targets())
+
+
+func _build_tutorial_targets() -> Dictionary:
+	var targets := {}
+	_register_tutorial_target(targets, "dashboard.agi_bar", _get_descendant_control(_top_bar, "ContentMargin/MainRow/ProgressSegment"))
+	_register_tutorial_target(targets, "dashboard.energy_kpi", _get_descendant_control(_region_panel, "ContentMargin/PanelStack/TabPages/Overview/EnergyStatus"))
+	_register_tutorial_target(targets, "dashboard.cooling_kpi", _get_descendant_control(_region_panel, "ContentMargin/PanelStack/TabPages/Overview/CoolingStatus"))
+	_register_tutorial_target(targets, "dashboard.compute_kpi", _get_descendant_control(_region_panel, "ContentMargin/PanelStack/TabPages/Overview/ComputeStatus"))
+	_register_tutorial_target(targets, "map.overview", _map_view)
+	_register_tutorial_target(targets, "build_menu.root", _build_palette)
+	_register_tutorial_target(targets, "alerts_panel.root", _alert_bar)
+	return targets
+
+
+func _register_tutorial_target(targets: Dictionary, target_id: String, node: Node) -> void:
+	if node == null:
+		return
+	node.set_meta("tutorial_target_id", target_id)
+	targets[target_id] = node
+
+
+func _get_descendant_control(root: Node, path: NodePath) -> Control:
+	if root == null:
+		return null
+	return root.get_node_or_null(path) as Control
+
+
+func _record_tutorial_event(event_name: String, params: Dictionary = {}) -> void:
+	if _tutorial_manager == null or not is_instance_valid(_tutorial_manager):
+		return
+	_tutorial_manager.record_event(event_name, params)
+
+
 func _show_endgame_panel(result: String, score: Dictionary) -> void:
 	if _endgame_panel != null and is_instance_valid(_endgame_panel):
 		_endgame_panel.queue_free()
@@ -399,6 +452,3 @@ func _connect_button_once(path: NodePath, callback: Callable) -> void:
 
 	if not button.pressed.is_connected(callback):
 		button.pressed.connect(callback)
-
-
-
