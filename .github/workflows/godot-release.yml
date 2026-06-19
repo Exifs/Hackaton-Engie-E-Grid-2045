@@ -84,3 +84,109 @@ jobs:
             --verify-tag \
             --generate-notes \
             --title "E-Grid 2045 ${TAG_NAME}"
+
+  deploy-landing:
+    name: Deploy landing to GitHub Pages
+    runs-on: ubuntu-24.04
+    needs: release
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    env:
+      FALLBACK_PAGES_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Prepare landing static website
+        run: |
+          set -euo pipefail
+          SITE_DIR="_site"
+
+          rm -rf "${SITE_DIR}"
+          mkdir -p "${SITE_DIR}/landing"
+          cp -R landing/. "${SITE_DIR}/landing/"
+
+          mkdir -p "${SITE_DIR}/Docs"
+          cp "Docs/menu.png" "${SITE_DIR}/Docs/menu.png"
+          cp "Docs/Concept art - EU-Grid 2026-v2-0.png" "${SITE_DIR}/Docs/Concept art - EU-Grid 2026-v2-0.png"
+          cp "Docs/Concept art - EU-Grid 2026-v2-1.png" "${SITE_DIR}/Docs/Concept art - EU-Grid 2026-v2-1.png"
+          cp "Docs/Concept art - EU-Grid 2026-v2-2.png" "${SITE_DIR}/Docs/Concept art - EU-Grid 2026-v2-2.png"
+
+          mkdir -p "${SITE_DIR}/egrid_region_editor_tool/assets/map"
+          cp "egrid_region_editor_tool/assets/map/europe_map_backdrop_generated_clean_v1.png" "${SITE_DIR}/egrid_region_editor_tool/assets/map/europe_map_backdrop_generated_clean_v1.png"
+
+          cat > "${SITE_DIR}/index.html" <<'HTML'
+          <!doctype html>
+          <html lang="fr">
+          <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <meta http-equiv="refresh" content="0; url=./landing/">
+            <link rel="canonical" href="./landing/">
+            <title>E-Grid 2045 — Hackathon Energie</title>
+          </head>
+          <body>
+            <p>Redirection vers <a href="./landing/">la landing E-Grid 2045</a>.</p>
+          </body>
+          </html>
+          HTML
+
+          touch "${SITE_DIR}/.nojekyll"
+          find "${SITE_DIR}" -maxdepth 3 -type f | sort
+
+      - name: Upload GitHub Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+      - name: Add website URL to release notes
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG_NAME: ${{ github.ref_name }}
+          WEBSITE_URL: ${{ steps.deployment.outputs.page_url }}
+        run: |
+          set -euo pipefail
+          WEBSITE_URL="${WEBSITE_URL:-${FALLBACK_PAGES_URL}}"
+          current_notes="$(gh release view "${TAG_NAME}" --repo "${GITHUB_REPOSITORY}" --json body --jq '.body // ""')"
+          website_line="🌐 Site web : ${WEBSITE_URL}"
+
+          if printf '%s' "${current_notes}" | grep -Fq "${website_line}"; then
+            echo "Release notes already contain the website URL."
+            exit 0
+          fi
+
+          {
+            echo "${website_line}"
+            echo
+            printf '%s\n' "${current_notes}"
+          } > release-notes.md
+
+          gh release edit "${TAG_NAME}" \
+            --repo "${GITHUB_REPOSITORY}" \
+            --notes-file release-notes.md
+
+      - name: Update repository website URL
+        env:
+          GH_TOKEN: ${{ secrets.REPO_ADMIN_TOKEN || github.token }}
+          WEBSITE_URL: ${{ steps.deployment.outputs.page_url }}
+        run: |
+          set -euo pipefail
+          WEBSITE_URL="${WEBSITE_URL:-${FALLBACK_PAGES_URL}}"
+
+          if gh repo edit "${GITHUB_REPOSITORY}" --homepage "${WEBSITE_URL}"; then
+            echo "Repository website URL set to ${WEBSITE_URL}"
+          else
+            echo "::warning::Unable to update the repository Website field. Add a REPO_ADMIN_TOKEN secret with permission to edit repository metadata, then rerun this tag workflow."
+          fi
