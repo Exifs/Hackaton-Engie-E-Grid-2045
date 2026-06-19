@@ -7,10 +7,6 @@
 [ext_resource type="PackedScene" path="res://scenes/input/e_grid_input_controller.tscn" id="5_input_controller"]
 [ext_resource type="PackedScene" path="res://scenes/ui/resolution/e_grid_resolution_policy.tscn" id="7_resolution_policy"]
 
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_wu84c"]
-
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_8ln24"]
-
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_rtw2f"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_oa1go"]
@@ -37,6 +33,10 @@
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_a8gd2"]
 
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_hstxw"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_8egab"]
+
 [node name="MainMenu" type="Control" unique_id=1992571628]
 layout_mode = 3
 anchors_preset = 15
@@ -46,9 +46,9 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_main_menu")
 
-[node name="ResolutionPolicy" parent="." instance=ExtResource("7_resolution_policy")]
+[node name="ResolutionPolicy" parent="." unique_id=1332816846 instance=ExtResource("7_resolution_policy")]
 
-[node name="InputController" parent="." instance=ExtResource("5_input_controller")]
+[node name="InputController" parent="." unique_id=2106245351 instance=ExtResource("5_input_controller")]
 active_actions = PackedStringArray("menu_up", "menu_down", "menu_accept", "menu_back")
 
 [node name="MenuArtboardAspect" type="AspectRatioContainer" parent="." unique_id=462331720]
@@ -97,11 +97,11 @@ anchor_bottom = 0.5305
 offset_right = 0.0
 offset_bottom = 0.0
 tooltip_text = "LANCER LA PARTIE"
-theme_override_styles/normal = SubResource("StyleBoxEmpty_wu84c")
-theme_override_styles/pressed = SubResource("StyleBoxEmpty_8ln24")
-theme_override_styles/hover = SubResource("StyleBoxEmpty_rtw2f")
-theme_override_styles/disabled = SubResource("StyleBoxEmpty_oa1go")
-theme_override_styles/focus = SubResource("StyleBoxEmpty_tbmy8")
+theme_override_styles/normal = SubResource("StyleBoxEmpty_rtw2f")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_oa1go")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_tbmy8")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_jk1qb")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_5dd4i")
 flat = true
 button_text = "JOUER"
 action_name = "play"
@@ -117,11 +117,11 @@ anchor_bottom = 0.6565
 offset_right = 0.0
 offset_bottom = 0.0
 tooltip_text = "PARAMETRES"
-theme_override_styles/normal = SubResource("StyleBoxEmpty_jk1qb")
-theme_override_styles/pressed = SubResource("StyleBoxEmpty_5dd4i")
-theme_override_styles/hover = SubResource("StyleBoxEmpty_lgwnu")
-theme_override_styles/disabled = SubResource("StyleBoxEmpty_flqon")
-theme_override_styles/focus = SubResource("StyleBoxEmpty_rcqid")
+theme_override_styles/normal = SubResource("StyleBoxEmpty_lgwnu")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_flqon")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_rcqid")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_1ajci")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_7b55j")
 flat = true
 button_text = "PARAMETRES"
 action_name = "settings"
@@ -137,11 +137,11 @@ anchor_bottom = 0.7815
 offset_right = 0.0
 offset_bottom = 0.0
 tooltip_text = "QUITTER"
-theme_override_styles/normal = SubResource("StyleBoxEmpty_1ajci")
-theme_override_styles/pressed = SubResource("StyleBoxEmpty_7b55j")
-theme_override_styles/hover = SubResource("StyleBoxEmpty_5pajh")
-theme_override_styles/disabled = SubResource("StyleBoxEmpty_j7ex8")
-theme_override_styles/focus = SubResource("StyleBoxEmpty_a8gd2")
+theme_override_styles/normal = SubResource("StyleBoxEmpty_5pajh")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_j7ex8")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_a8gd2")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_hstxw")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_8egab")
 flat = true
 button_text = "QUITTER"
 action_name = "quit"
@@ -157,5 +157,5 @@ offset_left = -0.15693665
 offset_top = -0.4000244
 offset_right = 0.6383209
 offset_bottom = -0.10003662
-display_text = "V0.0.1:001"
+display_text = "V0.2.1:001"
 font_size = 15
