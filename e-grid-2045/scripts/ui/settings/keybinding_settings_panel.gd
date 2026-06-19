@@ -16,11 +16,20 @@ var _cancel_button: BaseButton
 var _reset_all_button: BaseButton
 var _rows_by_action := {}
 var _pending_action := ""
+var _initialized := false
 
 
 func _ready() -> void:
 	_cache_nodes()
 	_wire_buttons()
+	_set_status("Selectionnez une action a modifier.")
+
+
+func ensure_initialized() -> void:
+	if _initialized:
+		return
+
+	_initialized = true
 	_setup_bindings()
 	_rebuild_rows()
 	_set_waiting_for_input("")
@@ -28,6 +37,9 @@ func _ready() -> void:
 
 
 func _input(event: InputEvent) -> void:
+	if not _initialized:
+		return
+
 	if _pending_action.is_empty():
 		return
 
@@ -105,6 +117,9 @@ func _rebuild_rows() -> void:
 
 
 func _refresh_rows() -> void:
+	if not _initialized:
+		return
+
 	for definition in INPUT_BINDINGS.get_remappable_definitions():
 		var action_name := str(definition[INPUT_ACTIONS.ACTION_NAME])
 		var row = _rows_by_action.get(action_name)

@@ -73,6 +73,9 @@ func _ready() -> void:
 
 
 func set_build_context(building_definitions: Dictionary, availability: Dictionary, selected_building_id: String = "") -> void:
+	if _building_definitions == building_definitions and _availability == availability and _selected_building_id == selected_building_id:
+		return
+
 	_building_definitions = building_definitions
 	_availability = availability
 	_selected_building_id = selected_building_id
@@ -80,6 +83,9 @@ func set_build_context(building_definitions: Dictionary, availability: Dictionar
 
 
 func set_active_heatmap_mode(mode: String) -> void:
+	if _active_heatmap_mode == mode:
+		return
+
 	_active_heatmap_mode = mode
 	_sync_overlay_controls()
 
@@ -220,11 +226,42 @@ func _on_collapse_button_pressed() -> void:
 
 func _on_category_tool_requested(tool_id: String) -> void:
 	_selected_building_id = tool_id
-	_sync_build_options()
+	_sync_selected_tool_buttons()
 	var category := _category_for_building_id(tool_id)
 	if not category.is_empty():
 		category_opened.emit(category)
 	build_requested.emit(tool_id)
+
+
+func _sync_selected_tool_buttons() -> void:
+	if not is_inside_tree():
+		return
+
+	for category in CATEGORY_PATHS.keys():
+		var category_node := get_node_or_null(CATEGORY_PATHS[category]) as Control
+		if category_node == null:
+			continue
+
+		var ids := _variant_to_string_array(category_node.get("tool_ids"))
+		var slots_grid := category_node.get_node_or_null(CATEGORY_SLOTS_GRID_PATH) as GridContainer
+		if slots_grid == null:
+			continue
+
+		for index in range(slots_grid.get_child_count()):
+			var button := slots_grid.get_child(index) as BaseButton
+			if button == null:
+				continue
+
+			var selected := index < ids.size() and str(ids[index]) == _selected_building_id
+			if button.button_pressed == selected:
+				continue
+
+			if button.has_method("set_pressed_no_signal"):
+				button.call("set_pressed_no_signal", selected)
+			else:
+				button.button_pressed = selected
+			if button.has_method("sync_visual_state"):
+				button.call("sync_visual_state")
 
 
 func _sync_build_options() -> void:
@@ -361,7 +398,7 @@ func get_export_diagnostics_snapshot() -> Dictionary:
 	}
 
 
-func _category_export_diagnostics(category_id: String, category_node: Control) -> Dictionary:
+func _category_export_diagnostics(_category_id: String, category_node: Control) -> Dictionary:
 	if category_node == null:
 		return {
 			"exists": false,

@@ -13,7 +13,7 @@ static func change_scene(owner: Node, scene_path: String, loading_text := "CHARG
 	var overlay := _create_loading_overlay(owner, loading_text)
 	await tree.process_frame
 
-	var request_error := ResourceLoader.load_threaded_request(scene_path, "PackedScene")
+	var request_error := ResourceLoader.load_threaded_request(scene_path, "PackedScene", true)
 	if request_error != OK and request_error != ERR_BUSY:
 		_free_overlay(overlay)
 		return request_error

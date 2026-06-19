@@ -15,17 +15,23 @@ static var _shared_glyph_bounds_by_atlas: Dictionary = {}
 
 @export var atlas_texture: Texture2D:
 	set(value):
+		if atlas_texture == value:
+			return
 		atlas_texture = value
 		_glyph_bounds_cache_key = ""
 		queue_redraw()
 
 @export_multiline var text := "":
 	set(value):
+		if text == value:
+			return
 		text = value
 		queue_redraw()
 
 @export var font_color := Color("#e0e8e8"):
 	set(value):
+		if font_color == value:
+			return
 		font_color = value
 		queue_redraw()
 
@@ -66,6 +72,8 @@ static var _shared_glyph_bounds_by_atlas: Dictionary = {}
 
 @export var scale_px := 0.14:
 	set(value):
+		if is_equal_approx(scale_px, value):
+			return
 		scale_px = value
 		queue_redraw()
 
@@ -77,11 +85,15 @@ static var _shared_glyph_bounds_by_atlas: Dictionary = {}
 @export var uppercase_style := false
 @export_enum("left", "center", "right") var horizontal_alignment := "left":
 	set(value):
+		if horizontal_alignment == value:
+			return
 		horizontal_alignment = value
 		queue_redraw()
 
 @export_enum("top", "center", "bottom") var vertical_alignment := "center":
 	set(value):
+		if vertical_alignment == value:
+			return
 		vertical_alignment = value
 		queue_redraw()
 

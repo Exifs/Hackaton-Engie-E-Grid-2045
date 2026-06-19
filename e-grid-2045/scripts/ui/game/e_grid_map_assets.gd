@@ -5,11 +5,25 @@ const E_GRID_RUNTIME_TEXTURE_LOADER := preload("res://scripts/ui/components/e_gr
 
 const EMPTY_REGION_ID := 0
 
+static var _asset_cache: Dictionary = {}
+
 var backdrop_texture: Texture2D
 var mask_image: Image
 var image_size := Vector2.ZERO
 var regions: Array[Dictionary] = []
 var regions_by_id: Dictionary = {}
+
+
+static func load_cached(backdrop_path: String, contours_path: String, mask_path: String) -> EGridMapAssets:
+	var cache_key := "%s|%s|%s" % [backdrop_path, contours_path, mask_path]
+	if _asset_cache.has(cache_key):
+		return _asset_cache[cache_key]
+
+	var assets := EGridMapAssets.new()
+	assets.load_from_paths(backdrop_path, contours_path, mask_path)
+	if assets.is_valid():
+		_asset_cache[cache_key] = assets
+	return assets
 
 
 func load_from_paths(backdrop_path: String, contours_path: String, mask_path: String) -> RefCounted:
@@ -242,4 +256,3 @@ func _parse_point(raw_point: Variant) -> Vector2:
 		return Vector2.ZERO
 
 	return Vector2(float(raw_point[0]), float(raw_point[1]))
-

@@ -3,8 +3,13 @@ extends Control
 const INPUT_ACTIONS := preload("res://scripts/input/e_grid_input_actions.gd")
 const E_GRID_SETTINGS_RUNTIME := preload("res://scripts/ui/settings/e_grid_settings_runtime.gd")
 const E_GRID_SCENE_TRANSITION := preload("res://scripts/ui/e_grid_scene_transition.gd")
+const DATA_LOADER := preload("res://scripts/simulation/DataLoader.gd")
+const E_GRID_MAP_ASSETS := preload("res://scripts/ui/game/e_grid_map_assets.gd")
 const GAME_SCENE_PATH := "res://scenes/game/game_scene.tscn"
 const DEFAULT_SETTINGS_MENU_SCENE := "res://scenes/ui/settings/settings_menu.tscn"
+const GAME_MAP_BACKDROP_PATH := "res://assets/map/europe_map_backdrop_generated_clean_v1.png"
+const GAME_MAP_CONTOURS_PATH := "res://assets/map/generated/regions_contours.json"
+const GAME_MAP_MASK_PATH := "res://assets/map/generated/region_id_mask.png"
 
 @export_node_path("Control") var button_container_path: NodePath = ^"MenuArtboardAspect/MenuArtboard/MenuButtons"
 @export_node_path("Control") var version_label_path: NodePath = ^"MenuArtboardAspect/MenuArtboard/VersionLabel"
@@ -20,6 +25,8 @@ var _settings_menu: Control
 var _buttons: Array[Button] = []
 var _menu_actions := {}
 var _is_changing_scene := false
+var _settings_menu_prewarm_started := false
+var _game_runtime_prewarm_started := false
 
 
 func _ready() -> void:
@@ -35,6 +42,84 @@ func _ready() -> void:
 	_wire_focus_navigation()
 	_wire_input_controller()
 	_update_version_label_text()
+	call_deferred("_preload_menu_target_scenes")
+
+
+func _preload_menu_target_scenes() -> void:
+	await get_tree().process_frame
+	_request_threaded_scene_preload(GAME_SCENE_PATH)
+	_request_threaded_scene_preload(settings_menu_scene_path)
+	await get_tree().process_frame
+	await _prewarm_settings_menu()
+	await get_tree().process_frame
+	await _prewarm_game_runtime_data()
+
+
+func _request_threaded_scene_preload(scene_path: String) -> void:
+	var path := scene_path.strip_edges()
+	if path.is_empty() or not ResourceLoader.exists(path):
+		return
+
+	var error := ResourceLoader.load_threaded_request(path, "PackedScene", true)
+	if error != OK and error != ERR_BUSY:
+		push_warning("MainMenu could not preload scene %s. Error code: %d." % [path, error])
+
+
+func _prewarm_settings_menu() -> void:
+	if _settings_menu_prewarm_started or _settings_menu != null:
+		return
+
+	_settings_menu_prewarm_started = true
+	var packed_scene := await _load_settings_menu_scene_threaded()
+	_settings_menu_prewarm_started = false
+
+	if _settings_menu != null or packed_scene == null:
+		return
+
+	_instantiate_settings_menu(packed_scene)
+
+
+func _load_settings_menu_scene_threaded() -> PackedScene:
+	var scene_path := settings_menu_scene_path.strip_edges()
+	if scene_path.is_empty() or not ResourceLoader.exists(scene_path):
+		return null
+
+	var request_error := ResourceLoader.load_threaded_request(scene_path, "PackedScene", true)
+	if request_error != OK and request_error != ERR_BUSY:
+		return null
+
+	var progress: Array = []
+	while true:
+		var status := ResourceLoader.load_threaded_get_status(scene_path, progress)
+		match status:
+			ResourceLoader.THREAD_LOAD_LOADED:
+				return ResourceLoader.load_threaded_get(scene_path) as PackedScene
+			ResourceLoader.THREAD_LOAD_FAILED, ResourceLoader.THREAD_LOAD_INVALID_RESOURCE:
+				return null
+			_:
+				await get_tree().process_frame
+
+	return null
+
+
+func _prewarm_game_runtime_data() -> void:
+	if _game_runtime_prewarm_started:
+		return
+
+	_game_runtime_prewarm_started = true
+	await get_tree().process_frame
+
+	if not is_inside_tree():
+		return
+
+	var loader := DATA_LOADER.new()
+	loader.load_game_data()
+	await get_tree().process_frame
+
+	if not is_inside_tree():
+		return
+
+	E_GRID_MAP_ASSETS.load_cached(GAME_MAP_BACKDROP_PATH, GAME_MAP_CONTOURS_PATH, GAME_MAP_MASK_PATH)
 
 
 func _setup_settings_menu() -> void:
@@ -209,6 +294,10 @@ func _ensure_settings_menu() -> bool:
 	if packed_scene == null:
 		return false
 
+	return _instantiate_settings_menu(packed_scene)
+
+
+func _instantiate_settings_menu(packed_scene: PackedScene) -> bool:
 	var parent := get_node_or_null(settings_menu_parent_path) as Control
 	if parent == null:
 		return false

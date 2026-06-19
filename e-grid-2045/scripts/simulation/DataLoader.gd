@@ -4,8 +4,13 @@ class_name EGridDataLoader
 const EXPORT_DIAGNOSTICS := preload("res://scripts/debug/EGridExportDiagnostics.gd")
 const DATA_ROOT := "res://data/"
 
+static var _game_data_cache: Dictionary = {}
+
 
 func load_game_data() -> Dictionary:
+	if not _game_data_cache.is_empty():
+		return _game_data_cache.duplicate(true)
+
 	var constants: Dictionary = _load_constants()
 	var data := {
 		"constants": constants,
@@ -20,7 +25,8 @@ func load_game_data() -> Dictionary:
 		"volume_efficiency_tiers": _load_volume_efficiency_tiers(),
 	}
 	EXPORT_DIAGNOSTICS.log_data_snapshot(data)
-	return data
+	_game_data_cache = data.duplicate(true)
+	return _game_data_cache.duplicate(true)
 
 
 func _load_constants() -> Dictionary:

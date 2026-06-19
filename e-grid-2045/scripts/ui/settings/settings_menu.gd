@@ -160,8 +160,15 @@ func _set_current_tab(tab_index: int, should_focus: bool) -> void:
 		if tab_button != null:
 			_set_button_pressed_no_signal(tab_button, index == _current_tab)
 
+	_ensure_panel_initialized(_panels[_current_tab])
+
 	if should_focus:
 		_focus_menu()
+
+
+func _ensure_panel_initialized(panel: Control) -> void:
+	if panel != null and panel.has_method("ensure_initialized"):
+		panel.call("ensure_initialized")
 
 
 func _focus_menu() -> void:
