@@ -8,6 +8,7 @@ Ouvrir directement :
 
 ```text
 landing/index.html
+landing/access.html
 landing/download.html
 ```
 
@@ -21,22 +22,32 @@ Puis ouvrir :
 
 ```text
 http://127.0.0.1:8080/landing/
+http://127.0.0.1:8080/landing/access.html
 http://127.0.0.1:8080/landing/download.html
 ```
 
 ## Contenu
 
-- `index.html` : structure de la landing, sections pitch, souveraineté IA, partenaires/sponsors, captures, outil de régions, liens web play, lien GitHub discret et CTA de téléchargement.
+- `index.html` : vraie landing marketing grand public, avec pitch, souveraineté IA, captures, partenaires et CTA principaux.
+- `access.html` : page dédiée aux accès jouables, builds, téléchargements, GitHub, releases et outils techniques.
 - `favicon.svg` : icône de page E-Grid 2045, utilisée par la landing et le manifeste web.
 - `site.webmanifest` : métadonnées d’application web pour les navigateurs.
 - `download.html` : page dédiée aux téléchargements Windows, macOS et Linux, avec texte centré sur le projet et les partenaires.
 - `styles.css` : DA premium commune, layout responsive, glass panels, cartes 3D, halos, ticker.
 - `sponsors.css` : styles de la section de remerciement, carte photo DefendIntelligence et cartes partenaires.
+- `polish.css` : correctifs de lisibilité landing : menu simplifié, superposition propre du hero text et prévention du clipping.
+- `access.css` : styles spécifiques de la page `access.html`.
 - `download.css` : effets spécifiques à la page de download : réacteur 3D, cartes OS, overlay de cérémonie, terminal et responsive.
 - `download-polish.css` : correctifs de layout, notamment le conflit de classe Linux, plus les styles du bloc partenaires.
 - `main.js` : canvas de réseau énergétique, tilt 3D, parallax souris, magnetic buttons, reveal au scroll et barre de progression.
 - `download.js` : détection OS, résolution des assets de la dernière GitHub Release, mise en avant du build recommandé, terminal animé, overlay de téléchargement et confettis canvas.
 - `../play-js/` : version JS/TypeScript + Phaser publiée par le workflow Pages, séparée du build Godot historique.
+
+## Organisation landing / technique
+
+La navigation de `index.html` reste volontairement courte pour éviter de casser le layout du header : Pitch, Souveraineté, Captures, Partenaires et Accès. Les liens techniques et de build sont regroupés dans `access.html` : version JS, build Godot Web, téléchargements desktop, GitHub, releases, docs et Region Shape Editor.
+
+Le texte du hero conserve son impact visuel, mais `polish.css` élargit la boîte du titre et le place au-dessus du visuel hero pour éviter que `Pilote l’Europe énergétique dans la course à l’AGI.` soit coupé sur les largeurs intermédiaires.
 
 ## Métadonnées de partage
 

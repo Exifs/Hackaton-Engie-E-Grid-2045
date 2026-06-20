@@ -1,0 +1,103 @@
+/* Landing-specific polish loaded after the shared styles.
+   Keeps the public landing cinematic while preventing hero text clipping. */
+
+.site-header {
+  max-width: min(var(--max), calc(100% - 34px));
+}
+
+.nav-links a {
+  white-space: nowrap;
+}
+
+.hero {
+  isolation: isolate;
+  overflow: visible;
+  grid-template-columns: minmax(0, 1.06fr) minmax(390px, 0.84fr);
+}
+
+.hero-copy {
+  position: relative;
+  z-index: 40;
+  width: min(72vw, 980px);
+  min-width: 0;
+  overflow: visible;
+}
+
+.hero-visual {
+  position: relative;
+  z-index: 5;
+  margin-left: -72px;
+}
+
+.hero h1 {
+  position: relative;
+  z-index: 41;
+  width: min(76vw, 980px);
+  max-width: none;
+  padding: 0.08em 0.16em 0.16em 0;
+  font-size: clamp(3.4rem, 8vw, 7.8rem);
+  line-height: 0.86;
+  letter-spacing: -0.075em;
+  text-wrap: balance;
+  overflow: visible;
+}
+
+.hero .hero-actions,
+.hero .hero-lead,
+.hero .hero-stats,
+.hero .eyebrow {
+  position: relative;
+  z-index: 42;
+}
+
+@media (max-width: 1180px) {
+  .hero {
+    grid-template-columns: minmax(0, 1fr) minmax(360px, 0.74fr);
+    gap: 20px;
+  }
+
+  .hero-visual {
+    margin-left: -96px;
+  }
+}
+
+@media (max-width: 1060px) {
+  .hero {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-copy,
+  .hero h1 {
+    width: 100%;
+  }
+
+  .hero h1 {
+    max-width: min(100%, 920px);
+    font-size: clamp(3.35rem, 9.6vw, 6.5rem);
+    line-height: 0.9;
+    letter-spacing: -0.068em;
+  }
+
+  .hero-visual {
+    margin-left: 0;
+    z-index: 3;
+  }
+}
+
+@media (max-width: 760px) {
+  .hero h1 {
+    font-size: clamp(3rem, 13.5vw, 5rem);
+    line-height: 0.95;
+    letter-spacing: -0.055em;
+    padding-right: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero h1 {
+    font-size: clamp(2.75rem, 13vw, 3.8rem);
+    line-height: 1;
+    letter-spacing: -0.04em;
+    text-wrap: auto;
+  }
+}
