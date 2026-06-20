@@ -56,10 +56,27 @@ test.describe("E-Grid 2045 web game visuals", () => {
     expect(manifest.ok()).toBe(true);
     const atlas = await page.request.get("/assets/generated/building-icon-atlas.png");
     expect(atlas.ok()).toBe(true);
+    const cardAtlas = await page.request.get("/assets/generated/building-card-art-atlas.png");
+    expect(cardAtlas.ok()).toBe(true);
     const backgroundImage = await page.locator(".building-icon").first().evaluate((element) => getComputedStyle(element).backgroundImage);
     expect(backgroundImage).toContain("building-icon-atlas");
+    const artBackground = await page.locator(".building-art").first().evaluate((element) => getComputedStyle(element).backgroundImage);
+    expect(artBackground).toContain("building-card-art-atlas");
 
     await page.screenshot({ path: testInfo.outputPath("construction-palette-open.png"), fullPage: true });
+  });
+
+  test("P0 completed buildings render as visual active cards", async ({ page }, testInfo) => {
+    await openGame(page, 1600, 900);
+    await page.evaluate(() => window.__EGRID__?.runP0Scenario());
+
+    await expect(page.locator(".built-card")).toHaveCount(4);
+    await expect(page.locator(".built-card").first()).toBeVisible();
+    const artBackground = await page.locator(".built-card .building-art").first().evaluate((element) => getComputedStyle(element).backgroundImage);
+    expect(artBackground).toContain("building-card-art-atlas");
+    await expectHudNoMajorOverlap(page);
+
+    await page.screenshot({ path: testInfo.outputPath("p0-built-building-cards.png"), fullPage: true });
   });
 
   test("energy and cooling heatmaps render", async ({ page }, testInfo) => {

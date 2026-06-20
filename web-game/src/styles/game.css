@@ -660,4 +660,344 @@ button {
   .build-copy small {
     font-size: 12px;
   }
+
+}
+/* Concept-art pass: richer semi-diegetic panels and building cards. */
+:root {
+  --building-art-atlas: none;
+  --panel-edge: rgba(137, 234, 255, 0.36);
+  --panel-glass: rgba(8, 30, 43, 0.84);
+  --panel-deep: rgba(2, 10, 17, 0.86);
+}
+
+.kpi-chip,
+.time-controls,
+.heatmap-switch,
+.alerts-panel,
+.region-panel,
+.build-palette {
+  overflow: hidden;
+  border-color: var(--panel-edge);
+  background:
+    linear-gradient(135deg, rgba(76, 235, 255, 0.12), transparent 34%),
+    linear-gradient(180deg, var(--panel-glass), var(--panel-deep));
+  box-shadow:
+    0 18px 46px rgba(0, 0, 0, 0.34),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    inset 0 -1px 0 rgba(83, 231, 255, 0.08);
+}
+
+.kpi-chip,
+.time-controls {
+  position: relative;
+}
+
+.kpi-chip::after,
+.time-controls::after,
+.heatmap-switch::after,
+.alerts-panel::after,
+.region-panel::after,
+.build-palette::after {
+  position: absolute;
+  top: 0;
+  right: 10px;
+  left: 10px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(93, 244, 197, 0.78), rgba(187, 128, 255, 0.38), transparent);
+  content: "";
+  pointer-events: none;
+}
+
+.region-panel {
+  display: grid;
+  gap: 10px;
+}
+
+.panel-title,
+.panel-subtitle {
+  position: relative;
+  z-index: 1;
+}
+
+.panel-title strong {
+  text-shadow: 0 0 18px rgba(83, 231, 255, 0.28);
+}
+
+.panel-subtitle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 7px;
+  color: var(--muted);
+  font-size: 10px;
+  text-transform: uppercase;
+}
+
+.panel-subtitle strong {
+  color: #eaf8ff;
+  font-size: 11px;
+}
+
+.region-section {
+  position: relative;
+  z-index: 1;
+}
+
+.empty-slot-card {
+  display: block;
+  padding: 8px 9px;
+  border: 1px dashed rgba(160, 235, 255, 0.18);
+  border-radius: 7px;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.queue-list,
+.built-grid {
+  display: grid;
+  gap: 8px;
+}
+
+.queue-card,
+.built-card {
+  display: grid;
+  grid-template-columns: 62px minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+  min-width: 0;
+  padding: 6px;
+  border: 1px solid rgba(160, 235, 255, 0.2);
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, rgba(29, 77, 91, 0.74), rgba(8, 21, 31, 0.9)),
+    rgba(8, 21, 31, 0.9);
+  color: #ecfbff;
+  text-align: left;
+}
+
+.queue-card {
+  cursor: pointer;
+}
+
+.queue-card:hover,
+.built-card:hover {
+  border-color: rgba(83, 231, 255, 0.52);
+  background:
+    linear-gradient(135deg, rgba(32, 101, 118, 0.82), rgba(10, 28, 40, 0.94)),
+    rgba(10, 28, 40, 0.94);
+}
+
+.queue-copy,
+.built-copy {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.queue-copy strong,
+.queue-copy small,
+.built-copy strong,
+.built-copy small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.queue-copy strong,
+.built-copy strong {
+  font-size: 12px;
+}
+
+.queue-copy small,
+.built-copy small {
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.queue-copy i {
+  display: block;
+  height: 5px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(151, 204, 222, 0.16);
+}
+
+.queue-copy i b {
+  display: block;
+  width: var(--progress);
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--orange), var(--green));
+}
+
+.building-art {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  height: 52px;
+  border: 1px solid rgba(170, 240, 255, 0.24);
+  border-radius: 7px;
+  background-image:
+    var(--building-art-atlas),
+    linear-gradient(135deg, rgba(83, 231, 255, 0.24), rgba(187, 128, 255, 0.16), rgba(255, 193, 95, 0.08));
+  background-position: center, center;
+  background-repeat: no-repeat;
+  background-size: 400% 300%, cover;
+  box-shadow: inset 0 0 24px rgba(83, 231, 255, 0.14), 0 0 18px rgba(83, 231, 255, 0.08);
+}
+
+.building-art--university { background-position: 0% 0%, center; }
+.building-art--ai_research_center { background-position: 33.333% 0%, center; }
+.building-art--energy_research_center { background-position: 66.666% 0%, center; }
+.building-art--datacenter_standard,
+.building-art--datacenter_hyperscale { background-position: 100% 0%, center; }
+.building-art--gas_power_plant { background-position: 0% 50%, center; }
+.building-art--nuclear_power_plant { background-position: 33.333% 50%, center; }
+.building-art--wind_onshore,
+.building-art--wind_offshore { background-position: 66.666% 50%, center; }
+.building-art--solar_farm { background-position: 100% 50%, center; }
+.building-art--hydro_dam { background-position: 0% 100%, center; }
+.building-art--battery_storage { background-position: 33.333% 100%, center; }
+.building-art--air_cooling,
+.building-art--river_cooling,
+.building-art--sea_cooling,
+.building-art--geothermal_cooling { background-position: 66.666% 100%, center; }
+.building-art--supergrid { background-position: 100% 100%, center; }
+
+.built-grid {
+  grid-template-columns: 1fr;
+}
+
+.build-card {
+  grid-template-columns: minmax(82px, 0.64fr) minmax(0, 1fr);
+  min-height: 86px;
+  padding: 8px;
+  background:
+    linear-gradient(135deg, rgba(23, 74, 85, 0.62), rgba(8, 22, 32, 0.92)),
+    rgba(9, 30, 42, 0.88);
+}
+
+.build-card:hover .building-art {
+  box-shadow: inset 0 0 24px rgba(83, 231, 255, 0.18), 0 0 22px rgba(93, 244, 197, 0.13);
+}
+
+.build-visual {
+  position: relative;
+  display: block;
+  min-height: 64px;
+}
+
+.build-visual .building-art {
+  height: 100%;
+  min-height: 64px;
+}
+
+.build-visual .building-icon {
+  position: absolute;
+  right: 4px;
+  bottom: 4px;
+  width: 30px;
+  height: 30px;
+  border-color: rgba(234, 248, 255, 0.34);
+  background-color: rgba(5, 18, 27, 0.76);
+}
+
+.build-copy {
+  display: grid;
+  gap: 5px;
+  align-content: center;
+}
+
+.build-metrics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  min-width: 0;
+}
+
+.metric-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 18px;
+  padding: 2px 5px;
+  border: 1px solid rgba(160, 235, 255, 0.2);
+  border-radius: 999px;
+  background: rgba(12, 32, 45, 0.8);
+  color: #eaf8ff;
+  font-size: 10px;
+  line-height: 1;
+}
+
+.metric-energy { color: var(--green); }
+.metric-cooling { color: var(--blue); }
+.metric-compute { color: var(--violet); }
+.metric-storage { color: var(--cyan); }
+.metric-research { color: #fff0b8; }
+.metric-cost,
+.metric-co2 { color: var(--orange); }
+
+@media (min-width: 1101px) {
+  .region-panel {
+    max-height: calc(64dvh - 88px);
+    overflow: auto;
+  }
+}
+
+@media (max-width: 720px) {
+  .region-panel {
+    gap: 8px;
+  }
+
+  .region-section:has(.empty-slot-card) {
+    display: none;
+  }
+
+  .queue-list {
+    display: grid;
+    max-height: 90px;
+    overflow: auto;
+  }
+
+  .built-grid {
+    display: flex;
+    gap: 7px;
+    overflow-x: auto;
+    padding-bottom: 2px;
+    scrollbar-width: none;
+  }
+
+  .built-grid::-webkit-scrollbar {
+    display: none;
+  }
+
+  .built-card {
+    grid-template-columns: 52px minmax(0, 1fr);
+    min-width: 172px;
+  }
+
+  .queue-card {
+    grid-template-columns: 52px minmax(0, 1fr);
+  }
+
+  .built-card .building-art,
+  .queue-card .building-art {
+    height: 42px;
+  }
+
+  .build-card {
+    grid-template-columns: 74px minmax(0, 1fr);
+    min-height: 82px;
+  }
+
+  .build-visual,
+  .build-visual .building-art {
+    min-height: 62px;
+  }
+
+  .metric-chip {
+    min-height: 16px;
+    padding: 2px 4px;
+    font-size: 9px;
+  }
 }

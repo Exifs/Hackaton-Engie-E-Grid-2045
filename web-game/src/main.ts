@@ -33,6 +33,10 @@ document.documentElement.style.setProperty(
   "--building-atlas",
   `url("${import.meta.env.BASE_URL}assets/generated/building-icon-atlas.png")`
 );
+document.documentElement.style.setProperty(
+  "--building-art-atlas",
+  `url("${import.meta.env.BASE_URL}assets/generated/building-card-art-atlas.png")`
+);
 
 const data = await DataLoader.load();
 const simulation = new SimulationCore(data);
