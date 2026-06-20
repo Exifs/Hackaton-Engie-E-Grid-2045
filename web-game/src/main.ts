@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import { EGridMapScene, type HeatmapMode } from "./game/EGridMapScene";
+import { OnboardingController, OnboardingOverlay, TargetResolver, type OnboardingGameStateSnapshot } from "./onboarding";
 import { DataLoader, SimulationCore } from "./sim";
 import { cssUrlForPageAsset } from "./ui/assetUrls";
 import { GameHud } from "./ui/GameHud";
@@ -11,9 +12,11 @@ declare global {
       simulation: SimulationCore;
       scene: EGridMapScene;
       hud: GameHud;
+      onboarding: OnboardingController;
       runP0Scenario: () => void;
       runAlertScenario: () => void;
       setHeatmap: (mode: HeatmapMode) => void;
+      resetOnboarding: () => void;
     };
   }
 }
@@ -24,8 +27,9 @@ const seed = params.get("seed") || "web";
 
 const hudRoot = document.querySelector<HTMLElement>("#hud-root");
 const canvasRoot = document.querySelector<HTMLElement>("#game-canvas");
+const appRoot = document.querySelector<HTMLElement>("#app");
 
-if (!hudRoot || !canvasRoot) {
+if (!hudRoot || !canvasRoot || !appRoot) {
   throw new Error("Missing E-Grid web game roots.");
 }
 
@@ -48,47 +52,76 @@ if (testMode) {
 }
 
 let scene: EGridMapScene;
+let onboarding: OnboardingController | undefined;
+let currentHeatmap: HeatmapMode = "energy";
+
+const onboardingRoot = document.createElement("div");
+onboardingRoot.id = "onboarding-root";
+onboardingRoot.className = "onboarding-root";
+appRoot.append(onboardingRoot);
 
 const hud = new GameHud(hudRoot, simulation, {
   onBuild: (buildingId) => {
-    simulation.requestBuilding("", buildingId);
+    const result = simulation.requestBuilding("", buildingId);
     redraw();
+    if (result.ok) {
+      onboarding?.recordGameEvent({ type: "building_queued", buildingId });
+    } else {
+      onboarding?.recordGameEvent({ type: "game_changed" });
+    }
   },
   onCancel: (queueIndex) => {
     simulation.cancelConstruction(simulation.getSummary().selected_region_id, queueIndex);
     redraw();
+    onboarding?.recordGameEvent({ type: "game_changed" });
   },
   onDemolish: (buildingIndex) => {
     simulation.requestDemolition(simulation.getSummary().selected_region_id, buildingIndex);
     redraw();
+    onboarding?.recordGameEvent({ type: "game_changed" });
   },
   onStartResearch: (technologyId) => {
-    simulation.startResearch(technologyId);
+    const result = simulation.startResearch(technologyId);
     redraw();
+    if (result.ok) {
+      onboarding?.recordGameEvent({ type: "research_started", researchId: technologyId });
+    } else {
+      onboarding?.recordGameEvent({ type: "game_changed" });
+    }
   },
   onRemoveQueuedResearch: (queueIndex) => {
     simulation.removeQueuedResearch(queueIndex);
     redraw();
+    onboarding?.recordGameEvent({ type: "game_changed" });
   },
   onPromoteQueuedResearch: (queueIndex) => {
     simulation.promoteQueuedResearch(queueIndex);
     redraw();
+    onboarding?.recordGameEvent({ type: "game_changed" });
   },
   onAdvance: () => {
     simulation.advanceMonth();
     redraw();
+    onboarding?.recordGameEvent({ type: "game_changed" });
   },
   onSpeed: (speed) => {
     simulation.setSimulationSpeed(speed);
     redraw();
+    onboarding?.recordGameEvent({ type: "game_changed" });
   },
   onSelectRegion: (regionId) => {
     simulation.selectRegion(regionId);
     scene.focusRegion(regionId);
     redraw();
+    onboarding?.recordGameEvent({ type: "region_selected", regionId });
   },
   onHeatmap: (mode) => {
+    currentHeatmap = mode;
     scene.setHeatmapMode(mode);
+    onboarding?.recordGameEvent({ type: "overlay_selected", overlay: mode });
+  },
+  onReplayOnboarding: () => {
+    onboarding?.replay();
   }
 });
 
@@ -119,16 +152,57 @@ new Phaser.Game({
 
 hud.render();
 
+onboarding = new OnboardingController({
+  getSnapshot: onboardingSnapshot,
+  renderer: new OnboardingOverlay(
+    onboardingRoot,
+    new TargetResolver({
+      regionPoint: (regionId) => scene.getRegionScreenPoint(regionId)
+    })
+  ),
+  actions: {
+    selectOverlay: ({ mode }) => {
+      currentHeatmap = mode;
+      scene.setHeatmapMode(mode);
+      hud.setHeatmapMode(mode);
+      hud.render();
+      scene.renderState();
+    },
+    openConstruction: ({ category }) => {
+      hud.openConstructionCategory(category);
+      scene.renderState();
+    },
+    openResearch: () => {
+      hud.openResearchPanel();
+      scene.renderState();
+    },
+    focusRegion: ({ regionId }) => {
+      simulation.selectRegion(regionId);
+      scene.focusRegion(regionId);
+      redraw();
+    }
+  }
+});
+
+if (params.get("onboarding") === "1" || (!testMode && params.get("onboarding") !== "0")) {
+  onboarding.start();
+}
+
 window.__EGRID__ = {
   simulation,
   scene,
   hud,
+  onboarding,
   runP0Scenario,
   runAlertScenario,
   setHeatmap: (mode: HeatmapMode) => {
+    currentHeatmap = mode;
     scene.setHeatmapMode(mode);
+    hud.setHeatmapMode(mode);
     hud.render();
-  }
+    onboarding?.recordGameEvent({ type: "overlay_selected", overlay: mode });
+  },
+  resetOnboarding: () => onboarding?.reset()
 };
 
 function redraw(renderHud = true): void {
@@ -136,6 +210,15 @@ function redraw(renderHud = true): void {
   if (renderHud) {
     hud.render();
   }
+  onboarding?.refreshTarget();
+}
+
+function onboardingSnapshot(): OnboardingGameStateSnapshot {
+  return {
+    summary: simulation.getSummary(),
+    regions: simulation.getRegionsSnapshot(),
+    currentOverlay: currentHeatmap
+  };
 }
 
 function runP0Scenario(): void {
@@ -149,6 +232,7 @@ function runP0Scenario(): void {
   }
   simulation.selectRegion("fr_nord");
   redraw();
+  onboarding?.recordGameEvent({ type: "game_changed" });
 }
 
 function runAlertScenario(): void {
@@ -161,5 +245,8 @@ function runAlertScenario(): void {
   }
   simulation.selectRegion("ie");
   scene.setHeatmapMode("cooling");
+  currentHeatmap = "cooling";
+  hud.setHeatmapMode("cooling");
   redraw();
+  onboarding?.recordGameEvent({ type: "game_changed" });
 }

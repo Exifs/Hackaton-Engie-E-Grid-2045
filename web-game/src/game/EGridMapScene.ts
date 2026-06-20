@@ -1,7 +1,7 @@
 import Phaser from "phaser";
 import type { GameSummary, RegionLayout, RegionSnapshot, SimulationCore } from "../sim";
 
-export type HeatmapMode = "none" | "energy" | "cooling" | "compute" | "co2";
+export type HeatmapMode = "none" | "energy" | "cooling" | "network" | "compute" | "co2";
 
 interface SceneConfig {
   simulation: SimulationCore;
@@ -330,6 +330,15 @@ export class EGridMapScene extends Phaser.Scene {
         return HEATMAP_COLORS.warning;
       }
       return HEATMAP_COLORS.cooling;
+    }
+    if (this.heatmapMode === "network") {
+      if (cached.network_congested) {
+        return HEATMAP_COLORS.warning;
+      }
+      if ((cached.energy_imported ?? 0) > 0 || (cached.energy_exported ?? 0) > 0) {
+        return HEATMAP_COLORS.energy;
+      }
+      return HEATMAP_COLORS.stable;
     }
     if (this.heatmapMode === "compute") {
       const ratio = clampColor((cached.compute_produced ?? 0) / maxCompute);
