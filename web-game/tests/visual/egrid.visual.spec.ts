@@ -47,23 +47,36 @@ test.describe("E-Grid 2045 web game visuals", () => {
     await page.screenshot({ path: testInfo.outputPath("france-nord-region-panel.png"), fullPage: true });
   });
 
-  test("construction palette is open and generated icon atlas loads", async ({ page }, testInfo) => {
+  test("construction palette is open with one generated art image per card", async ({ page }, testInfo) => {
     await openGame(page, 1600, 900);
     await expect(page.locator(".build-palette.is-open")).toBeVisible();
     await expect(page.locator(".build-card").first()).toBeVisible();
 
     const manifest = await page.request.get("/assets/generated/manifest.json");
     expect(manifest.ok()).toBe(true);
-    const atlas = await page.request.get("/assets/generated/building-icon-atlas.png");
-    expect(atlas.ok()).toBe(true);
     const cardAtlas = await page.request.get("/assets/generated/building-card-art-atlas.png");
     expect(cardAtlas.ok()).toBe(true);
-    const backgroundImage = await page.locator(".building-icon").first().evaluate((element) => getComputedStyle(element).backgroundImage);
-    expect(backgroundImage).toContain("building-icon-atlas");
     const artBackground = await page.locator(".building-art").first().evaluate((element) => getComputedStyle(element).backgroundImage);
     expect(artBackground).toContain("building-card-art-atlas");
+    await expect(page.locator(".build-card .building-icon")).toHaveCount(0);
 
     await page.screenshot({ path: testInfo.outputPath("construction-palette-open.png"), fullPage: true });
+  });
+
+  test("construction palette keeps scroll after HUD rerender", async ({ page }, testInfo) => {
+    await openGame(page, 390, 844);
+    await page.getByRole("button", { name: "Construire" }).click();
+    const scrollState = await page.locator(".palette-body").evaluate((element) => {
+      element.scrollTop = element.scrollHeight;
+      return { before: element.scrollTop, max: element.scrollHeight - element.clientHeight };
+    });
+    expect(scrollState.before).toBeGreaterThan(0);
+
+    await page.evaluate(() => window.__EGRID__?.hud.render());
+    const after = await page.locator(".palette-body").evaluate((element) => element.scrollTop);
+    expect(after).toBeGreaterThan(scrollState.max * 0.75);
+    await expect(page.locator(".build-card").last()).toBeVisible();
+    await page.screenshot({ path: testInfo.outputPath("phone-build-scroll-preserved.png"), fullPage: true });
   });
 
   test("P0 completed buildings render as visual active cards", async ({ page }, testInfo) => {
@@ -99,6 +112,120 @@ test.describe("E-Grid 2045 web game visuals", () => {
     await expectCanvasNonBlank(page);
     await expectHudNoMajorOverlap(page);
     await page.screenshot({ path: testInfo.outputPath("flows-and-alerts.png"), fullPage: true });
+  });
+
+  test("non-actionable notifications can be closed and auto-dismiss", async ({ page }, testInfo) => {
+    await openGame(page, 1600, 900);
+    await createSlotsAlert(page);
+    await expect(page.locator(".alert-item", { hasText: "Slots saturated" })).toBeVisible();
+
+    await page.evaluate(() => window.__EGRID__?.simulation.selectRegion("fr_nord"));
+    await page.locator(".alert-item", { hasText: "Slots saturated" }).locator(".alert-dismiss").click();
+    await expect(page.locator(".alert-item", { hasText: "Slots saturated" })).toHaveCount(0);
+    const selectedAfterClose = await page.evaluate(() => window.__EGRID__?.simulation.getSummary().selected_region_id);
+    expect(selectedAfterClose).toBe("fr_nord");
+
+    await page.reload();
+    await page.waitForFunction(() => Boolean(window.__EGRID__));
+    await createSlotsAlert(page);
+    const slotsAlert = page.locator(".alert-item", { hasText: "Slots saturated" });
+    await expect(slotsAlert).toBeVisible();
+    await expect(slotsAlert.locator(".alert-life")).toBeVisible();
+    await page.waitForTimeout(8_600);
+    await expect(slotsAlert).toHaveCount(0);
+    await page.screenshot({ path: testInfo.outputPath("slots-alert-dismissed.png"), fullPage: true });
+  });
+
+  test("built buildings can be demolished from the region panel", async ({ page }, testInfo) => {
+    await openGame(page, 1600, 900);
+    await page.evaluate(() => window.__EGRID__?.runP0Scenario());
+    const energyBefore = await page.evaluate(() => window.__EGRID__?.simulation.getSummary().energy_produced ?? 0);
+
+    await page.locator(".built-card", { hasText: "Centrale gaz" }).click();
+    await expect(page.locator(".region-demolition")).toContainText("Centrale gaz");
+    const energyAfter = await page.evaluate(() => window.__EGRID__?.simulation.getSummary().energy_produced ?? 0);
+    expect(energyAfter).toBeLessThan(energyBefore);
+    await expectHudNoMajorOverlap(page);
+    await page.screenshot({ path: testInfo.outputPath("demolition-started.png"), fullPage: true });
+  });
+
+  test("research tab launches Batteries and unlocks the Battery building", async ({ page }, testInfo) => {
+    await openGame(page, 1600, 900);
+    await page.evaluate(() => {
+      const game = window.__EGRID__;
+      if (!game) {
+        return;
+      }
+      game.simulation.state.money = 10000;
+      game.simulation.requestBuilding("fr_nord", "energy_research_center");
+      for (let index = 0; index < 8; index += 1) {
+        game.simulation.advanceMonth();
+      }
+      game.simulation.selectRegion("fr_nord");
+      game.scene.focusRegion("fr_nord");
+      game.hud.render();
+      game.scene.renderState();
+    });
+
+    await page.locator('[data-palette-tab="research"]').click();
+    await expect(page.locator(".research-card", { hasText: "Batteries" })).toBeVisible();
+    await page.locator(".research-card", { hasText: "Batteries" }).click();
+    await expect(page.locator(".research-status")).toContainText("Batteries");
+
+    await page.evaluate(() => {
+      const game = window.__EGRID__;
+      if (!game) {
+        return;
+      }
+      for (let index = 0; index < 20; index += 1) {
+        game.simulation.advanceMonth();
+      }
+      game.hud.render();
+    });
+    await page.locator('[data-palette-tab="construction"]').click();
+    const battery = page.locator(".build-card", { hasText: "Batterie" });
+    await expect(battery).toBeVisible();
+    await expect(battery).not.toBeDisabled();
+    await page.screenshot({ path: testInfo.outputPath("research-unlocks-battery.png"), fullPage: true });
+  });
+
+  test("research tab explains stalled research when technology output is zero", async ({ page }, testInfo) => {
+    await openGame(page, 1600, 900);
+    await page.evaluate(() => {
+      const game = window.__EGRID__;
+      if (!game) {
+        return;
+      }
+      game.simulation.startResearch("batteries");
+      game.hud.render();
+    });
+    await page.locator('[data-palette-tab="research"]').click();
+    await expect(page.locator(".research-status")).toContainText("debit 0");
+    await expect(page.locator(".research-card", { hasText: "Batteries" })).toContainText("centres de recherche energie");
+    await page.screenshot({ path: testInfo.outputPath("research-stalled-zero-output.png"), fullPage: true });
+  });
+
+  test("selected far region is focused inside the visible map safe area", async ({ page }, testInfo) => {
+    await openGame(page, 1600, 900);
+    const focusedRegion = await page.evaluate(() => {
+      const game = window.__EGRID__;
+      if (!game) {
+        return "";
+      }
+      const [regionId] = Object.entries(game.simulation.getRegionLayout())
+        .sort(([, a], [, b]) => b.x - a.x)[0];
+      game.simulation.selectRegion(regionId);
+      game.scene.focusRegion(regionId);
+      game.hud.render();
+      game.scene.renderState();
+      return regionId;
+    });
+    expect(focusedRegion).not.toBe("");
+    await page.waitForTimeout(150);
+    const point = await page.evaluate((regionId) => window.__EGRID__?.scene.getRegionScreenPoint(regionId), focusedRegion);
+    expect(point).toBeTruthy();
+    await expectPointNotCoveredByHud(page, point as { x: number; y: number });
+    await page.screenshot({ path: testInfo.outputPath("focused-region-safe-area.png"), fullPage: true });
   });
 });
 
@@ -173,6 +300,48 @@ async function expectHudNoMajorOverlap(page: Page): Promise<void> {
     }
   }
   expect(collisions).toEqual([]);
+}
+
+async function createSlotsAlert(page: Page): Promise<void> {
+  await page.evaluate(() => {
+    const game = window.__EGRID__;
+    if (!game) {
+      return;
+    }
+    game.simulation.newGame("slots-alert");
+    game.simulation.state.money = 10000;
+    game.simulation.selectRegion("dk");
+    let guard = 0;
+    while (game.simulation.getBuildAvailability("dk").gas_power_plant.ok && guard < 40) {
+      game.simulation.requestBuilding("dk", "gas_power_plant");
+      guard += 1;
+    }
+    for (let index = 0; index < 4; index += 1) {
+      game.simulation.advanceMonth();
+    }
+    game.hud.render();
+    game.scene.focusRegion("dk");
+    game.scene.renderState();
+  });
+}
+
+async function expectPointNotCoveredByHud(page: Page, point: { x: number; y: number }): Promise<void> {
+  const coveredBy = await page.evaluate(({ x, y }) => {
+    const selectors = [".top-kpi", ".heatmap-switch", ".alerts-panel", ".region-panel", ".build-palette"];
+    return selectors.filter((selector) => {
+      const element = document.querySelector<HTMLElement>(selector);
+      if (!element) {
+        return false;
+      }
+      const style = getComputedStyle(element);
+      const rect = element.getBoundingClientRect();
+      if (style.display === "none" || rect.width < 2 || rect.height < 2) {
+        return false;
+      }
+      return x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom;
+    });
+  }, point);
+  expect(coveredBy).toEqual([]);
 }
 
 function overlaps(a: Rect, b: Rect): boolean {

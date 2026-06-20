@@ -12,6 +12,7 @@ export class RegionSystem {
         ...cloneRecord(source),
         buildings: [],
         construction_queue: [],
+        deconstruction_queue: [],
         cached: {},
         layout: layout[regionId] ?? {}
       };
@@ -25,6 +26,9 @@ export class RegionSystem {
       used += buildingDefinitions[buildingId]?.slots_required ?? 1;
     }
     for (const item of region.construction_queue) {
+      used += buildingDefinitions[item.building_id]?.slots_required ?? 1;
+    }
+    for (const item of region.deconstruction_queue) {
       used += buildingDefinitions[item.building_id]?.slots_required ?? 1;
     }
     return used;

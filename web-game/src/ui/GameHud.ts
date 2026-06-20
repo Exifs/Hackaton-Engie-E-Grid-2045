@@ -1,9 +1,11 @@
 import type { HeatmapMode } from "../game/EGridMapScene";
-import type { BuildAvailability, BuildingDefinition, RegionSnapshot, SimulationCore } from "../sim";
+import type { Alert, BuildAvailability, BuildingDefinition, RegionSnapshot, ResearchOption, SimulationCore } from "../sim";
 
 interface HudCallbacks {
   onBuild: (buildingId: string) => void;
   onCancel: (queueIndex: number) => void;
+  onDemolish: (buildingIndex: number) => void;
+  onStartResearch: (technologyId: string) => void;
   onAdvance: () => void;
   onSpeed: (speed: number) => void;
   onSelectRegion: (regionId: string) => void;
@@ -26,6 +28,11 @@ export class GameHud {
   private readonly callbacks: HudCallbacks;
   private heatmapMode: HeatmapMode = "energy";
   private paletteOpen = !window.matchMedia("(max-width: 720px)").matches;
+  private activeDockTab: "construction" | "research" = "construction";
+  private readonly paletteScrollTop: Record<string, number> = { construction: 0, research: 0 };
+  private readonly dismissedAlerts = new Set<string>();
+  private readonly alertFirstSeen = new Map<string, number>();
+  private readonly alertTimers = new Map<string, number>();
 
   constructor(root: HTMLElement, simulation: SimulationCore, callbacks: HudCallbacks) {
     this.root = root;
@@ -35,11 +42,13 @@ export class GameHud {
   }
 
   render(): void {
+    this.capturePaletteScroll();
     const summary = this.simulation.getSummary();
     const selectedRegion = this.simulation.getRegionSnapshot();
     const buildings = this.simulation.getBuildingDefinitions();
     const availability = this.simulation.getBuildAvailability();
-    const alerts = summary.alerts;
+    const researchOptions = this.simulation.getResearchOptions();
+    const alerts = this.visibleAlerts(summary.alerts);
 
     this.root.innerHTML = `
       <section class="top-kpi" aria-label="Indicateurs">
@@ -70,10 +79,7 @@ export class GameHud {
 
       <section class="alerts-panel" aria-label="Alertes">
         ${alerts.length === 0 ? `<div class="alert-empty">Systemes stables</div>` : alerts.map((alert) => `
-          <button class="alert-item alert-${alert.state}" type="button" data-region="${alert.region_id}">
-            <strong>${escapeHtml(alert.title)}</strong>
-            <span>${escapeHtml(alert.body)}</span>
-          </button>
+          ${this.alertCard(alert)}
         `).join("")}
       </section>
 
@@ -82,14 +88,23 @@ export class GameHud {
       </section>
 
       <section class="build-palette ${this.paletteOpen ? "is-open" : ""}" aria-label="Construction">
-        <button class="palette-toggle" type="button" data-action="toggle-palette">
-          <span>${this.paletteOpen ? "Fermer" : "Construire"}</span>
-        </button>
-        <div class="palette-body">
-          ${CATEGORY_ORDER.map((category) => this.categoryBlock(category, buildings, availability)).join("")}
+        <div class="palette-header">
+          <button class="palette-toggle" type="button" data-action="toggle-palette">
+            <span>${this.paletteOpen ? "Fermer" : "Construire"}</span>
+          </button>
+          <div class="palette-tabs" role="tablist" aria-label="Panel bas">
+            ${this.paletteTab("construction", "Construction")}
+            ${this.paletteTab("research", "Recherche")}
+          </div>
+        </div>
+        <div class="palette-body palette-body-${this.activeDockTab}" data-scroll-key="${this.activeDockTab}">
+          ${this.activeDockTab === "construction"
+            ? CATEGORY_ORDER.map((category) => this.categoryBlock(category, buildings, availability)).join("")
+            : this.researchPanel(researchOptions, buildings)}
         </div>
       </section>
     `;
+    this.restorePaletteScroll();
   }
 
   private kpi(label: string, value: string): string {
@@ -105,6 +120,28 @@ export class GameHud {
     return `<button class="heatmap-button ${this.heatmapMode === mode ? "is-active" : ""}" type="button" data-heatmap="${mode}">${label}</button>`;
   }
 
+  private paletteTab(tab: "construction" | "research", label: string): string {
+    const active = this.activeDockTab === tab;
+    return `<button class="palette-tab ${active ? "is-active" : ""}" type="button" data-palette-tab="${tab}" role="tab" aria-selected="${active}">${label}</button>`;
+  }
+
+  private alertCard(alert: Alert): string {
+    const elapsed = this.alertFirstSeen.has(alert.id) ? Math.max(0, Date.now() - (this.alertFirstSeen.get(alert.id) ?? Date.now())) : 0;
+    const progress = alert.autoDismissMs > 0
+      ? `<i class="alert-life" style="--alert-life:${alert.autoDismissMs}ms; --alert-elapsed:${elapsed}ms"></i>`
+      : "";
+    return `
+      <article class="alert-item alert-${alert.state} ${alert.actionable ? "is-actionable" : "is-info"}" data-alert="${escapeHtml(alert.id)}">
+        <button class="alert-main" type="button" ${alert.region_id ? `data-region="${escapeHtml(alert.region_id)}"` : ""}>
+          <strong>${escapeHtml(alert.title)}</strong>
+          <span>${escapeHtml(alert.body)}</span>
+        </button>
+        <button class="alert-dismiss" type="button" data-dismiss-alert="${escapeHtml(alert.id)}" title="Fermer">x</button>
+        ${progress}
+      </article>
+    `;
+  }
+
   private regionPanel(region: RegionSnapshot, buildings: Record<string, BuildingDefinition>): string {
     const cached = region.cached;
     const slotPct = region.slots_max > 0 ? (region.slots_used / region.slots_max) * 100 : 0;
@@ -113,11 +150,15 @@ export class GameHud {
       : region.construction_queue
         .map((item, index) => this.queueCard(item, index, buildings[item.building_id]))
         .join("");
+    const demolitionCards = region.deconstruction_queue.length === 0
+      ? `<span class="empty-slot-card">Aucune demolition</span>`
+      : region.deconstruction_queue
+        .map((item) => this.demolitionCard(item, buildings[item.building_id]))
+        .join("");
     const builtCards = region.buildings.length === 0
       ? `<span class="empty-slot-card">Aucun actif</span>`
       : region.buildings
-        .slice(-8)
-        .map((id) => this.builtCard(id, buildings[id]))
+        .map((id, index) => this.builtCard(id, buildings[id], index))
         .join("");
 
     return `
@@ -138,6 +179,12 @@ export class GameHud {
         <div class="panel-subtitle"><span>Chantier</span><strong>${region.construction_queue.length}</strong></div>
         <div class="queue-list">
           ${queueCards}
+        </div>
+      </div>
+      <div class="region-section region-demolition">
+        <div class="panel-subtitle"><span>Demolition</span><strong>${region.deconstruction_queue.length}</strong></div>
+        <div class="queue-list">
+          ${demolitionCards}
         </div>
       </div>
       <div class="region-section region-buildings">
@@ -176,15 +223,34 @@ export class GameHud {
     `;
   }
 
-  private builtCard(buildingId: string, building: BuildingDefinition | undefined): string {
+  private demolitionCard(
+    item: { building_id: string; months_remaining: number; total_months: number },
+    building: BuildingDefinition | undefined
+  ): string {
+    const progress = item.total_months > 0 ? ((item.total_months - item.months_remaining) / item.total_months) * 100 : 100;
     return `
-      <span class="built-card" title="${escapeHtml(building?.description ?? buildingId)}">
+      <span class="queue-card demolition-card" title="Demolition ${escapeHtml(building?.display_name ?? item.building_id)}">
+        ${this.buildingArt(building)}
+        <span class="queue-copy">
+          <strong>${escapeHtml(building?.display_name ?? item.building_id)}</strong>
+          <small>Demolition · ${item.months_remaining}m restantes</small>
+          <i style="--progress:${clampPct(progress)}%"><b></b></i>
+        </span>
+      </span>
+    `;
+  }
+
+  private builtCard(buildingId: string, building: BuildingDefinition | undefined, index: number): string {
+    const demolishCost = building ? Math.ceil(building.cost * 0.2) : 0;
+    return `
+      <button class="built-card" type="button" data-demolish="${index}" title="Demonter ${escapeHtml(building?.display_name ?? buildingId)} (${demolishCost}M)">
         ${this.buildingArt(building)}
         <span class="built-copy">
           <strong>${escapeHtml(building?.display_name ?? buildingId)}</strong>
           <small>${escapeHtml(this.buildingSummary(building))}</small>
+          <span class="built-action">Demonter ${demolishCost}M</span>
         </span>
-      </span>
+      </button>
     `;
   }
 
@@ -262,7 +328,7 @@ export class GameHud {
       <button class="build-card ${enabled ? "" : "is-disabled"}" type="button" data-build="${building.id}" ${enabled ? "" : "disabled"} title="${escapeHtml(reason || building.description)}">
         <span class="build-visual" aria-hidden="true">
           ${this.buildingArt(building)}
-          <span class="building-icon building-icon--${building.icon_key}"></span>
+          ${this.buildingBadges(building, availability)}
         </span>
         <span class="build-copy">
           <strong>${escapeHtml(building.display_name)}</strong>
@@ -275,10 +341,100 @@ export class GameHud {
     `;
   }
 
+  private buildingBadges(building: BuildingDefinition, availability: BuildAvailability | undefined): string {
+    const badges: string[] = [];
+    if (building.unlock_technology) {
+      badges.push(availability?.ok ? "Tech OK" : "Rech.");
+    }
+    if (building.id === "energy_research_center") {
+      badges.push("Paliers");
+    } else if (building.id === "ai_research_center") {
+      badges.push("AGI+");
+    }
+    if (badges.length === 0) {
+      return "";
+    }
+    return `<span class="build-badges">${badges.slice(0, 2).map((badge) => `<span>${escapeHtml(badge)}</span>`).join("")}</span>`;
+  }
+
+  private researchPanel(options: ResearchOption[], buildings: Record<string, BuildingDefinition>): string {
+    const active = options.find((option) => option.status === "active");
+    const activeSummary = active
+      ? `<div class="research-status"><strong>${escapeHtml(active.display_name)}</strong><span>${fmt(active.progress * 100)}% · ${this.researchEta(active)}</span></div>`
+      : `<div class="research-status"><strong>Aucune recherche active</strong><span>Choisis un palier a lancer</span></div>`;
+    return `
+      <div class="research-panel">
+        ${activeSummary}
+        <div class="research-grid">
+          ${options.map((option) => this.researchCard(option, buildings)).join("")}
+        </div>
+      </div>
+    `;
+  }
+
+  private researchCard(option: ResearchOption, buildings: Record<string, BuildingDefinition>): string {
+    const enabled = option.status === "available";
+    const unlocks = option.unlocks
+      .map((id) => buildings[id]?.display_name ?? id)
+      .filter(Boolean)
+      .slice(0, 3);
+    const effect = this.researchEffect(option);
+    const progress = clampPct(option.progress * 100);
+    return `
+      <button class="research-card research-${option.status}" type="button" data-research="${option.id}" ${enabled ? "" : "disabled"} title="${escapeHtml(option.reason || option.notes)}">
+        <span class="research-card-head">
+          <strong>${escapeHtml(option.display_name)}</strong>
+          <small>${escapeHtml(option.branch)} T${option.tier} · ${fmt(option.cost)} pts · ${this.researchEta(option)}</small>
+        </span>
+        <span class="research-progress" style="--progress:${progress}%"><b></b></span>
+        <span class="research-copy">${escapeHtml(option.reason || option.notes || effect)}</span>
+        <span class="research-tags">
+          ${unlocks.map((unlock) => `<span>Debloque ${escapeHtml(unlock)}</span>`).join("")}
+          ${effect ? `<span>${escapeHtml(effect)}</span>` : ""}
+        </span>
+      </button>
+    `;
+  }
+
+  private researchEta(option: ResearchOption): string {
+    if (option.status === "completed") {
+      return "terminee";
+    }
+    if (!Number.isFinite(option.estimated_months_remaining)) {
+      return "debit 0";
+    }
+    return `${Math.max(option.estimated_months_remaining, 0)}m`;
+  }
+
+  private researchEffect(option: ResearchOption): string {
+    if (option.effect_value_pct > 0) {
+      return `+${fmt(option.effect_value_pct)}% ${option.effect_key}`;
+    }
+    if (option.effect_value) {
+      return option.effect_value;
+    }
+    return option.effect_key;
+  }
+
   private handleClick(event: Event): void {
     const target = event.target as HTMLElement;
     const button = target.closest("button") as HTMLButtonElement | null;
     if (!button) {
+      return;
+    }
+
+    const dismissAlertId = button.dataset.dismissAlert;
+    if (dismissAlertId) {
+      this.dismissAlert(dismissAlertId);
+      return;
+    }
+
+    const paletteTab = button.dataset.paletteTab as "construction" | "research" | undefined;
+    if (paletteTab) {
+      this.capturePaletteScroll();
+      this.activeDockTab = paletteTab;
+      this.paletteOpen = true;
+      this.render();
       return;
     }
 
@@ -288,9 +444,21 @@ export class GameHud {
       return;
     }
 
+    const researchId = button.dataset.research;
+    if (researchId) {
+      this.callbacks.onStartResearch(researchId);
+      return;
+    }
+
     const cancelIndex = button.dataset.cancel;
     if (cancelIndex !== undefined) {
       this.callbacks.onCancel(Number(cancelIndex));
+      return;
+    }
+
+    const demolishIndex = button.dataset.demolish;
+    if (demolishIndex !== undefined) {
+      this.callbacks.onDemolish(Number(demolishIndex));
       return;
     }
 
@@ -321,6 +489,65 @@ export class GameHud {
       this.paletteOpen = !this.paletteOpen;
       this.render();
     }
+  }
+
+  private capturePaletteScroll(): void {
+    const scroller = this.root.querySelector<HTMLElement>(".palette-body[data-scroll-key]");
+    if (!scroller) {
+      return;
+    }
+    const key = scroller.dataset.scrollKey ?? this.activeDockTab;
+    this.paletteScrollTop[key] = scroller.scrollTop;
+  }
+
+  private restorePaletteScroll(): void {
+    const scroller = this.root.querySelector<HTMLElement>(".palette-body[data-scroll-key]");
+    if (!scroller) {
+      return;
+    }
+    const key = scroller.dataset.scrollKey ?? this.activeDockTab;
+    scroller.scrollTop = this.paletteScrollTop[key] ?? 0;
+  }
+
+  private visibleAlerts(alerts: Alert[]): Alert[] {
+    const now = Date.now();
+    const currentIds = new Set(alerts.map((alert) => alert.id));
+    for (const [alertId, timer] of this.alertTimers) {
+      if (!currentIds.has(alertId)) {
+        clearTimeout(timer);
+        this.alertTimers.delete(alertId);
+        this.alertFirstSeen.delete(alertId);
+        this.dismissedAlerts.delete(alertId);
+      }
+    }
+
+    for (const alert of alerts) {
+      if (!this.alertFirstSeen.has(alert.id)) {
+        this.alertFirstSeen.set(alert.id, now);
+      }
+      if (alert.autoDismissMs > 0 && !this.alertTimers.has(alert.id)) {
+        const firstSeen = this.alertFirstSeen.get(alert.id) ?? now;
+        const remaining = Math.max(0, alert.autoDismissMs - (now - firstSeen));
+        const timer = window.setTimeout(() => this.dismissAlert(alert.id), remaining);
+        this.alertTimers.set(alert.id, timer);
+      }
+      const elapsed = now - (this.alertFirstSeen.get(alert.id) ?? now);
+      if (alert.autoDismissMs > 0 && elapsed >= alert.autoDismissMs) {
+        this.dismissedAlerts.add(alert.id);
+      }
+    }
+
+    return alerts.filter((alert) => !this.dismissedAlerts.has(alert.id));
+  }
+
+  private dismissAlert(alertId: string): void {
+    this.dismissedAlerts.add(alertId);
+    const timer = this.alertTimers.get(alertId);
+    if (timer) {
+      clearTimeout(timer);
+      this.alertTimers.delete(alertId);
+    }
+    this.render();
   }
 }
 
