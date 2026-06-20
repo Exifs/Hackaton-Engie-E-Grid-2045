@@ -409,6 +409,136 @@ test.describe("E-Grid 2045 web game visuals", () => {
     await page.screenshot({ path: testInfo.outputPath("month-progress-interpolated-bars.png"), fullPage: true });
   });
 
+  test("construction progress remains monotone when the monthly tick rerenders the HUD", async ({ page }, testInfo) => {
+    await openGame(page, 1600, 900);
+    await page.evaluate(() => {
+      const game = window.__EGRID__;
+      if (!game) {
+        return;
+      }
+      game.simulation.state.money = 10000;
+      game.simulation.requestBuilding("fr_nord", "energy_research_center");
+      game.simulation.selectRegion("fr_nord");
+      game.simulation.setSimulationSpeed(1);
+      game.simulation.stepSimulationTime(game.simulation.secondsPerMonth * 0.96);
+      game.hud.render();
+    });
+
+    const beforeTick = await progressVariable(page, '[data-progress-kind="construction"]');
+    await page.evaluate(() => {
+      const game = window.__EGRID__;
+      if (!game) {
+        return;
+      }
+      game.simulation.stepSimulationTime(game.simulation.secondsPerMonth * 0.08);
+      game.hud.render();
+    });
+
+    const afterRender = await progressVariable(page, '[data-progress-kind="construction"]');
+    expect(afterRender).toBeGreaterThanOrEqual(beforeTick - 0.01);
+    await page.waitForTimeout(80);
+    const afterAnimationFrame = await progressVariable(page, '[data-progress-kind="construction"]');
+    expect(afterAnimationFrame).toBeGreaterThanOrEqual(afterRender);
+    await page.screenshot({ path: testInfo.outputPath("construction-progress-monotone-after-tick.png"), fullPage: true });
+  });
+
+  test("active research progress remains monotone when the monthly tick rerenders the HUD", async ({ page }, testInfo) => {
+    await openGame(page, 1600, 900);
+    await buildCompletedResearchCenter(page, "energy_research_center");
+    await page.locator('[data-palette-tab="research"]').click();
+    await page.evaluate(() => {
+      const game = window.__EGRID__;
+      if (!game) {
+        return;
+      }
+      game.simulation.startResearch("batteries");
+      game.simulation.setSimulationSpeed(1);
+      game.simulation.stepSimulationTime(game.simulation.secondsPerMonth * 0.96);
+      game.hud.render();
+    });
+
+    const beforeTick = await researchStatusProgress(page);
+    await page.evaluate(() => {
+      const game = window.__EGRID__;
+      if (!game) {
+        return;
+      }
+      game.simulation.stepSimulationTime(game.simulation.secondsPerMonth * 0.08);
+      game.hud.render();
+    });
+
+    const afterRender = await researchStatusProgress(page);
+    expect(afterRender).toBeGreaterThanOrEqual(beforeTick - 0.01);
+    await page.waitForTimeout(80);
+    const afterAnimationFrame = await researchStatusProgress(page);
+    expect(afterAnimationFrame).toBeGreaterThanOrEqual(afterRender);
+    await page.screenshot({ path: testInfo.outputPath("research-progress-monotone-after-tick.png"), fullPage: true });
+  });
+
+  test("month progress patch keeps construction progress DOM stable within a month", async ({ page }) => {
+    await openGame(page, 1600, 900);
+    const result = await page.evaluate(() => {
+      const game = window.__EGRID__;
+      if (!game) {
+        return { markerKept: false, sameKey: false, progress: 0 };
+      }
+      game.simulation.state.money = 10000;
+      game.simulation.requestBuilding("fr_nord", "energy_research_center");
+      game.simulation.setSimulationSpeed(1);
+      game.hud.render();
+
+      const before = document.querySelector<HTMLElement>('[data-progress-kind="construction"]');
+      if (!before) {
+        return { markerKept: false, sameKey: false, progress: 0 };
+      }
+      before.dataset.stabilityProbe = "kept";
+      const key = before.dataset.progressKey;
+      game.simulation.stepSimulationTime(game.simulation.secondsPerMonth / 2);
+      game.hud.updateVisualProgress();
+
+      const after = document.querySelector<HTMLElement>('[data-progress-kind="construction"]');
+      const progress = after ? parseFloat(getComputedStyle(after).getPropertyValue("--progress")) : 0;
+      return {
+        markerKept: after?.dataset.stabilityProbe === "kept",
+        sameKey: after?.dataset.progressKey === key,
+        progress
+      };
+    });
+
+    expect(result.markerKept).toBe(true);
+    expect(result.sameKey).toBe(true);
+    expect(result.progress).toBeGreaterThan(0);
+  });
+
+  test("live x1 cadence waits for the 4.8s month threshold", async ({ page }) => {
+    await openLiveGame(page, 1600, 900);
+    const startMonth = await page.evaluate(() => {
+      const game = window.__EGRID__;
+      if (!game) {
+        return 0;
+      }
+      game.simulation.newGame("live-cadence");
+      game.simulation.selectRegion("fr_nord");
+      game.scene.focusRegion("fr_nord");
+      game.scene.renderState();
+      game.simulation.setSimulationSpeed(1);
+      game.hud.render();
+      return game.simulation.getSummary().month_index;
+    });
+
+    await page.waitForTimeout(4_100);
+    const beforeThreshold = await page.evaluate(() => window.__EGRID__?.simulation.getSummary().month_index ?? 0);
+    expect(beforeThreshold).toBe(startMonth);
+
+    await page.waitForFunction(
+      (month) => (window.__EGRID__?.simulation.getSummary().month_index ?? month) > month,
+      startMonth,
+      { timeout: 5_000, polling: 100 }
+    );
+    const afterThreshold = await page.evaluate(() => window.__EGRID__?.simulation.getSummary().month_index ?? 0);
+    expect(afterThreshold).toBeGreaterThanOrEqual(startMonth + 1);
+  });
+
   test("selected far region is focused inside the visible map safe area", async ({ page }, testInfo) => {
     await openGame(page, 1600, 900);
     const focusedRegion = await page.evaluate(() => {
@@ -436,6 +566,18 @@ test.describe("E-Grid 2045 web game visuals", () => {
 async function openGame(page: Page, width: number, height: number): Promise<void> {
   await page.setViewportSize({ width, height });
   await page.goto("/?testMode=1&seed=p0");
+  await page.waitForFunction(() => Boolean(window.__EGRID__));
+  await page.locator("#game-canvas canvas").waitFor({ state: "visible" });
+  await page.evaluate(() => {
+    window.__EGRID__?.hud.render();
+    window.__EGRID__?.scene.renderState();
+  });
+  await page.waitForTimeout(150);
+}
+
+async function openLiveGame(page: Page, width: number, height: number): Promise<void> {
+  await page.setViewportSize({ width, height });
+  await page.goto("/?seed=p0");
   await page.waitForFunction(() => Boolean(window.__EGRID__));
   await page.locator("#game-canvas canvas").waitFor({ state: "visible" });
   await page.evaluate(() => {
@@ -480,6 +622,12 @@ async function regionPanelMetrics(page: Page): Promise<{ tagHeight: number; sect
 async function progressVariable(page: Page, selector: string): Promise<number> {
   return page.locator(selector).first().evaluate((element) =>
     parseFloat(getComputedStyle(element).getPropertyValue("--progress"))
+  );
+}
+
+async function researchStatusProgress(page: Page): Promise<number> {
+  return page.locator(".research-status.is-active").evaluate((element) =>
+    parseFloat(getComputedStyle(element).getPropertyValue("--research-progress"))
   );
 }
 
