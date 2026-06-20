@@ -18,6 +18,15 @@ interface MapRect {
   height: number;
 }
 
+interface ConceptMapLabel {
+  text: string;
+  x: number;
+  y: number;
+  kind: "country" | "sea";
+  rotation?: number;
+  size?: number;
+}
+
 const HEATMAP_COLORS = {
   stable: 0x49e7b8,
   energy: 0x53e7ff,
@@ -27,6 +36,35 @@ const HEATMAP_COLORS = {
   critical: 0xff5f4f,
   co2: 0xc0814f
 };
+
+const CONCEPT_MAP_LABELS: ConceptMapLabel[] = [
+  { text: "IRELAND", x: 0.23, y: 0.39, kind: "country" },
+  { text: "UNITED\nKINGDOM", x: 0.34, y: 0.45, kind: "country" },
+  { text: "NORWAY", x: 0.55, y: 0.17, kind: "country" },
+  { text: "SWEDEN", x: 0.63, y: 0.19, kind: "country" },
+  { text: "FINLAND", x: 0.76, y: 0.15, kind: "country" },
+  { text: "DENMARK", x: 0.55, y: 0.34, kind: "country" },
+  { text: "BELGIUM", x: 0.43, y: 0.51, kind: "country" },
+  { text: "GERMANY", x: 0.56, y: 0.52, kind: "country" },
+  { text: "FRANCE", x: 0.37, y: 0.65, kind: "country" },
+  { text: "SPAIN", x: 0.29, y: 0.78, kind: "country" },
+  { text: "PORTUGAL", x: 0.19, y: 0.79, kind: "country" },
+  { text: "SWITZERLAND", x: 0.48, y: 0.63, kind: "country" },
+  { text: "ITALY", x: 0.58, y: 0.78, kind: "country" },
+  { text: "AUSTRIA", x: 0.62, y: 0.62, kind: "country" },
+  { text: "CZECHIA", x: 0.65, y: 0.52, kind: "country" },
+  { text: "POLAND", x: 0.72, y: 0.45, kind: "country" },
+  { text: "SLOVAKIA", x: 0.72, y: 0.57, kind: "country" },
+  { text: "HUNGARY", x: 0.73, y: 0.64, kind: "country" },
+  { text: "ROMANIA", x: 0.84, y: 0.64, kind: "country" },
+  { text: "BULGARIA", x: 0.84, y: 0.74, kind: "country" },
+  { text: "GREECE", x: 0.82, y: 0.86, kind: "country" },
+  { text: "NORTH\nSEA", x: 0.43, y: 0.27, kind: "sea", rotation: -7, size: 12 },
+  { text: "BALTIC\nSEA", x: 0.69, y: 0.32, kind: "sea", rotation: -10, size: 12 },
+  { text: "ATLANTIC\nOCEAN", x: 0.17, y: 0.56, kind: "sea", rotation: -7, size: 12 },
+  { text: "MEDITERRANEAN\nSEA", x: 0.45, y: 0.88, kind: "sea", rotation: -5, size: 11 },
+  { text: "BLACK\nSEA", x: 0.67, y: 0.78, kind: "sea", rotation: 12, size: 11 }
+];
 
 export class EGridMapScene extends Phaser.Scene {
   private simulation: SimulationCore;
@@ -721,7 +759,12 @@ export class EGridMapScene extends Phaser.Scene {
     const summary = this.simulation.getSummary();
     const regions = this.simulation.getRegionsSnapshot();
     const selectedId = summary.selected_region_id;
+    const isConceptScenario = document.documentElement.dataset.conceptScenario === "1";
     const maxCompute = Math.max(...Object.values(regions).map((region) => region.cached.compute_produced ?? 0), 1);
+
+    if (isConceptScenario) {
+      this.drawConceptGeoLabels(rect, labels);
+    }
 
     for (const [regionId, region] of Object.entries(regions)) {
       const layout = region.layout as RegionLayout;
@@ -751,7 +794,10 @@ export class EGridMapScene extends Phaser.Scene {
       graphics.fillStyle(0xf7fbff, isSelected ? 0.95 : 0.55);
       graphics.fillCircle(point.x, point.y, Math.max(1.6, radius * 0.2));
 
-      if (isSelected || (region.cached.problems?.length ?? 0) > 0 || hashString(regionId) % 2 === 0) {
+      const shouldDrawRegionLabel = isConceptScenario
+        ? isSelected
+        : isSelected || (region.cached.problems?.length ?? 0) > 0 || hashString(regionId) % 2 === 0;
+      if (shouldDrawRegionLabel) {
         const text = this.add
           .text(point.x, point.y - radius - (isSelected ? 21 : 15), region.display_name.toUpperCase(), {
             fontFamily: "Inter, Segoe UI, Arial, sans-serif",
@@ -764,6 +810,26 @@ export class EGridMapScene extends Phaser.Scene {
           .setAlpha(isSelected ? 0.95 : 0.62);
         labels.add(text);
       }
+    }
+  }
+
+  private drawConceptGeoLabels(rect: MapRect, labels: Phaser.GameObjects.Container): void {
+    for (const label of CONCEPT_MAP_LABELS) {
+      const isSea = label.kind === "sea";
+      const text = this.add
+        .text(rect.x + label.x * rect.width, rect.y + label.y * rect.height, label.text, {
+          align: "center",
+          color: isSea ? "#4eb2c7" : "#eef7fb",
+          fontFamily: "Inter, Segoe UI, Arial, sans-serif",
+          fontSize: `${label.size ?? (isSea ? 11 : 12)}px`,
+          fontStyle: "700",
+          stroke: "#06131d",
+          strokeThickness: isSea ? 2 : 3
+        })
+        .setOrigin(0.5, 0.5)
+        .setAlpha(isSea ? 0.54 : 0.76)
+        .setRotation(Phaser.Math.DegToRad(label.rotation ?? 0));
+      labels.add(text);
     }
   }
 

@@ -1,6 +1,6 @@
 # Component diagnostics - E-Grid 2045 v2.0 convergence
 
-Current audit screenshot: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-19-map-route-hierarchy.png`
+Current audit screenshot: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-20-map-geo-labels.png`
 
 Reference: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\reference-v2-0.png`
 
@@ -50,16 +50,17 @@ Current state:
 - Concept mode limits visible module markers to the most important regions, reducing clutter versus the previous pass.
 - Concept mode now brightens module sprites with a small additive glow and slightly larger display size.
 - Concept mode now filters secondary route lines and draws active flows as curved highlighted routes with pulse points.
+- Concept mode now renders country and sea labels, while suppressing most internal gameplay region labels.
 
 Visible differences:
 - Current map is still darker than the concept.
 - Concept modules are still more integrated into the painted terrain and less icon-like.
-- The map backdrop relief, labels and generated route topology do not match the exact concept map.
+- The map backdrop relief and generated route topology do not match the exact concept map.
+- Label positions are approximate and some eastern labels sit behind the right HUD.
 
 Future actions:
 - Generate a dedicated tiny in-map module atlas if the existing icon atlas remains too detailed or too icon-like.
-- Tune label density and terrain integration so country/sea text reads closer to the concept.
-- Add subtle sea labels only if they do not reduce gameplay clarity.
+- Tune terrain integration and module sprites so country/sea text sits on a more concept-like painted base.
 
 Priority: High, but asset-heavy.
 

@@ -506,3 +506,28 @@ What should be tried next:
 
 Regressions introduced:
 - None observed in the concept screenshot. Major HUD panels still report no overflow.
+
+## Iteration 20 - Concept geographic map labels
+
+Screenshot: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-20-map-geo-labels.png`
+
+What is closer to the concept art:
+- Concept scenario now renders country labels and sea/ocean labels similar to the reference map.
+- Internal gameplay region labels are suppressed in concept mode except for the selected region, so the map reads less like debug/game topology and more like the concept's strategic Europe view.
+- Sea labels use a dim cyan treatment while country labels use compact pale uppercase text.
+
+What still differs visibly:
+- Label positions are normalized approximations, not exact painted label placement.
+- Some eastern labels are partially covered by the right HUD, matching the layered HUD behavior but reducing readability.
+- The map relief and building modules are still generated/game-driven rather than painted exactly like the concept.
+
+What was changed:
+- Added `CONCEPT_MAP_LABELS` data in `EGridMapScene`.
+- Added `drawConceptGeoLabels()` for concept-only country and sea labels.
+- Changed `drawRegions()` so concept mode keeps only the selected gameplay region label while normal mode keeps existing label behavior.
+
+What should be tried next:
+- Continue with asset fidelity: either refine module sprites/terrain integration or improve mini GRID OVERVIEW geography.
+
+Regressions introduced:
+- None observed in the concept screenshot. Major HUD panels still report no overflow.
