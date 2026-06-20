@@ -51,6 +51,8 @@ function baseMetrics(production: number, consumption: number): RegionMetrics {
     researcher_efficiency: 1,
     co2_monthly: 0,
     technology_points: 0,
+    energy_technology_points: 0,
+    ai_technology_points: 0,
     ai_research_centers: 0
   };
 }

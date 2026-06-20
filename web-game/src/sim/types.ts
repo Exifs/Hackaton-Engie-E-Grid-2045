@@ -165,6 +165,8 @@ export interface RegionCachedMetrics {
   network_congested?: boolean;
   co2_monthly?: number;
   technology_points?: number;
+  energy_technology_points?: number;
+  ai_technology_points?: number;
   problems?: string[];
 }
 
@@ -180,6 +182,8 @@ export interface RegionMetrics {
   researcher_efficiency: number;
   co2_monthly: number;
   technology_points: number;
+  energy_technology_points: number;
+  ai_technology_points: number;
   ai_research_centers: number;
 }
 
@@ -245,6 +249,7 @@ export interface GameSummary {
   selected_region_id: string;
   active_research_id: string;
   active_research_points: number;
+  research_queue: string[];
   completed_technologies: Record<string, true>;
   alerts: Alert[];
   network_flows: NetworkFlow[];
@@ -290,8 +295,11 @@ export interface ResearchOption {
   effect_value: string;
   effect_value_pct: number;
   notes: string;
-  status: "available" | "active" | "completed" | "locked";
+  status: "available" | "active" | "completed" | "locked" | "queued";
   reason: string;
+  current_points: number;
+  monthly_points: number;
+  queue_position: number;
 }
 
 export interface ResearchStartResult {
