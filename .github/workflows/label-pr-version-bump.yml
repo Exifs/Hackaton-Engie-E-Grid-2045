@@ -26,10 +26,28 @@ jobs:
     if: ${{ github.event.pull_request.state == 'open' }}
     runs-on: ubuntu-24.04
     steps:
-      - name: Checkout trusted workflow scripts
+      - name: Checkout classifier from base branch
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.base.sha }}
+          sparse-checkout: .github/scripts/classify-semver-bump.py
+          sparse-checkout-cone-mode: false
+          persist-credentials: false
+
+      - name: Check base classifier availability
+        id: base_classifier
+        run: |
+          if [[ -f .github/scripts/classify-semver-bump.py ]]; then
+            echo "available=true" >> "${GITHUB_OUTPUT}"
+          else
+            echo "available=false" >> "${GITHUB_OUTPUT}"
+          fi
+
+      - name: Bootstrap classifier from this PR
+        if: ${{ steps.base_classifier.outputs.available != 'true' && github.event.pull_request.head.repo.full_name == github.repository }}
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
           sparse-checkout: .github/scripts/classify-semver-bump.py
           sparse-checkout-cone-mode: false
           persist-credentials: false
@@ -41,7 +59,7 @@ jobs:
             echo "available=true" >> "${GITHUB_OUTPUT}"
           else
             echo "available=false" >> "${GITHUB_OUTPUT}"
-            echo "::notice::Classifier script is not present on the base branch yet; skipping label sync for this bootstrap PR."
+            echo "::notice::Classifier script is not available yet; skipping label sync for this bootstrap PR."
           fi
 
       - name: Apply semver label
