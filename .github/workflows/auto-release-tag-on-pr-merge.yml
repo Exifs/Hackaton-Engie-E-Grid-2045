@@ -1,0 +1,85 @@
+name: Auto release tag on PR merge
+
+on:
+  pull_request_target:
+    types:
+      - closed
+    branches:
+      - main
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: auto-release-tag-${{ github.event.pull_request.base.ref }}
+  cancel-in-progress: false
+
+jobs:
+  compute-tag:
+    name: Compute next release tag
+    if: ${{ github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'main' }}
+    runs-on: ubuntu-24.04
+    outputs:
+      tag_name: ${{ steps.version.outputs.tag_name }}
+      target_ref: ${{ steps.version.outputs.target_ref }}
+    steps:
+      - name: Compute next patch tag
+        id: version
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          MERGE_COMMIT_SHA: ${{ github.event.pull_request.merge_commit_sha }}
+          FALLBACK_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+
+          target_sha="${MERGE_COMMIT_SHA}"
+          if [[ -z "${target_sha}" || "${target_sha}" == "null" ]]; then
+            target_sha="${FALLBACK_SHA}"
+          fi
+          if [[ -z "${target_sha}" || "${target_sha}" == "null" ]]; then
+            echo "::error::Unable to resolve the merged PR commit SHA."
+            exit 1
+          fi
+
+          latest_tag="$(
+            gh api "repos/${REPOSITORY}/tags" --paginate --jq '.[].name' \
+              | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' \
+              | sort -V \
+              | tail -n 1 \
+              || true
+          )"
+
+          if [[ -z "${latest_tag}" ]]; then
+            next_tag="v0.1.0"
+          else
+            version="${latest_tag#v}"
+            IFS='.' read -r major minor patch <<< "${version}"
+            patch=$((patch + 1))
+            next_tag="v${major}.${minor}.${patch}"
+          fi
+
+          if gh api "repos/${REPOSITORY}/git/ref/tags/${next_tag}" --silent >/dev/null 2>&1; then
+            echo "::error::Computed tag ${next_tag} already exists. Re-run the manual release tag workflow with a new tag."
+            exit 1
+          fi
+
+          echo "tag_name=${next_tag}" >> "${GITHUB_OUTPUT}"
+          echo "target_ref=${target_sha}" >> "${GITHUB_OUTPUT}"
+          {
+            echo "## Automatic release tag"
+            echo
+            echo "- Source PR: #${{ github.event.pull_request.number }}"
+            echo "- Merge commit: \`${target_sha}\`"
+            echo "- Next tag: \`${next_tag}\`"
+          } >> "${GITHUB_STEP_SUMMARY}"
+
+  create-tag:
+    name: Create release tag
+    needs: compute-tag
+    uses: ./.github/workflows/create-release-tag.yml
+    with:
+      tag_name: ${{ needs.compute-tag.outputs.tag_name }}
+      target_ref: ${{ needs.compute-tag.outputs.target_ref }}
+    secrets: inherit
