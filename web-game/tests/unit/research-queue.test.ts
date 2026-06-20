@@ -1,6 +1,20 @@
 import { createCore } from "./testData";
 
 describe("Research queue", () => {
+  it("classifies unavailable research by missing building or prerequisite", async () => {
+    const core = await createCore("research-lock-causes");
+    const options = core.getResearchOptions();
+
+    expect(options.find((option) => option.id === "batteries")).toMatchObject({
+      status: "locked",
+      lock_cause: "building"
+    });
+    expect(options.find((option) => option.id === "energy_efficiency")).toMatchObject({
+      status: "locked",
+      lock_cause: "prerequisite"
+    });
+  });
+
   it("blocks starting or queueing research without the required active building", async () => {
     const core = await createCore("research-prereq");
 

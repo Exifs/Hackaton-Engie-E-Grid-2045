@@ -66,6 +66,7 @@ test.describe("E-Grid 2045 web game visuals", () => {
   test("construction accordion keeps one category active without vertical scroll", async ({ page }, testInfo) => {
     await openGame(page, 1600, 900);
     await expect(page.locator(".build-category-tab.is-active")).toHaveCount(1);
+    await expect(page.locator('[data-build-category="all"]')).toHaveClass(/is-active/);
 
     await page.locator('[data-build-category="energy"]').click();
     await expect(page.locator('[data-build-category="energy"]')).toHaveClass(/is-active/);
@@ -77,20 +78,67 @@ test.describe("E-Grid 2045 web game visuals", () => {
       scrollHeight: element.scrollHeight,
       scrollWidth: element.scrollWidth,
       clientWidth: element.clientWidth,
-      visibleCategories: document.querySelectorAll(".build-category-content .build-category").length
+      visibleCategories: document.querySelectorAll(".build-category-content .build-category").length,
+      gridDisplay: getComputedStyle(document.querySelector(".build-grid") as HTMLElement).display,
+      gridOverflowY: getComputedStyle(document.querySelector(".build-grid") as HTMLElement).overflowY
     }));
     expect(paletteMetrics.visibleCategories).toBe(1);
     expect(paletteMetrics.scrollHeight).toBeLessThanOrEqual(paletteMetrics.clientHeight + 1);
-    expect(paletteMetrics.scrollWidth).toBeGreaterThan(paletteMetrics.clientWidth);
+    expect(paletteMetrics.gridDisplay).toBe("flex");
+    expect(paletteMetrics.gridOverflowY).toBe("hidden");
     await page.screenshot({ path: testInfo.outputPath("construction-accordion-no-vertical-scroll.png"), fullPage: true });
+  });
+
+  test("construction all mode stacks categories with vertical scroll", async ({ page }, testInfo) => {
+    await openGame(page, 1600, 900);
+    await expect(page.locator('[data-build-category="all"]')).toHaveClass(/is-active/);
+
+    const allMetrics = await page.locator(".build-category-content").evaluate((element) => ({
+      clientHeight: element.clientHeight,
+      scrollHeight: element.scrollHeight,
+      visibleCategories: document.querySelectorAll(".build-category-content .build-category").length,
+      contentOverflowY: getComputedStyle(element).overflowY
+    }));
+    expect(allMetrics.visibleCategories).toBeGreaterThan(1);
+    expect(allMetrics.scrollHeight).toBeGreaterThan(allMetrics.clientHeight);
+    expect(allMetrics.contentOverflowY).toBe("auto");
+    await page.screenshot({ path: testInfo.outputPath("construction-all-mode-stacked.png"), fullPage: true });
+  });
+
+  test("construction locked filter hides access locks but keeps temporary blockers", async ({ page }, testInfo) => {
+    await openGame(page, 1600, 900);
+
+    await expect(page.locator('[data-build="battery_storage"]')).toHaveCount(0);
+    await page.evaluate(() => {
+      const game = window.__EGRID__;
+      if (!game) {
+        return;
+      }
+      game.simulation.state.money = 0;
+      game.hud.render();
+    });
+    const budgetBlocked = page.locator('[data-build="gas_power_plant"]').first();
+    await expect(budgetBlocked).toBeVisible();
+    await expect(budgetBlocked).toBeDisabled();
+    await expect(budgetBlocked).toHaveAttribute("data-availability-cause", "budget");
+
+    await page.locator('[data-filter-toggle="locked-buildings"]').click();
+    const lockedBattery = page.locator('[data-build="battery_storage"]');
+    await expect(lockedBattery).toBeVisible();
+    await expect(lockedBattery).toBeDisabled();
+    await expect(lockedBattery).toHaveAttribute("data-availability-cause", "technology");
+    await page.screenshot({ path: testInfo.outputPath("construction-locked-filter.png"), fullPage: true });
   });
 
   test("bottom dock and right panel can be resized and reset", async ({ page }, testInfo) => {
     await openGame(page, 1600, 900);
 
     const dockBefore = await page.locator(".build-palette").boundingBox();
+    const cardBefore = await page.locator(".build-card").first().boundingBox();
+    const regionBeforeMetrics = await regionPanelMetrics(page);
     const dockHandle = await page.locator(".dock-resize-handle").boundingBox();
     expect(dockBefore).toBeTruthy();
+    expect(cardBefore).toBeTruthy();
     expect(dockHandle).toBeTruthy();
     await page.mouse.move((dockHandle?.x ?? 0) + (dockHandle?.width ?? 0) / 2, (dockHandle?.y ?? 0) + 4);
     await page.mouse.down();
@@ -98,7 +146,13 @@ test.describe("E-Grid 2045 web game visuals", () => {
     await page.mouse.up();
 
     const dockAfter = await page.locator(".build-palette").boundingBox();
+    const cardAfter = await page.locator(".build-card").first().boundingBox();
+    const regionAfterDockMetrics = await regionPanelMetrics(page);
     expect(dockAfter?.height ?? 0).toBeGreaterThan((dockBefore?.height ?? 0) + 50);
+    expect(Math.abs((cardAfter?.height ?? 0) - (cardBefore?.height ?? 0))).toBeLessThanOrEqual(2);
+    expect(cardAfter?.height ?? 0).toBeLessThanOrEqual(130);
+    expect(Math.abs(regionAfterDockMetrics.tagHeight - regionBeforeMetrics.tagHeight)).toBeLessThanOrEqual(1);
+    expect(Math.abs(regionAfterDockMetrics.sectionGap - regionBeforeMetrics.sectionGap)).toBeLessThanOrEqual(1);
     const storedDock = await page.evaluate(() => Number(localStorage.getItem("egrid:dock-height")));
     expect(storedDock).toBeGreaterThan(320);
 
@@ -112,7 +166,9 @@ test.describe("E-Grid 2045 web game visuals", () => {
     await page.mouse.up();
 
     const panelAfter = await page.locator(".region-panel").boundingBox();
+    const regionAfterWidthMetrics = await regionPanelMetrics(page);
     expect(panelAfter?.width ?? 0).toBeGreaterThan((panelBefore?.width ?? 0) + 50);
+    expect(Math.abs(regionAfterWidthMetrics.tagHeight - regionBeforeMetrics.tagHeight)).toBeLessThanOrEqual(1);
     const storedPanel = await page.evaluate(() => Number(localStorage.getItem("egrid:right-panel-width")));
     expect(storedPanel).toBeGreaterThan(336);
 
@@ -261,7 +317,10 @@ test.describe("E-Grid 2045 web game visuals", () => {
     await openGame(page, 1600, 900);
     await page.locator('[data-palette-tab="research"]').click();
     const batteries = page.locator('[data-research="batteries"]');
+    await expect(batteries).toHaveCount(0);
+    await page.locator('[data-filter-toggle="unavailable-research"]').click();
     await expect(batteries).toBeDisabled();
+    await expect(batteries).toHaveAttribute("data-lock-cause", "building");
     await expect(batteries).toContainText("Centre recherche energie");
     const result = await page.evaluate(() => window.__EGRID__?.simulation.startResearch("batteries"));
     expect(result).toMatchObject({ ok: false, reason: "Requires an active Centre recherche energie." });
@@ -297,6 +356,59 @@ test.describe("E-Grid 2045 web game visuals", () => {
     await page.screenshot({ path: testInfo.outputPath("research-active-progress-background.png"), fullPage: true });
   });
 
+  test("month progress visually interpolates queues and active research", async ({ page }, testInfo) => {
+    await openGame(page, 1600, 900);
+    await page.evaluate(() => {
+      const game = window.__EGRID__;
+      if (!game) {
+        return;
+      }
+      game.simulation.state.money = 10000;
+      game.simulation.requestBuilding("fr_nord", "energy_research_center");
+      game.simulation.setSimulationSpeed(1);
+      game.simulation.stepSimulationTime(game.simulation.secondsPerMonth / 2);
+      game.hud.render();
+    });
+    const constructionProgress = await progressVariable(page, ".queue-card .queue-copy i");
+    expect(constructionProgress).toBeGreaterThan(0);
+    expect(constructionProgress).toBeLessThan(20);
+
+    await buildCompletedResearchCenter(page, "energy_research_center");
+    await page.locator('[data-palette-tab="research"]').click();
+    await page.evaluate(() => {
+      const game = window.__EGRID__;
+      if (!game) {
+        return;
+      }
+      const monthProgress = game.simulation.getMonthProgress();
+      if (monthProgress > 0) {
+        game.simulation.stepSimulationTime((1 - monthProgress) * game.simulation.secondsPerMonth);
+      }
+      game.simulation.startResearch("batteries");
+      game.simulation.setSimulationSpeed(1);
+      game.simulation.stepSimulationTime(game.simulation.secondsPerMonth / 2);
+      game.hud.render();
+    });
+    const researchProgress = await page.locator(".research-status.is-active").evaluate((element) =>
+      parseFloat(getComputedStyle(element).getPropertyValue("--research-progress"))
+    );
+    expect(researchProgress).toBeGreaterThan(0);
+
+    await page.evaluate(() => {
+      const game = window.__EGRID__;
+      if (!game) {
+        return;
+      }
+      game.simulation.stepSimulationTime(game.simulation.secondsPerMonth / 2 + 0.02);
+      game.hud.render();
+    });
+    const afterTickProgress = await page.locator(".research-status.is-active").evaluate((element) =>
+      parseFloat(getComputedStyle(element).getPropertyValue("--research-progress"))
+    );
+    expect(afterTickProgress).toBeGreaterThanOrEqual(researchProgress);
+    await page.screenshot({ path: testInfo.outputPath("month-progress-interpolated-bars.png"), fullPage: true });
+  });
+
   test("selected far region is focused inside the visible map safe area", async ({ page }, testInfo) => {
     await openGame(page, 1600, 900);
     const focusedRegion = await page.evaluate(() => {
@@ -326,6 +438,10 @@ async function openGame(page: Page, width: number, height: number): Promise<void
   await page.goto("/?testMode=1&seed=p0");
   await page.waitForFunction(() => Boolean(window.__EGRID__));
   await page.locator("#game-canvas canvas").waitFor({ state: "visible" });
+  await page.evaluate(() => {
+    window.__EGRID__?.hud.render();
+    window.__EGRID__?.scene.renderState();
+  });
   await page.waitForTimeout(150);
 }
 
@@ -345,6 +461,26 @@ async function buildCompletedResearchCenter(page: Page, buildingId: "energy_rese
     game.hud.render();
     game.scene.renderState();
   }, buildingId);
+}
+
+async function regionPanelMetrics(page: Page): Promise<{ tagHeight: number; sectionGap: number }> {
+  return page.evaluate(() => {
+    const tag = document.querySelector<HTMLElement>(".region-tags span")?.getBoundingClientRect();
+    const sections = [...document.querySelectorAll<HTMLElement>(".region-section")]
+      .map((element) => element.getBoundingClientRect())
+      .filter((rect) => rect.height > 0);
+    const sectionGap = sections.length > 1 ? sections[1].top - sections[0].bottom : 0;
+    return {
+      tagHeight: tag?.height ?? 0,
+      sectionGap
+    };
+  });
+}
+
+async function progressVariable(page: Page, selector: string): Promise<number> {
+  return page.locator(selector).first().evaluate((element) =>
+    parseFloat(getComputedStyle(element).getPropertyValue("--progress"))
+  );
 }
 
 async function expectCanvasNonBlank(page: Page): Promise<void> {
