@@ -178,13 +178,21 @@ def classify(pr: dict[str, Any], files: list[dict[str, Any]]) -> Classification:
             (r"^\s*(?:feat|feature)(?:\([^)]+\))?:", "uses a feature-style Conventional Commit title/body"),
             (r"\bsemver-minor\b", "contains semver-minor marker"),
             (r"\b(?:feature|new feature|nouvelle fonctionnalit[eé])\b", "mentions a new feature"),
-            (r"\b(?:add|adds|added|adding|introduce|introduces|implement|implements|implemented)\b", "mentions adding or implementing functionality"),
-            (r"\b(?:ajout|ajoute|ajouter|impl[eé]mente|impl[eé]mentation|nouveau|nouvelle)\b", "mentions adding or implementing functionality"),
         ],
         title_and_body,
     )
     if minor_reason:
         return Classification("minor", minor_reason)
+
+    minor_title_reason = first_matching_regex(
+        [
+            (r"\b(?:add|adds|added|adding|introduce|introduces|implement|implements|implemented)\b", "PR title mentions adding or implementing functionality"),
+            (r"\b(?:ajout|ajoute|ajouter|impl[eé]mente|impl[eé]mentation|nouveau|nouvelle)\b", "PR title mentions adding or implementing functionality"),
+        ],
+        title,
+    )
+    if minor_title_reason:
+        return Classification("minor", minor_title_reason)
 
     added_runtime_file = next(
         (
@@ -202,6 +210,8 @@ def classify(pr: dict[str, Any], files: list[dict[str, Any]]) -> Classification:
         [
             (r"^\s*(?:fix|bugfix|hotfix|perf|refactor|docs|doc|ci|build|chore|style|test)(?:\([^)]+\))?:", "uses a patch/maintenance-style Conventional Commit title/body"),
             (r"\bsemver-patch\b", "contains semver-patch marker"),
+            (r"\b(?:fix|bugfix|hotfix|refine|polish|compact|adjust|tweak|update|improve|cleanup|test|tests|docs|ci)\b", "mentions a fix, refinement, test, docs, or CI change"),
+            (r"\b(?:corrige|correction|raffine|am[eé]liore|ajuste|nettoyage|tests?|docs?|ci)\b", "mentions a fix, refinement, test, docs, or CI change"),
         ],
         title_and_body,
     )
