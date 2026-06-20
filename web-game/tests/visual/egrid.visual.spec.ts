@@ -508,7 +508,7 @@ test.describe("E-Grid 2045 web game visuals", () => {
   });
 
   test("month progress updates visual bars without replacing dock DOM nodes", async ({ page }, testInfo) => {
-    await openLiveGame(page, 1600, 900);
+    await openGame(page, 1600, 900);
     const before = await page.evaluate(() => {
       const game = window.__EGRID__;
       if (!game) {
@@ -534,7 +534,14 @@ test.describe("E-Grid 2045 web game visuals", () => {
       };
     });
 
-    await page.waitForTimeout(360);
+    await page.evaluate(() => {
+      const game = window.__EGRID__;
+      if (!game) {
+        return;
+      }
+      game.simulation.stepSimulationTime(game.simulation.secondsPerMonth / 2);
+      game.hud.updateVisualProgress();
+    });
 
     const after = await page.evaluate(() => {
       const nodes = (window as any).__EGRID_STABLE_NODES__;
