@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 import { EGridMapScene, type HeatmapMode } from "./game/EGridMapScene";
 import { DataLoader, SimulationCore } from "./sim";
+import { cssUrlForPageAsset } from "./ui/assetUrls";
 import { GameHud } from "./ui/GameHud";
 import "./styles/game.css";
 
@@ -29,13 +30,14 @@ if (!hudRoot || !canvasRoot) {
 }
 
 document.documentElement.dataset.testMode = testMode ? "1" : "0";
+
 document.documentElement.style.setProperty(
   "--building-atlas",
-  `url("${import.meta.env.BASE_URL}assets/generated/building-icon-atlas.png")`
+  cssUrlForPageAsset("assets/generated/building-icon-atlas.png")
 );
 document.documentElement.style.setProperty(
   "--building-art-atlas",
-  `url("${import.meta.env.BASE_URL}assets/generated/building-card-art-atlas.png")`
+  cssUrlForPageAsset("assets/generated/building-card-art-atlas.png")
 );
 
 const data = await DataLoader.load();
