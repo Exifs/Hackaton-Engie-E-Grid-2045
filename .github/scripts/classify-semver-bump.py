@@ -2,8 +2,8 @@
 """Classify a pull request as semver major/minor/patch and sync the PR label.
 
 The script is intentionally self-contained and only reads PR metadata/files through
-GitHub's REST API. It must stay safe for pull_request_target workflows: never
-checkout or execute code from the PR head.
+GitHub's REST API. It should be run from trusted workflow code and must not rely
+on executing files from the pull request payload itself.
 """
 
 from __future__ import annotations
@@ -49,7 +49,14 @@ class GitHubApiError(RuntimeError):
     pass
 
 
-def _request(method: str, url: str, token: str, payload: dict[str, Any] | None = None, *, allow_404: bool = False) -> tuple[Any, dict[str, str]]:
+def _request(
+    method: str,
+    url: str,
+    token: str,
+    payload: dict[str, Any] | None = None,
+    *,
+    allow_404: bool = False,
+) -> tuple[Any, dict[str, str]]:
     data = json.dumps(payload).encode("utf-8") if payload is not None else None
     headers = {
         "Accept": "application/vnd.github+json",
@@ -71,7 +78,14 @@ def _request(method: str, url: str, token: str, payload: dict[str, Any] | None =
         raise GitHubApiError(f"{method} {url} failed with HTTP {error.code}: {body}") from error
 
 
-def github_api(method: str, path: str, token: str, payload: dict[str, Any] | None = None, *, allow_404: bool = False) -> tuple[Any, dict[str, str]]:
+def github_api(
+    method: str,
+    path: str,
+    token: str,
+    payload: dict[str, Any] | None = None,
+    *,
+    allow_404: bool = False,
+) -> tuple[Any, dict[str, str]]:
     return _request(method, f"{API_ROOT}/{path.lstrip('/')}", token, payload, allow_404=allow_404)
 
 
@@ -109,6 +123,25 @@ def first_matching_regex(patterns: list[tuple[str, str]], text: str) -> str | No
     return None
 
 
+def explicit_override_from_metadata(title: str, body: str) -> Classification | None:
+    """Return an explicit bump override only from a dedicated metadata line.
+
+    This intentionally does not treat inline mentions such as `semver:major` in
+    documentation or rule descriptions as an override.
+    """
+    candidates = [title, *body.splitlines()]
+    override_pattern = re.compile(
+        r"^\s*(?:semver|version|release|bump)(?:[-_ ]?bump)?\s*[:=]\s*(major|minor|patch)\s*$",
+        flags=re.IGNORECASE,
+    )
+    for candidate in candidates:
+        match = override_pattern.match(candidate.strip())
+        if match:
+            bump = match.group(1).lower()
+            return Classification(bump, f"explicit PR metadata override: {candidate.strip()}")
+    return None
+
+
 def classify(pr: dict[str, Any], files: list[dict[str, Any]]) -> Classification:
     title = normalize(pr.get("title"))
     body = normalize(pr.get("body"))
@@ -119,20 +152,15 @@ def classify(pr: dict[str, Any], files: list[dict[str, Any]]) -> Classification:
     )
     full_scan = f"{title_and_body}\n{scanned_files}"
 
-    explicit_override = re.search(
-        r"(?:^|\b)(?:semver|version|release|bump)\s*[:=/-]?\s*(major|minor|patch)\b",
-        title_and_body,
-        flags=re.IGNORECASE | re.MULTILINE,
-    )
-    if explicit_override:
-        bump = explicit_override.group(1).lower()
-        return Classification(bump, f"explicit PR metadata override: {explicit_override.group(0).strip()}")
+    explicit_override = explicit_override_from_metadata(title, body)
+    if explicit_override is not None:
+        return explicit_override
 
     major_reason = first_matching_regex(
         [
             (r"\bBREAKING[ -_]CHANGE\b", "contains BREAKING CHANGE marker"),
             (r"^\s*[a-z][a-z0-9_-]*(?:\([^)]+\))?!:", "uses Conventional Commits breaking-change marker"),
-            (r"\bsemver[-_: ]major\b", "contains semver-major marker"),
+            (r"\bsemver-major\b", "contains semver-major marker"),
             (r"\bbreaking\b", "mentions a breaking change"),
             (r"\bincompatible\b", "mentions an incompatible change"),
             (r"\bmigration\s+(?:required|obligatoire)\b", "mentions a required migration"),
@@ -146,7 +174,7 @@ def classify(pr: dict[str, Any], files: list[dict[str, Any]]) -> Classification:
     minor_reason = first_matching_regex(
         [
             (r"^\s*(?:feat|feature)(?:\([^)]+\))?:", "uses a feature-style Conventional Commit title/body"),
-            (r"\bsemver[-_: ]minor\b", "contains semver-minor marker"),
+            (r"\bsemver-minor\b", "contains semver-minor marker"),
             (r"\b(?:feature|new feature|nouvelle fonctionnalit[eé])\b", "mentions a new feature"),
             (r"\b(?:add|adds|added|adding|introduce|introduces|implement|implements|implemented)\b", "mentions adding or implementing functionality"),
             (r"\b(?:ajout|ajoute|ajouter|impl[eé]mente|impl[eé]mentation|nouveau|nouvelle)\b", "mentions adding or implementing functionality"),
@@ -171,7 +199,7 @@ def classify(pr: dict[str, Any], files: list[dict[str, Any]]) -> Classification:
     patch_reason = first_matching_regex(
         [
             (r"^\s*(?:fix|bugfix|hotfix|perf|refactor|docs|doc|ci|build|chore|style|test)(?:\([^)]+\))?:", "uses a patch/maintenance-style Conventional Commit title/body"),
-            (r"\bsemver[-_: ]patch\b", "contains semver-patch marker"),
+            (r"\bsemver-patch\b", "contains semver-patch marker"),
         ],
         title_and_body,
     )
