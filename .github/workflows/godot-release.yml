@@ -117,6 +117,22 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Setup Node.js for JS web game
+        uses: actions/setup-node@v4
+        with:
+          node-version: 25
+
+      - name: Enable pnpm
+        run: corepack enable
+
+      - name: Install JS web game dependencies
+        working-directory: web-game
+        run: pnpm install --frozen-lockfile
+
+      - name: Build JS web game
+        working-directory: web-game
+        run: pnpm build
+
       - name: Download Web build artifact
         uses: actions/download-artifact@v4
         with:
@@ -252,9 +268,11 @@ jobs:
           set -euo pipefail
           SITE_DIR="_site"
           WEB_DIR="${SITE_DIR}/play"
+          JS_WEB_DIR="${SITE_DIR}/play-js"
           EDITOR_DIR="${SITE_DIR}/region-editor"
           ROOT_URL="${FALLBACK_PAGES_URL%/}/"
           LANDING_URL="${ROOT_URL}landing/"
+          PLAY_JS_URL="${ROOT_URL}play-js/"
           EDITOR_URL="${ROOT_URL}region-editor/"
           PREVIEW_IMAGE_URL="${ROOT_URL}Docs/Concept%20art%20-%20EU-Grid%202026-v2-1.png"
 
@@ -272,6 +290,13 @@ jobs:
 
           mkdir -p "${SITE_DIR}/egrid_region_editor_tool/assets/map"
           cp "egrid_region_editor_tool/assets/map/europe_map_backdrop_generated_clean_v1.png" "${SITE_DIR}/egrid_region_editor_tool/assets/map/europe_map_backdrop_generated_clean_v1.png"
+
+          mkdir -p "${JS_WEB_DIR}"
+          cp -R web-game/dist/. "${JS_WEB_DIR}/"
+          if [[ ! -f "${JS_WEB_DIR}/index.html" ]]; then
+            echo "Missing JS web game index.html after copying web-game/dist" >&2
+            exit 1
+          fi
 
           mkdir -p "${EDITOR_DIR}"
           cp "egrid_region_editor_tool/tools/region_editor/region_shape_editor.html" "${EDITOR_DIR}/index.html"
@@ -310,6 +335,7 @@ jobs:
             --arg webArtifact "${web_zip_name}" \
             --arg releaseUrl "https://github.com/${GITHUB_REPOSITORY}/releases/tag/${GITHUB_REF_NAME}" \
             --arg playUrl "${ROOT_URL}play/" \
+            --arg playJsUrl "${PLAY_JS_URL}" \
             --arg editorUrl "${EDITOR_URL}" \
             '{
               tag: $tag,
@@ -317,6 +343,7 @@ jobs:
               web_artifact: $webArtifact,
               release_url: $releaseUrl,
               play_url: $playUrl,
+              play_js_url: $playJsUrl,
               editor_url: $editorUrl
             }' > "${SITE_DIR}/build-manifest.json"
 
@@ -349,7 +376,7 @@ jobs:
             <title>E-Grid 2045 — Hackathon Energie</title>
           </head>
           <body>
-            <p>Redirection vers <a href="./landing/">la landing E-Grid 2045</a>. La version Web jouable est disponible sur <a href="./play/">/play/</a> et le Region Shape Editor sur <a href="./region-editor/">/region-editor/</a>.</p>
+            <p>Redirection vers <a href="./landing/">la landing E-Grid 2045</a>. La version JS jouable est disponible sur <a href="./play-js/">/play-js/</a>, le build Web Godot sur <a href="./play/">/play/</a> et le Region Shape Editor sur <a href="./region-editor/">/region-editor/</a>.</p>
           </body>
           </html>
           HTML
@@ -375,10 +402,12 @@ jobs:
           set -euo pipefail
           WEBSITE_URL="${WEBSITE_URL:-${FALLBACK_PAGES_URL}}"
           GAME_URL="${WEBSITE_URL%/}/play/"
+          JS_GAME_URL="${WEBSITE_URL%/}/play-js/"
           EDITOR_URL="${WEBSITE_URL%/}/region-editor/"
           current_notes="$(gh release view "${TAG_NAME}" --repo "${GITHUB_REPOSITORY}" --json body --jq '.body // ""')"
           website_line="🌐 Site web : ${WEBSITE_URL}"
           game_line="🎮 Version Web : ${GAME_URL}"
+          js_game_line="Version Web JS : ${JS_GAME_URL}"
           editor_line="Region Editor : ${EDITOR_URL}"
 
           missing_lines=()
@@ -387,6 +416,9 @@ jobs:
           fi
           if ! printf '%s' "${current_notes}" | grep -Fq "${game_line}"; then
             missing_lines+=("${game_line}")
+          fi
+          if ! printf '%s' "${current_notes}" | grep -Fq "${js_game_line}"; then
+            missing_lines+=("${js_game_line}")
           fi
           if ! printf '%s' "${current_notes}" | grep -Fq "${editor_line}"; then
             missing_lines+=("${editor_line}")

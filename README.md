@@ -56,6 +56,7 @@ egrid_region_editor_tool/tools/region_editor/region_shape_editor_standalone.html
 ## Contenu du repo
 
 - `e-grid-2045/` - projet Godot, scènes, scripts et assets intégrés.
+- `web-game/` - version Web JS/TS jouable, construite avec Vite + Phaser et servie sur `/play-js/`.
 - `Docs/` - game design, direction artistique, visuels, données de simulation et gel technique P0.
 - `Docs/*.csv` / `Docs/*.json` - constantes de gameplay, régions, graphe réseau, technologies, bâtiments et événements.
 - `egrid_region_editor_tool/` - éditeur web et scripts d'intégration pour produire les délimitations des régions et les assets carte Godot.
@@ -65,12 +66,41 @@ egrid_region_editor_tool/tools/region_editor/region_shape_editor_standalone.html
 1. Ouvrir `e-grid-2045/project.godot` avec Godot 4.6 ou plus récent.
 2. Lancer la scène principale configurée dans le projet.
 
+## Version Web JS / TypeScript
+
+`web-game/` contient un P0 jouable séparé en **TypeScript + Vite + Phaser 4.2.0**. Il synchronise les CSV/JSON canoniques depuis `e-grid-2045/data/` vers `web-game/public/data/`, puis expose un moteur pur TypeScript (`src/sim/`) consommé par une carte Phaser et une UI HTML compacte.
+
+Commandes principales :
+
+```bash
+cd web-game
+pnpm install
+pnpm test
+pnpm test:visual
+pnpm build
+pnpm dev
+```
+
+Le workflow de contribution attendu reste TDD : ajouter ou ajuster les specs Vitest avant de porter un système de gameplay, puis valider les états visuels avec Playwright. Le mode visuel stable est disponible via `?testMode=1&seed=p0`.
+
+Sur GitHub Pages, la version JS est publiée sur :
+
+```text
+/play-js/
+```
+
+La route historique `/play/` reste réservée au build Web Godot.
+
+### Assets générés
+
+Les assets raster manquants de la version JS sont placés dans `web-game/public/assets/generated/` avec un `manifest.json` de provenance. Le workflow ImageGen utilise la DA du projet comme contrainte explicite : atlas énergétique vivant, carte 2D stylisée semi-diégétique, icônes lisibles à petite taille, pas d'esthétique dashboard, pas de texte et pas de watermark.
+
 ## Builds Godot
 
 La CI exporte les versions Linux, Windows, macOS et Web depuis le projet `e-grid-2045/`. Les artefacts sont publiés en ZIP dans l'onglet Actions.
 
 La version Web utilise le preset Godot `Web`, génère `e-grid-2045/build/web/index.html` comme point d'entrée et produit l'artefact `e-grid-2045-web`.
 
-Lorsqu'un tag est poussé, le workflow de release publie aussi la landing dans `/landing/`, déploie la version Web jouable dans `/play/` à partir de l'artefact `e-grid-2045-web` déjà buildé, et met en ligne le Region Shape Editor dans `/region-editor/`.
+Lorsqu'un tag est poussé, le workflow de release publie aussi la landing dans `/landing/`, déploie la version Web Godot dans `/play/` à partir de l'artefact `e-grid-2045-web`, déploie la version JS/Phaser dans `/play-js/`, et met en ligne le Region Shape Editor dans `/region-editor/`.
 
 État actuel: prototype de hackathon, avec un scope P0 centré sur une première boucle jouable et une base technique suffisamment lisible pour contribuer rapidement.
