@@ -87,7 +87,7 @@ jobs:
       - name: Apply semver label
         if: ${{ steps.pr.outputs.pr_number != '' && steps.classifier.outputs.available == 'true' }}
         env:
-          GITHUB_TOKEN: ${{ secrets.REPO_ADMIN_TOKEN || github.token }}
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TAG_TOKEN }}
           PR_NUMBER: ${{ steps.pr.outputs.pr_number }}
         run: python3 .github/scripts/classify-semver-bump.py
 

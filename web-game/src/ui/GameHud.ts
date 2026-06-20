@@ -44,6 +44,14 @@ const MIN_DOCK_HEIGHT = 190;
 const MIN_RIGHT_PANEL_WIDTH = 280;
 
 type ResizeTarget = "dock" | "region";
+type QueueProgressItem = { building_id: string; months_remaining: number; total_months: number };
+type ProgressCssVar = "--progress" | "--research-progress";
+
+interface PendingProgressAnimation {
+  key: string;
+  cssVar: ProgressCssVar;
+  target: number;
+}
 
 export class GameHud {
   private readonly root: HTMLElement;
@@ -73,6 +81,9 @@ export class GameHud {
   private readonly dismissedAlerts = new Set<string>();
   private readonly alertFirstSeen = new Map<string, number>();
   private readonly alertTimers = new Map<string, number>();
+  private readonly visualProgress = new Map<string, number>();
+  private pendingProgressAnimations: PendingProgressAnimation[] = [];
+  private progressAnimationFrame: number | null = null;
 
   constructor(root: HTMLElement, simulation: SimulationCore, callbacks: HudCallbacks) {
     this.root = root;
@@ -90,6 +101,8 @@ export class GameHud {
 
   render(): void {
     this.capturePaletteScroll();
+    this.captureVisualProgressFromDom();
+    this.pendingProgressAnimations = [];
     const summary = this.simulation.getSummary();
     const selectedRegion = this.simulation.getRegionSnapshot();
     const buildings = this.simulation.getBuildingDefinitions();
@@ -160,12 +173,53 @@ export class GameHud {
       </section>
     `;
     this.restorePaletteScroll();
+    this.applyPendingProgressAnimations();
   }
 
-  updateVisualProgress(): void {
-    const monthProgress = this.simulation.getMonthProgress();
-    this.updateQueueProgress(monthProgress);
-    this.updateActiveResearchProgress(monthProgress);
+  updateVisualProgress(monthProgressOverride?: number): void {
+    const summary = this.simulation.getSummary();
+    const monthProgress = monthProgressOverride ?? summary.month_progress ?? 0;
+    const selectedRegion = this.simulation.getRegionSnapshot();
+    if (selectedRegion) {
+      selectedRegion.construction_queue.forEach((item, index) => {
+        this.patchProgressValue(
+          this.queueProgressKey("construction", selectedRegion.id, index, item),
+          this.visualQueueProgress(item, monthProgress),
+          "--progress"
+        );
+      });
+      selectedRegion.deconstruction_queue.forEach((item, index) => {
+        this.patchProgressValue(
+          this.queueProgressKey("demolition", selectedRegion.id, index, item),
+          this.visualQueueProgress(item, monthProgress),
+          "--progress"
+        );
+      });
+    }
+
+    const researchOptions = this.simulation.getResearchOptions();
+    const active = researchOptions.find((option) => option.status === "active");
+    if (active) {
+      const activeProgress = this.visualResearchProgress(active, monthProgress);
+      const activePoints = this.visualResearchPoints(active, monthProgress);
+      const activeKey = this.activeResearchProgressKey(active);
+      this.patchProgressValue(activeKey, activeProgress, "--research-progress");
+      const activeElement = this.findProgressElement(activeKey);
+      const activeCopy = activeElement?.querySelector<HTMLElement>("[data-research-active-copy]");
+      if (activeCopy) {
+        activeCopy.textContent =
+          `${fmt(activeProgress)}% - ${fmt(activePoints)}/${fmt(active.cost)} pts - ` +
+          `ETA ${this.researchEta(active)} - +${fmt(active.monthly_points)} pts/mois`;
+      }
+    }
+
+    for (const option of researchOptions) {
+      this.patchProgressValue(
+        this.researchCardProgressKey(option),
+        this.visualResearchProgress(option, monthProgress),
+        "--progress"
+      );
+    }
   }
 
   setHeatmapMode(mode: HeatmapMode): void {
@@ -185,66 +239,6 @@ export class GameHud {
     this.paletteOpen = true;
     this.activeDockTab = "research";
     this.render();
-  }
-
-  private updateQueueProgress(monthProgress: number): void {
-    const selectedRegion = this.simulation.getRegionSnapshot();
-    if (!selectedRegion) {
-      return;
-    }
-
-    this.root.querySelectorAll<HTMLElement>('[data-progress-fill="construction"]').forEach((element) => {
-      const index = Number(element.dataset.progressIndex);
-      const item = selectedRegion.construction_queue[index];
-      if (!item) {
-        return;
-      }
-      const progress = this.visualQueueProgress(item, monthProgress);
-      element.style.setProperty("--progress", `${progress}%`);
-      const text = element.parentElement?.querySelector<HTMLElement>('[data-progress-text="construction"]');
-      if (text) {
-        text.textContent = `${item.months_remaining}m restantes - ${fmt(progress)}%`;
-      }
-    });
-
-    this.root.querySelectorAll<HTMLElement>('[data-progress-fill="demolition"]').forEach((element) => {
-      const index = Number(element.dataset.progressIndex);
-      const item = selectedRegion.deconstruction_queue[index];
-      if (!item) {
-        return;
-      }
-      const progress = this.visualQueueProgress(item, monthProgress);
-      element.style.setProperty("--progress", `${progress}%`);
-      const text = element.parentElement?.querySelector<HTMLElement>('[data-progress-text="demolition"], small');
-      if (text) {
-        text.textContent = `Demolition - ${item.months_remaining}m restantes - ${fmt(progress)}%`;
-      }
-    });
-  }
-
-  private updateActiveResearchProgress(monthProgress: number): void {
-    const active = this.simulation.getResearchOptions().find((option) => option.status === "active");
-    if (!active) {
-      return;
-    }
-
-    const activeProgress = this.visualResearchProgress(active, monthProgress);
-    const activePoints = this.visualResearchPoints(active, monthProgress);
-    const status = this.root.querySelector<HTMLElement>('[data-progress-fill="research-active"]');
-    if (status) {
-      status.style.setProperty("--research-progress", `${activeProgress}%`);
-      const detail = status.querySelector<HTMLElement>("[data-research-active-detail]");
-      if (detail) {
-        detail.textContent = `${fmt(activeProgress)}% - ${fmt(activePoints)}/${fmt(active.cost)} pts - ETA ${this.researchEta(active)} - +${fmt(active.monthly_points)} pts/mois`;
-      }
-    }
-
-    this.root.querySelectorAll<HTMLElement>('[data-progress-fill="research-card"]').forEach((element) => {
-      if (element.dataset.progressResearchId !== active.id) {
-        return;
-      }
-      element.style.setProperty("--progress", `${activeProgress}%`);
-    });
   }
 
   private kpi(label: string, value: string, target = ""): string {
@@ -289,12 +283,12 @@ export class GameHud {
     const queueCards = region.construction_queue.length === 0
       ? `<span class="empty-slot-card">Aucun chantier</span>`
       : region.construction_queue
-        .map((item, index) => this.queueCard(item, index, buildings[item.building_id], monthProgress))
+        .map((item, index) => this.queueCard(region.id, item, index, buildings[item.building_id], monthProgress))
         .join("");
     const demolitionCards = region.deconstruction_queue.length === 0
       ? `<span class="empty-slot-card">Aucune demolition</span>`
       : region.deconstruction_queue
-        .map((item, index) => this.demolitionCard(item, buildings[item.building_id], index, monthProgress))
+        .map((item, index) => this.demolitionCard(region.id, item, index, buildings[item.building_id], monthProgress))
         .join("");
     const builtCards = region.buildings.length === 0
       ? `<span class="empty-slot-card">Aucun actif</span>`
@@ -347,38 +341,44 @@ export class GameHud {
   }
 
   private queueCard(
-    item: { building_id: string; months_remaining: number; total_months: number },
+    regionId: string,
+    item: QueueProgressItem,
     index: number,
     building: BuildingDefinition | undefined,
     monthProgress: number
   ): string {
-    const progress = this.visualQueueProgress(item, monthProgress);
+    const progressKey = this.queueProgressKey("construction", regionId, index, item);
+    const targetProgress = this.visualQueueProgress(item, monthProgress);
+    const progress = this.renderProgressValue(progressKey, targetProgress, "--progress");
     return `
       <button class="queue-card" type="button" data-cancel="${index}" title="Annuler ${escapeHtml(building?.display_name ?? item.building_id)}">
         ${this.buildingArt(building)}
         <span class="queue-copy">
           <strong>${escapeHtml(building?.display_name ?? item.building_id)}</strong>
-          <small data-progress-text="construction">${item.months_remaining}m restantes - ${fmt(progress)}%</small>
-          <i data-progress-fill="construction" data-progress-index="${index}" data-progress-building-id="${escapeHtml(item.building_id)}" style="--progress:${progress}%"><b></b></i>
+          <small>${item.months_remaining}m restantes</small>
+          <i ${this.progressAttributes(progressKey, "--progress", "construction", targetProgress)} data-progress-fill="construction" data-progress-index="${index}" data-progress-building-id="${escapeHtml(item.building_id)}" style="--progress:${progress}%"><b></b></i>
         </span>
       </button>
     `;
   }
 
   private demolitionCard(
-    item: { building_id: string; months_remaining: number; total_months: number },
-    building: BuildingDefinition | undefined,
+    regionId: string,
+    item: QueueProgressItem,
     index: number,
+    building: BuildingDefinition | undefined,
     monthProgress: number
   ): string {
-    const progress = this.visualQueueProgress(item, monthProgress);
+    const progressKey = this.queueProgressKey("demolition", regionId, index, item);
+    const targetProgress = this.visualQueueProgress(item, monthProgress);
+    const progress = this.renderProgressValue(progressKey, targetProgress, "--progress");
     return `
       <span class="queue-card demolition-card" title="Demolition ${escapeHtml(building?.display_name ?? item.building_id)}">
         ${this.buildingArt(building)}
         <span class="queue-copy">
           <strong>${escapeHtml(building?.display_name ?? item.building_id)}</strong>
           <small>Demolition · ${item.months_remaining}m restantes</small>
-          <i data-progress-fill="demolition" data-progress-index="${index}" data-progress-building-id="${escapeHtml(item.building_id)}" style="--progress:${progress}%"><b></b></i>
+          <i ${this.progressAttributes(progressKey, "--progress", "demolition", targetProgress)} data-progress-fill="demolition" data-progress-index="${index}" data-progress-building-id="${escapeHtml(item.building_id)}" style="--progress:${progress}%"><b></b></i>
         </span>
       </span>
     `;
@@ -604,14 +604,17 @@ export class GameHud {
       .filter((option) => option.status === "queued")
       .sort((a, b) => a.queue_position - b.queue_position);
     const visibleOptions = options.filter((option) => this.shouldShowResearchOption(option));
-    const activeProgress = active ? this.visualResearchProgress(active, monthProgress) : 0;
+    const activeTargetProgress = active ? this.visualResearchProgress(active, monthProgress) : 0;
+    const activeProgress = active
+      ? this.renderProgressValue(this.activeResearchProgressKey(active), activeTargetProgress, "--research-progress")
+      : 0;
     const activePoints = active ? this.visualResearchPoints(active, monthProgress) : 0;
     const statusMarkup = active
       ? `
-        <div class="research-status is-active" data-onboarding-target="research.status" data-progress-fill="research-active" data-progress-research-id="${escapeHtml(active.id)}" style="--research-progress:${activeProgress}%">
+        <div class="research-status is-active" data-onboarding-target="research.status" ${this.progressAttributes(this.activeResearchProgressKey(active), "--research-progress", "research-active", activeTargetProgress)} data-progress-fill="research-active" data-progress-research-id="${escapeHtml(active.id)}" style="--research-progress:${activeProgress}%">
           <div>
             <strong>${escapeHtml(active.display_name)}</strong>
-            <span data-research-active-detail>${fmt(activeProgress)}% - ${fmt(activePoints)}/${fmt(active.cost)} pts - ETA ${this.researchEta(active)} - +${fmt(active.monthly_points)} pts/mois</span>
+            <span data-research-active-copy data-research-active-detail>${fmt(activeTargetProgress)}% - ${fmt(activePoints)}/${fmt(active.cost)} pts - ETA ${this.researchEta(active)} - +${fmt(active.monthly_points)} pts/mois</span>
           </div>
         </div>
       `
@@ -659,7 +662,9 @@ export class GameHud {
       .filter(Boolean)
       .slice(0, 3);
     const effect = this.researchEffect(option);
-    const progress = this.visualResearchProgress(option, monthProgress);
+    const progressKey = this.researchCardProgressKey(option);
+    const targetProgress = this.visualResearchProgress(option, monthProgress);
+    const progress = this.renderProgressValue(progressKey, targetProgress, "--progress");
     const lockCause = option.lock_cause ? `data-lock-cause="${option.lock_cause}"` : "";
     return `
       <button class="research-card research-${option.status}" type="button" data-research="${option.id}" data-onboarding-target="research.${option.id}" ${lockCause} ${enabled ? "" : "disabled"} title="${escapeHtml(option.reason || option.notes)}">
@@ -667,7 +672,7 @@ export class GameHud {
           <strong>${escapeHtml(option.display_name)}</strong>
           <small>${escapeHtml(option.branch)} T${option.tier} · ${fmt(option.cost)} pts · ${this.researchEta(option)}</small>
         </span>
-        <span class="research-progress" data-progress-fill="research-card" data-progress-research-id="${escapeHtml(option.id)}" style="--progress:${progress}%"><b></b></span>
+        <span class="research-progress" ${this.progressAttributes(progressKey, "--progress", "research-card", targetProgress)} data-progress-fill="research-card" data-progress-research-id="${escapeHtml(option.id)}" style="--progress:${progress}%"><b></b></span>
         <span class="research-copy">${escapeHtml(option.reason || option.notes || effect)}</span>
         <span class="research-tags">
           ${unlocks.map((unlock) => `<span>Debloque ${escapeHtml(unlock)}</span>`).join("")}
@@ -702,6 +707,98 @@ export class GameHud {
       return clampPctFloat((this.visualResearchPoints(option, monthProgress) / option.cost) * 100);
     }
     return clampPctFloat(option.progress * 100);
+  }
+
+  private queueProgressKey(
+    type: "construction" | "demolition",
+    regionId: string,
+    index: number,
+    item: QueueProgressItem
+  ): string {
+    return `${type}:${regionId}:${index}:${item.building_id}:${item.total_months}`;
+  }
+
+  private activeResearchProgressKey(option: ResearchOption): string {
+    return `research-active:${option.id}`;
+  }
+
+  private researchCardProgressKey(option: ResearchOption): string {
+    return `research-card:${option.id}`;
+  }
+
+  private renderProgressValue(key: string, target: number, cssVar: ProgressCssVar): number {
+    const clampedTarget = clampPctFloat(target);
+    const previous = this.visualProgress.get(key);
+    if (previous === undefined || previous > clampedTarget) {
+      this.visualProgress.set(key, clampedTarget);
+      return clampedTarget;
+    }
+    const start = clampPctFloat(previous);
+    if (clampedTarget > start) {
+      this.pendingProgressAnimations.push({ key, cssVar, target: clampedTarget });
+    }
+    this.visualProgress.set(key, start);
+    return start;
+  }
+
+  private progressAttributes(key: string, cssVar: ProgressCssVar, kind: string, target: number): string {
+    return [
+      `data-progress-key="${escapeHtml(key)}"`,
+      `data-progress-var="${cssVar}"`,
+      `data-progress-kind="${kind}"`,
+      `data-progress-target="${clampPctFloat(target)}"`
+    ].join(" ");
+  }
+
+  private captureVisualProgressFromDom(): void {
+    for (const element of this.root.querySelectorAll<HTMLElement>("[data-progress-key]")) {
+      const key = element.dataset.progressKey;
+      if (!key) {
+        continue;
+      }
+      const value = parseProgressValue(getComputedStyle(element).getPropertyValue(this.progressCssVar(element)));
+      if (value !== undefined) {
+        this.visualProgress.set(key, value);
+      }
+    }
+  }
+
+  private applyPendingProgressAnimations(): void {
+    if (this.progressAnimationFrame !== null) {
+      window.cancelAnimationFrame(this.progressAnimationFrame);
+      this.progressAnimationFrame = null;
+    }
+    const animations = this.pendingProgressAnimations;
+    this.pendingProgressAnimations = [];
+    if (animations.length === 0) {
+      return;
+    }
+    this.progressAnimationFrame = window.requestAnimationFrame(() => {
+      this.progressAnimationFrame = null;
+      for (const animation of animations) {
+        this.patchProgressValue(animation.key, animation.target, animation.cssVar);
+      }
+    });
+  }
+
+  private patchProgressValue(key: string, target: number, cssVar: ProgressCssVar): void {
+    const element = this.findProgressElement(key);
+    const clampedTarget = clampPctFloat(target);
+    if (!element) {
+      return;
+    }
+    element.style.setProperty(cssVar, `${clampedTarget}%`);
+    element.dataset.progressTarget = String(clampedTarget);
+    this.visualProgress.set(key, clampedTarget);
+  }
+
+  private findProgressElement(key: string): HTMLElement | undefined {
+    return [...this.root.querySelectorAll<HTMLElement>("[data-progress-key]")]
+      .find((element) => element.dataset.progressKey === key);
+  }
+
+  private progressCssVar(element: HTMLElement): ProgressCssVar {
+    return element.dataset.progressVar === "--research-progress" ? "--research-progress" : "--progress";
   }
 
   private researchEta(option: ResearchOption): string {
@@ -1011,6 +1108,11 @@ function clampRatio(value: number): number {
     return 0;
   }
   return Math.max(0, Math.min(1, value));
+}
+
+function parseProgressValue(value: string): number | undefined {
+  const parsed = Number.parseFloat(value);
+  return Number.isFinite(parsed) ? clampPctFloat(parsed) : undefined;
 }
 
 function escapeHtml(value: string): string {
