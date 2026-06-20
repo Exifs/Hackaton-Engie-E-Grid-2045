@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang='fr'>
+<head>
+  <meta charset='utf-8'>
+  <meta name='viewport' content='width=device-width, initial-scale=1'>
+  <meta name='theme-color' content='#06131d'>
+  <meta name='description' content='Accéder à E-Grid 2045 : version web JS, build Godot web, téléchargements desktop, GitHub et outils techniques.'>
+  <meta name='robots' content='index, follow'>
+  <link rel='canonical' href='https://exifs.github.io/Hackaton-Engie-E-Grid-2045/landing/access.html'>
+  <link rel='icon' href='./favicon.svg' type='image/svg+xml'>
+  <link rel='manifest' href='./site.webmanifest'>
+  <title>Accès & builds — E-Grid 2045</title>
+  <link rel='stylesheet' href='./styles.css'>
+  <link rel='stylesheet' href='./sponsors.css'>
+  <link rel='stylesheet' href='./polish.css'>
+  <link rel='stylesheet' href='./access.css'>
+  <script src='./main.js' defer></script>
+</head>
+<body class='access-page'>
+  <canvas id='energy-canvas' aria-hidden='true'></canvas>
+  <div class='noise' aria-hidden='true'></div>
+  <div class='aurora aurora-a' aria-hidden='true'></div>
+  <div class='aurora aurora-b' aria-hidden='true'></div>
+  <div class='scanline' aria-hidden='true'></div>
+  <div class='scroll-progress' aria-hidden='true'></div>
+
+  <header class='site-header'>
+    <a class='brand' href='./index.html#top' aria-label='Retour à la landing'>
+      <span class='brand-mark'>E</span>
+      <span class='brand-text'>E-GRID 2045</span>
+    </a>
+    <nav class='nav-links' aria-label='Navigation principale'>
+      <a href='./index.html#pitch'>Pitch</a>
+      <a href='./index.html#sovereignty'>Souveraineté</a>
+      <a href='./index.html#screens'>Captures</a>
+      <a href='./index.html#partners'>Partenaires</a>
+      <a href='./access.html'>Accès</a>
+    </nav>
+    <a class='nav-cta' href='../play-js/' target='_blank' rel='noreferrer'>Jouer</a>
+  </header>
+
+  <main>
+    <section class='access-hero section-shell'>
+      <div class='reveal'>
+        <div class='eyebrow'>Accès · builds · outils</div>
+        <h1>Choisis ton point d’entrée.</h1>
+        <p class='hero-lead'>La landing reste orientée grand public. Cette page regroupe les accès jouables, les builds desktop, le GitHub et les outils créés pendant le hackathon.</p>
+        <div class='hero-actions'>
+          <a class='btn btn-primary magnetic' href='../play-js/' target='_blank' rel='noreferrer'>Jouer version JS</a>
+          <a class='btn btn-ghost magnetic' href='./index.html'>Retour landing</a>
+        </div>
+      </div>
+      <div class='access-panel reveal' data-tilt>
+        <div class='access-core'>
+          <span>Ready</span>
+          <strong>PLAY</strong>
+        </div>
+      </div>
+    </section>
+
+    <section class='access-section section-shell'>
+      <div class='section-heading centered reveal'>
+        <div class='section-kicker'>Jouer & télécharger</div>
+        <h2>Tous les chemins vers E-Grid 2045, sans surcharger la landing.</h2>
+        <p>Version navigateur rapide, build Godot Web, archives desktop ou source GitHub : choisis le format adapté à la démo.</p>
+      </div>
+      <div class='access-grid'>
+        <article class='access-card reveal'>
+          <span class='access-card-badge'>Recommandé</span>
+          <h3>Version JS</h3>
+          <p>Accès navigateur le plus direct pour tester le prototype sans installation.</p>
+          <a class='btn btn-primary magnetic' href='../play-js/' target='_blank' rel='noreferrer'>Jouer version JS</a>
+        </article>
+        <article class='access-card reveal'>
+          <span class='access-card-badge'>Godot Web</span>
+          <h3>Build Godot</h3>
+          <p>Version Web exportée depuis Godot, utile pour vérifier le rendu moteur.</p>
+          <a class='btn btn-ghost magnetic' href='../play/' target='_blank' rel='noreferrer'>Jouer build Godot</a>
+        </article>
+        <article class='access-card reveal'>
+          <span class='access-card-badge'>Desktop</span>
+          <h3>Windows · macOS · Linux</h3>
+          <p>Archives desktop récupérées depuis les GitHub Releases du projet.</p>
+          <a class='btn btn-ghost magnetic' href='./download.html'>Télécharger</a>
+        </article>
+        <article class='access-card reveal'>
+          <span class='access-card-badge'>Source</span>
+          <h3>GitHub</h3>
+          <p>Code source, assets, données data-driven et historique du hackathon.</p>
+          <a class='btn btn-ghost magnetic' href='https://github.com/Exifs/Hackaton-Engie-E-Grid-2045' target='_blank' rel='noreferrer'>Ouvrir GitHub</a>
+        </article>
+      </div>
+    </section>
+
+    <section class='access-section section-shell'>
+      <div class='section-heading reveal'>
+        <div class='section-kicker'>Technique & production</div>
+        <h2>La chaîne de production reste disponible pour les curieux.</h2>
+        <p>Les outils techniques sont précieux pour comprendre comment le prototype a été assemblé, mais ils n’ont plus besoin de surcharger le menu principal.</p>
+      </div>
+      <div class='access-tech-grid'>
+        <article class='access-tech-card reveal'>
+          <h3>Region Shape Editor</h3>
+          <p>Éditeur navigateur pour créer et corriger les délimitations des régions de gameplay.</p>
+          <a class='btn btn-ghost magnetic' href='../region-editor/' target='_blank' rel='noreferrer'>Ouvrir l’éditeur</a>
+        </article>
+        <article class='access-tech-card reveal'>
+          <h3>GitHub Releases</h3>
+          <p>Point d’entrée pour retrouver les builds publiés et vérifier les assets de release.</p>
+          <a class='btn btn-ghost magnetic' href='https://github.com/Exifs/Hackaton-Engie-E-Grid-2045/releases/latest' target='_blank' rel='noreferrer'>Voir les releases</a>
+        </article>
+        <article class='access-tech-card reveal'>
+          <h3>Docs & données</h3>
+          <p>GDD, direction artistique, CSV/JSON et assets du prototype restent dans le repo.</p>
+          <a class='btn btn-ghost magnetic' href='https://github.com/Exifs/Hackaton-Engie-E-Grid-2045/tree/main/Docs' target='_blank' rel='noreferrer'>Voir les docs</a>
+        </article>
+      </div>
+      <p class='access-note'>Cette séparation garde la première landing lisible pour un public non technique, tout en conservant un espace clair pour les builds, les outils et les liens de production.</p>
+    </section>
+  </main>
+
+  <footer class='site-footer'>
+    <span>E-Grid 2045 · Accès & builds</span>
+    <span><a href='./index.html'>Landing</a> · <a href='../play-js/' target='_blank' rel='noreferrer'>Jouer JS</a> · <a href='./download.html'>Téléchargements</a> · <a href='https://github.com/Exifs/Hackaton-Engie-E-Grid-2045' target='_blank' rel='noreferrer'>GitHub</a></span>
+  </footer>
+</body>
+</html>
