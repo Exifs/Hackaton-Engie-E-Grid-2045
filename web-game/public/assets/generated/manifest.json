@@ -11,6 +11,16 @@
       "date": "2026-06-20",
       "prompt_summary": "4x4 atlas of premium small E-Grid 2045 building icons: university, AI research, energy research, datacenter, gas, nuclear, wind, solar, hydro, battery, cooling, supergrid, slot, alert, CO2, blackout.",
       "constraints_da": "2D stylized semi-diegetic strategy map, premium simple shapes, readable at small size, no dashboard aesthetic, no text, no watermark; night slate base, cyan/green energy, orange/red deficit, icy blue cooling, controlled violet compute, ochre/dark red CO2."
+    },
+    {
+      "name": "building-card-art-atlas",
+      "file": "building-card-art-atlas.png",
+      "usage": "4x3 raster atlas for construction cards, active building cards and construction queue cards in the web HUD.",
+      "source": "Built-in ImageGen.",
+      "source_image": "C:\\Users\\cleme\\.codex\\generated_images\\019ee25e-bec3-7c10-847e-b764102f0163\\ig_02b23d727f1e9981016a367e682ba08191a18ab4f4b119135f.png",
+      "date": "2026-06-20",
+      "prompt_summary": "4x3 atlas of polished E-Grid 2045 building vignette illustrations: university, AI lab, energy research, datacenter, gas, nuclear, wind, solar, hydro, battery, cooling plant and supergrid hub.",
+      "constraints_da": "2D stylized semi-diegetic strategy map concept art, dark blue-night map tiles, premium simple building silhouettes, readable at small card size, no dashboard aesthetic, no text, no numbers, no logos, no watermark."
     }
   ]
 }

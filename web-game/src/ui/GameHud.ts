@@ -10,10 +10,11 @@ interface HudCallbacks {
   onHeatmap: (mode: HeatmapMode) => void;
 }
 
-const CATEGORY_ORDER = ["research", "energy", "cooling", "compute", "grid"];
+const CATEGORY_ORDER = ["research", "energy", "storage", "cooling", "compute", "grid"];
 const CATEGORY_LABELS: Record<string, string> = {
   research: "Recherche",
   energy: "Energie",
+  storage: "Stockage",
   cooling: "Froid",
   compute: "Compute",
   grid: "Reseau"
@@ -107,6 +108,18 @@ export class GameHud {
   private regionPanel(region: RegionSnapshot, buildings: Record<string, BuildingDefinition>): string {
     const cached = region.cached;
     const slotPct = region.slots_max > 0 ? (region.slots_used / region.slots_max) * 100 : 0;
+    const queueCards = region.construction_queue.length === 0
+      ? `<span class="empty-slot-card">Aucun chantier</span>`
+      : region.construction_queue
+        .map((item, index) => this.queueCard(item, index, buildings[item.building_id]))
+        .join("");
+    const builtCards = region.buildings.length === 0
+      ? `<span class="empty-slot-card">Aucun actif</span>`
+      : region.buildings
+        .slice(-8)
+        .map((id) => this.builtCard(id, buildings[id]))
+        .join("");
+
     return `
       <div class="panel-title">
         <span>Region</span>
@@ -121,19 +134,17 @@ export class GameHud {
       <div class="region-tags">
         ${region.tags.slice(0, 6).map((tag) => `<span>${escapeHtml(tag)}</span>`).join("")}
       </div>
-      <div class="queue-list">
-        ${region.construction_queue.length === 0 ? `<span class="muted">Aucune construction</span>` : region.construction_queue
-          .map((item, index) => {
-            const definition = buildings[item.building_id];
-            return `<button class="queue-item" type="button" data-cancel="${index}">
-              <span>${escapeHtml(definition?.display_name ?? item.building_id)}</span>
-              <strong>${item.months_remaining}m</strong>
-            </button>`;
-          })
-          .join("")}
+      <div class="region-section region-queue">
+        <div class="panel-subtitle"><span>Chantier</span><strong>${region.construction_queue.length}</strong></div>
+        <div class="queue-list">
+          ${queueCards}
+        </div>
       </div>
-      <div class="built-list">
-        ${region.buildings.slice(-6).map((id) => `<span>${escapeHtml(buildings[id]?.display_name ?? id)}</span>`).join("")}
+      <div class="region-section region-buildings">
+        <div class="panel-subtitle"><span>Batiments actifs</span><strong>${region.buildings.length}/${region.slots_max}</strong></div>
+        <div class="built-grid">
+          ${builtCards}
+        </div>
       </div>
     `;
   }
@@ -147,7 +158,85 @@ export class GameHud {
     `;
   }
 
+  private queueCard(
+    item: { building_id: string; months_remaining: number; total_months: number },
+    index: number,
+    building: BuildingDefinition | undefined
+  ): string {
+    const progress = item.total_months > 0 ? ((item.total_months - item.months_remaining) / item.total_months) * 100 : 100;
+    return `
+      <button class="queue-card" type="button" data-cancel="${index}" title="Annuler ${escapeHtml(building?.display_name ?? item.building_id)}">
+        ${this.buildingArt(building)}
+        <span class="queue-copy">
+          <strong>${escapeHtml(building?.display_name ?? item.building_id)}</strong>
+          <small>${item.months_remaining}m restantes</small>
+          <i style="--progress:${clampPct(progress)}%"><b></b></i>
+        </span>
+      </button>
+    `;
+  }
+
+  private builtCard(buildingId: string, building: BuildingDefinition | undefined): string {
+    return `
+      <span class="built-card" title="${escapeHtml(building?.description ?? buildingId)}">
+        ${this.buildingArt(building)}
+        <span class="built-copy">
+          <strong>${escapeHtml(building?.display_name ?? buildingId)}</strong>
+          <small>${escapeHtml(this.buildingSummary(building))}</small>
+        </span>
+      </span>
+    `;
+  }
+
+  private buildingArt(building: BuildingDefinition | undefined): string {
+    return `<span class="building-art building-art--${building?.icon_key ?? "supergrid"}" aria-hidden="true"></span>`;
+  }
+
+  private buildingSummary(building: BuildingDefinition | undefined): string {
+    if (!building) {
+      return "Infrastructure";
+    }
+    const parts: string[] = [];
+    if (building.produces_energy > 0) {
+      parts.push(`+${fmt(building.produces_energy)} Energie`);
+    }
+    if (building.produces_cooling > 0) {
+      parts.push(`+${fmt(building.produces_cooling)} Froid`);
+    }
+    if (building.produces_compute > 0) {
+      parts.push(`+${fmt(building.produces_compute)} Compute`);
+    }
+    if (building.produces_storage > 0) {
+      parts.push(`+${fmt(building.produces_storage)} Stockage`);
+    }
+    if (building.produces_researchers > 0) {
+      parts.push(`+${fmt(building.produces_researchers)} R&D`);
+    }
+    return parts.slice(0, 2).join(" / ") || CATEGORY_LABELS[building.category] || building.category;
+  }
+
+  private buildingMetricChips(building: BuildingDefinition): string {
+    const chips: Array<{ label: string; tone: string }> = [];
+    const add = (value: number, label: string, tone: string, prefix = "+") => {
+      if (value > 0) {
+        chips.push({ label: `${prefix}${fmt(value)} ${label}`, tone });
+      }
+    };
+    add(building.produces_energy, "E", "energy");
+    add(building.produces_cooling, "F", "cooling");
+    add(building.produces_compute, "C", "compute");
+    add(building.produces_storage, "S", "storage");
+    add(building.produces_researchers, "R&D", "research");
+    add(building.consumes_energy, "E", "cost", "-");
+    add(building.consumes_cooling, "F", "cost", "-");
+    add(building.co2_monthly, "CO2", "co2", "+");
+    return chips
+      .slice(0, 4)
+      .map((chip) => `<span class="metric-chip metric-${chip.tone}">${escapeHtml(chip.label)}</span>`)
+      .join("");
+  }
   private categoryBlock(
+
     category: string,
     buildings: Record<string, BuildingDefinition>,
     availability: Record<string, BuildAvailability>
@@ -171,10 +260,16 @@ export class GameHud {
     const reason = availability?.reason ?? "";
     return `
       <button class="build-card ${enabled ? "" : "is-disabled"}" type="button" data-build="${building.id}" ${enabled ? "" : "disabled"} title="${escapeHtml(reason || building.description)}">
-        <span class="building-icon building-icon--${building.icon_key}" aria-hidden="true"></span>
+        <span class="build-visual" aria-hidden="true">
+          ${this.buildingArt(building)}
+          <span class="building-icon building-icon--${building.icon_key}"></span>
+        </span>
         <span class="build-copy">
           <strong>${escapeHtml(building.display_name)}</strong>
           <small>${building.cost}M · ${building.construction_months}m · ${building.slots_required} slots</small>
+          <span class="build-metrics">
+            ${this.buildingMetricChips(building)}
+          </span>
         </span>
       </button>
     `;
@@ -236,7 +331,11 @@ function fmt(value: number, digits = 0): string {
   return value.toFixed(digits);
 }
 
+function clampPct(value: number): number {
+  return Math.max(0, Math.min(100, Math.round(value)));
+}
 function escapeHtml(value: string): string {
+
   return value
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
