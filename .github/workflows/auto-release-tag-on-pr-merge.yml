@@ -23,12 +23,14 @@ jobs:
     outputs:
       tag_name: ${{ steps.version.outputs.tag_name }}
       target_ref: ${{ steps.version.outputs.target_ref }}
+      bump: ${{ steps.version.outputs.bump }}
     steps:
-      - name: Compute next patch tag
+      - name: Compute next semver tag
         id: version
         env:
           GH_TOKEN: ${{ github.token }}
           REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
           MERGE_COMMIT_SHA: ${{ github.event.pull_request.merge_commit_sha }}
           FALLBACK_SHA: ${{ github.sha }}
         run: |
@@ -43,6 +45,20 @@ jobs:
             exit 1
           fi
 
+          labels="$(gh api "repos/${REPOSITORY}/issues/${PR_NUMBER}/labels" --jq '.[].name')"
+          bump="patch"
+          bump_source="default fallback"
+          if printf '%s\n' "${labels}" | grep -Fxq 'semver:major'; then
+            bump="major"
+            bump_source="semver:major label"
+          elif printf '%s\n' "${labels}" | grep -Fxq 'semver:minor'; then
+            bump="minor"
+            bump_source="semver:minor label"
+          elif printf '%s\n' "${labels}" | grep -Fxq 'semver:patch'; then
+            bump="patch"
+            bump_source="semver:patch label"
+          fi
+
           latest_tag="$(
             gh api "repos/${REPOSITORY}/tags" --paginate --jq '.[].name' \
               | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' \
@@ -52,13 +68,34 @@ jobs:
           )"
 
           if [[ -z "${latest_tag}" ]]; then
-            next_tag="v0.1.0"
+            major=0
+            minor=0
+            patch=0
           else
             version="${latest_tag#v}"
             IFS='.' read -r major minor patch <<< "${version}"
-            patch=$((patch + 1))
-            next_tag="v${major}.${minor}.${patch}"
           fi
+
+          case "${bump}" in
+            major)
+              major=$((major + 1))
+              minor=0
+              patch=0
+              ;;
+            minor)
+              minor=$((minor + 1))
+              patch=0
+              ;;
+            patch)
+              patch=$((patch + 1))
+              ;;
+            *)
+              echo "::error::Unsupported version bump '${bump}'."
+              exit 1
+              ;;
+          esac
+
+          next_tag="v${major}.${minor}.${patch}"
 
           if gh api "repos/${REPOSITORY}/git/ref/tags/${next_tag}" --silent >/dev/null 2>&1; then
             echo "::error::Computed tag ${next_tag} already exists. Re-run the manual release tag workflow with a new tag."
@@ -67,11 +104,14 @@ jobs:
 
           echo "tag_name=${next_tag}" >> "${GITHUB_OUTPUT}"
           echo "target_ref=${target_sha}" >> "${GITHUB_OUTPUT}"
+          echo "bump=${bump}" >> "${GITHUB_OUTPUT}"
           {
             echo "## Automatic release tag"
             echo
-            echo "- Source PR: #${{ github.event.pull_request.number }}"
+            echo "- Source PR: #${PR_NUMBER}"
             echo "- Merge commit: \`${target_sha}\`"
+            echo "- Previous tag: \`${latest_tag:-none}\`"
+            echo "- Version bump: \`${bump}\` (${bump_source})"
             echo "- Next tag: \`${next_tag}\`"
           } >> "${GITHUB_STEP_SUMMARY}"
 
