@@ -1,0 +1,52 @@
+name: Label PR version bump
+
+on:
+  pull_request:
+    types:
+      - opened
+      - edited
+      - synchronize
+      - reopened
+      - ready_for_review
+    branches:
+      - main
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: read
+
+concurrency:
+  group: label-pr-version-bump-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  label:
+    name: Classify PR version bump
+    if: ${{ github.event.pull_request.state == 'open' }}
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout trusted classifier from base branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          sparse-checkout: .github/scripts/classify-semver-bump.py
+          sparse-checkout-cone-mode: false
+          persist-credentials: false
+
+      - name: Check classifier availability
+        id: classifier
+        run: |
+          if [[ -f .github/scripts/classify-semver-bump.py ]]; then
+            echo "available=true" >> "${GITHUB_OUTPUT}"
+          else
+            echo "available=false" >> "${GITHUB_OUTPUT}"
+            echo "::notice::Classifier script is not present on the base branch yet. Skipping automatic label sync for this bootstrap PR."
+          fi
+
+      - name: Apply semver label
+        if: ${{ steps.classifier.outputs.available == 'true' }}
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: python3 .github/scripts/classify-semver-bump.py
