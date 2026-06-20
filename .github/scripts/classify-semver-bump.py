@@ -11,6 +11,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import shlex
 import sys
 from dataclasses import dataclass
 from typing import Any
@@ -240,18 +241,27 @@ def sync_pr_label(repository: str, pr_number: str, token: str, bump: str) -> Non
 
 
 def write_outputs(classification: Classification) -> None:
+    label = VERSION_LABELS[classification.bump]["name"]
+
     output_path = os.environ.get("GITHUB_OUTPUT")
     if output_path:
         with open(output_path, "a", encoding="utf-8") as output_file:
             output_file.write(f"bump={classification.bump}\n")
-            output_file.write(f"label={VERSION_LABELS[classification.bump]['name']}\n")
+            output_file.write(f"label={label}\n")
             output_file.write(f"reason={classification.reason}\n")
+
+    semver_output_path = os.environ.get("SEMVER_OUTPUT_FILE")
+    if semver_output_path:
+        with open(semver_output_path, "w", encoding="utf-8") as semver_output_file:
+            semver_output_file.write(f"BUMP={classification.bump}\n")
+            semver_output_file.write(f"LABEL={label}\n")
+            semver_output_file.write(f"REASON={shlex.quote(classification.reason)}\n")
 
     summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
     if summary_path:
         with open(summary_path, "a", encoding="utf-8") as summary_file:
             summary_file.write("## PR version bump label\n\n")
-            summary_file.write(f"- Label: `{VERSION_LABELS[classification.bump]['name']}`\n")
+            summary_file.write(f"- Label: `{label}`\n")
             summary_file.write(f"- Reason: {classification.reason}\n")
 
 
