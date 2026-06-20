@@ -30,7 +30,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           REPOSITORY: ${{ github.repository }}
           MERGE_COMMIT_SHA: ${{ github.event.pull_request.merge_commit_sha }}
-          FALLBACK_SHA: ${{ github.event.pull_request.base.sha }}
+          FALLBACK_SHA: ${{ github.sha }}
         run: |
           set -euo pipefail
 
