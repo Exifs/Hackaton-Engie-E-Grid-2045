@@ -62,9 +62,35 @@ jobs:
             echo "::notice::Classifier script is not available yet; skipping label sync for this bootstrap PR."
           fi
 
-      - name: Apply semver label
+      - name: Classify semver bump
+        id: classify
         if: ${{ steps.classifier.outputs.available == 'true' }}
         env:
           GITHUB_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
+          SYNC_LABELS: "false"
         run: python3 .github/scripts/classify-semver-bump.py
+
+      - name: Ensure semver labels exist
+        if: ${{ steps.classifier.outputs.available == 'true' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh label create "semver:major" --color "b60205" --description "Breaking change; next release increments the major version." --force
+          gh label create "semver:minor" --color "0e8a16" --description "New feature; next release increments the minor version." --force
+          gh label create "semver:patch" --color "1d76db" --description "Fix, maintenance, docs, CI, or polish; next release increments the patch version." --force
+
+      - name: Apply semver label
+        if: ${{ steps.classifier.outputs.available == 'true' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          LABEL: ${{ steps.classify.outputs.label }}
+        run: |
+          set -euo pipefail
+          for candidate in "semver:major" "semver:minor" "semver:patch"; do
+            if [[ "${candidate}" != "${LABEL}" ]]; then
+              gh pr edit "${PR_NUMBER}" --remove-label "${candidate}" || true
+            fi
+          done
+          gh pr edit "${PR_NUMBER}" --add-label "${LABEL}"
