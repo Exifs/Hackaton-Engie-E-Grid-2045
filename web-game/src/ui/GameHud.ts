@@ -24,7 +24,7 @@ export class GameHud {
   private readonly simulation: SimulationCore;
   private readonly callbacks: HudCallbacks;
   private heatmapMode: HeatmapMode = "energy";
-  private paletteOpen = true;
+  private paletteOpen = !window.matchMedia("(max-width: 720px)").matches;
 
   constructor(root: HTMLElement, simulation: SimulationCore, callbacks: HudCallbacks) {
     this.root = root;
