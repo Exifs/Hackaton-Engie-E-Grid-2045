@@ -3,6 +3,48 @@ import { expect, test, type Page } from "@playwright/test";
 type Rect = { selector: string; x: number; y: number; width: number; height: number };
 
 test.describe("E-Grid 2045 web game visuals", () => {
+  test("onboarding guides the first gameplay loop and persists completion", async ({ page }, testInfo) => {
+    await openGameWithOnboarding(page, 1600, 900);
+    await expect(page.locator(".onboarding-coach")).toBeVisible();
+    await expect(page.locator(".onboarding-coach")).toContainText("Mission");
+
+    await page.locator('[data-onboarding-action="next"]').click();
+    await expect(page.locator(".onboarding-coach")).toContainText("Ressources cles");
+    await page.locator('[data-onboarding-action="next"]').click();
+    await expect(page.locator(".onboarding-coach")).toContainText("Universite");
+
+    await page.locator('[data-build="university"]').click();
+    await expect(page.locator(".onboarding-coach")).toContainText("Overlay refroidissement");
+    await page.locator('[data-heatmap="cooling"]').click();
+    await expect(page.locator(".onboarding-coach")).toContainText("Energie de depart");
+
+    await page.locator('[data-build="gas_power_plant"]').click();
+    await expect(page.locator(".onboarding-coach")).toContainText("Refroidissement");
+    await page.locator('[data-build="air_cooling"]').click();
+    await expect(page.locator(".onboarding-coach")).toContainText("Datacenter");
+
+    await page.locator('[data-build="datacenter_standard"]').click();
+    await expect(page.locator(".onboarding-coach")).toContainText("Recherche");
+    await page.locator('[data-build="ai_research_center"]').click();
+    await expect(page.locator(".onboarding-coach")).toContainText("Overlay reseau");
+
+    await page.locator('[data-heatmap="network"]').click();
+    await expect(page.locator(".onboarding-coach")).toContainText("Fin du guidage");
+    await page.locator('[data-onboarding-action="next"]').click();
+    await expect(page.locator(".onboarding-coach")).toHaveCount(0);
+
+    const persisted = await page.evaluate(() => localStorage.getItem("egrid:onboarding:v1:completed"));
+    expect(persisted).toContain("completed");
+
+    await page.reload();
+    await page.waitForFunction(() => Boolean(window.__EGRID__));
+    await expect(page.locator(".onboarding-coach")).toHaveCount(0);
+
+    await page.locator('[data-action="replay-onboarding"]').click();
+    await expect(page.locator(".onboarding-coach")).toContainText("Mission");
+    await page.screenshot({ path: testInfo.outputPath("onboarding-replay-visible.png"), fullPage: true });
+  });
+
   test("initial desktop screen 1600x900", async ({ page }, testInfo) => {
     await openGame(page, 1600, 900);
     await expectCanvasNonBlank(page);
@@ -767,6 +809,25 @@ async function openLiveGame(page: Page, width: number, height: number): Promise<
   await page.evaluate(() => {
     window.__EGRID__?.hud.render();
     window.__EGRID__?.scene.renderState();
+  });
+  await page.waitForTimeout(150);
+}
+
+async function openGameWithOnboarding(page: Page, width: number, height: number): Promise<void> {
+  await page.setViewportSize({ width, height });
+  await page.goto("/?testMode=1&seed=onboarding&onboarding=1");
+  await page.waitForFunction(() => Boolean(window.__EGRID__));
+  await page.locator("#game-canvas canvas").waitFor({ state: "visible" });
+  await page.evaluate(() => {
+    const game = window.__EGRID__;
+    if (!game) {
+      return;
+    }
+    localStorage.removeItem("egrid:onboarding:v1:completed");
+    game.simulation.state.money = 10000;
+    game.hud.render();
+    game.scene.renderState();
+    game.onboarding.start({ force: true });
   });
   await page.waitForTimeout(150);
 }

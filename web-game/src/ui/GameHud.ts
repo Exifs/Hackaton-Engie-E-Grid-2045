@@ -12,6 +12,7 @@ interface HudCallbacks {
   onSpeed: (speed: number) => void;
   onSelectRegion: (regionId: string) => void;
   onHeatmap: (mode: HeatmapMode) => void;
+  onReplayOnboarding: () => void;
 }
 
 const CATEGORY_ORDER = ["research", "energy", "storage", "cooling", "compute", "grid"];
@@ -113,44 +114,46 @@ export class GameHud {
     this.applyPanelSizing();
 
     this.root.innerHTML = `
-      <section class="top-kpi" aria-label="Indicateurs">
-        ${this.kpi("Date", summary.date_text)}
-        ${this.kpi("Budget", `${fmt(summary.money)} M`) }
-        ${this.kpi("EU AGI", `${fmt(summary.eu_agi_progress)}%`) }
-        ${this.kpi("USA", `${fmt(summary.usa_agi_progress)}%`) }
-        ${this.kpi("Energie", `${fmt(summary.energy_produced)} / ${fmt(summary.energy_consumed)}`)}
-        ${this.kpi("Froid", `${fmt(summary.cooling_available)} / ${fmt(summary.cooling_used)}`)}
-        ${this.kpi("Compute", `${fmt(summary.compute_produced)}`)}
-        ${this.kpi("CO2", summary.co2_tier)}
+      <section class="top-kpi" aria-label="Indicateurs" data-onboarding-target="kpi.bar">
+        ${this.kpi("Date", summary.date_text, "kpi.date")}
+        ${this.kpi("Budget", `${fmt(summary.money)} M`, "kpi.money") }
+        ${this.kpi("EU AGI", `${fmt(summary.eu_agi_progress)}%`, "kpi.agi") }
+        ${this.kpi("USA", `${fmt(summary.usa_agi_progress)}%`, "kpi.usa") }
+        ${this.kpi("Energie", `${fmt(summary.energy_produced)} / ${fmt(summary.energy_consumed)}`, "kpi.energy")}
+        ${this.kpi("Froid", `${fmt(summary.cooling_available)} / ${fmt(summary.cooling_used)}`, "kpi.cooling")}
+        ${this.kpi("Compute", `${fmt(summary.compute_produced)}`, "kpi.compute")}
+        ${this.kpi("CO2", summary.co2_tier, "kpi.co2")}
         <div class="time-controls" aria-label="Vitesse">
           ${this.speedButton(0, summary.simulation_speed === 0)}
           ${this.speedButton(1, summary.simulation_speed === 1)}
           ${this.speedButton(2, summary.simulation_speed === 2)}
           ${this.speedButton(4, summary.simulation_speed === 4)}
           <button class="icon-command" type="button" data-action="advance" title="Mois suivant">+1</button>
+          <button class="icon-command tutorial-replay-button" type="button" data-action="replay-onboarding" data-onboarding-target="onboarding.replay" title="Rejouer le tutoriel">?</button>
         </div>
       </section>
 
-      <section class="heatmap-switch" aria-label="Heatmaps">
+      <section class="heatmap-switch" aria-label="Heatmaps" data-onboarding-target="overlay.switch">
         ${this.heatmapButton("energy", "Energie")}
         ${this.heatmapButton("cooling", "Froid")}
+        ${this.heatmapButton("network", "Reseau")}
         ${this.heatmapButton("compute", "Compute")}
         ${this.heatmapButton("co2", "CO2")}
         ${this.heatmapButton("none", "Off")}
       </section>
 
-      <section class="alerts-panel" aria-label="Alertes">
+      <section class="alerts-panel" aria-label="Alertes" data-onboarding-target="alerts.panel">
         ${alerts.length === 0 ? `<div class="alert-empty">Systemes stables</div>` : alerts.map((alert) => `
           ${this.alertCard(alert)}
         `).join("")}
       </section>
 
-      <section class="region-panel" aria-label="Region selectionnee">
+      <section class="region-panel" aria-label="Region selectionnee" data-onboarding-target="region.panel">
         <div class="region-resize-handle" data-resize-panel="region" title="Redimensionner le panel droit"></div>
         ${selectedRegion ? this.regionPanel(selectedRegion, buildings, monthProgress) : `<div class="panel-title">Selection region</div>`}
       </section>
 
-      <section class="build-palette ${this.paletteOpen ? "is-open" : ""}" aria-label="Construction">
+      <section class="build-palette ${this.paletteOpen ? "is-open" : ""}" aria-label="Construction" data-onboarding-target="construction.menu">
         <div class="dock-resize-handle" data-resize-panel="dock" title="Redimensionner le dock bas"></div>
         <div class="palette-header">
           <button class="palette-toggle" type="button" data-action="toggle-palette">
@@ -219,8 +222,28 @@ export class GameHud {
     }
   }
 
-  private kpi(label: string, value: string): string {
-    return `<div class="kpi-chip"><span>${label}</span><strong>${escapeHtml(value)}</strong></div>`;
+  setHeatmapMode(mode: HeatmapMode): void {
+    this.heatmapMode = mode;
+  }
+
+  openConstructionCategory(category = ALL_BUILD_CATEGORY): void {
+    this.capturePaletteScroll();
+    this.paletteOpen = true;
+    this.activeDockTab = "construction";
+    this.activeBuildCategory = category;
+    this.render();
+  }
+
+  openResearchPanel(): void {
+    this.capturePaletteScroll();
+    this.paletteOpen = true;
+    this.activeDockTab = "research";
+    this.render();
+  }
+
+  private kpi(label: string, value: string, target = ""): string {
+    const targetAttr = target ? ` data-onboarding-target="${target}"` : "";
+    return `<div class="kpi-chip"${targetAttr}><span>${label}</span><strong>${escapeHtml(value)}</strong></div>`;
   }
 
   private speedButton(speed: number, active: boolean): string {
@@ -229,12 +252,12 @@ export class GameHud {
   }
 
   private heatmapButton(mode: HeatmapMode, label: string): string {
-    return `<button class="heatmap-button ${this.heatmapMode === mode ? "is-active" : ""}" type="button" data-heatmap="${mode}">${label}</button>`;
+    return `<button class="heatmap-button ${this.heatmapMode === mode ? "is-active" : ""}" type="button" data-heatmap="${mode}" data-onboarding-target="overlay.${mode}">${label}</button>`;
   }
 
   private paletteTab(tab: "construction" | "research", label: string): string {
     const active = this.activeDockTab === tab;
-    return `<button class="palette-tab ${active ? "is-active" : ""}" type="button" data-palette-tab="${tab}" role="tab" aria-selected="${active}">${label}</button>`;
+    return `<button class="palette-tab ${active ? "is-active" : ""}" type="button" data-palette-tab="${tab}" data-onboarding-target="palette.${tab}" role="tab" aria-selected="${active}">${label}</button>`;
   }
 
   private alertCard(alert: Alert): string {
@@ -469,7 +492,7 @@ export class GameHud {
       this.shouldShowBuilding(building, availability[building.id])
     ).length;
     return `
-      <button class="build-category-tab ${active ? "is-active" : ""}" type="button" data-build-category="${category}" role="tab" aria-selected="${active}">
+      <button class="build-category-tab ${active ? "is-active" : ""}" type="button" data-build-category="${category}" data-onboarding-target="build.category.${category}" role="tab" aria-selected="${active}">
         <span>${CATEGORY_LABELS[category] ?? category}</span>
         <strong>${count}</strong>
       </button>
@@ -513,7 +536,7 @@ export class GameHud {
     const reason = availability?.reason ?? "";
     const cause = availability?.cause ? `data-availability-cause="${availability.cause}"` : "";
     return `
-      <button class="build-card ${enabled ? "" : "is-disabled"}" type="button" data-build="${building.id}" ${cause} ${enabled ? "" : "disabled"} title="${escapeHtml(reason || building.description)}">
+      <button class="build-card ${enabled ? "" : "is-disabled"}" type="button" data-build="${building.id}" data-onboarding-target="build.${building.id}" ${cause} ${enabled ? "" : "disabled"} title="${escapeHtml(reason || building.description)}">
         <span class="build-visual" aria-hidden="true">
           ${this.buildingArt(building)}
           ${this.buildingBadges(building, availability)}
@@ -588,14 +611,14 @@ export class GameHud {
     const activePoints = active ? this.visualResearchPoints(active, monthProgress) : 0;
     const statusMarkup = active
       ? `
-        <div class="research-status is-active" ${this.progressAttributes(this.activeResearchProgressKey(active), "--research-progress", "research-active", activeTargetProgress)} data-progress-fill="research-active" data-progress-research-id="${escapeHtml(active.id)}" style="--research-progress:${activeProgress}%">
+        <div class="research-status is-active" data-onboarding-target="research.status" ${this.progressAttributes(this.activeResearchProgressKey(active), "--research-progress", "research-active", activeTargetProgress)} data-progress-fill="research-active" data-progress-research-id="${escapeHtml(active.id)}" style="--research-progress:${activeProgress}%">
           <div>
             <strong>${escapeHtml(active.display_name)}</strong>
             <span data-research-active-copy data-research-active-detail>${fmt(activeTargetProgress)}% - ${fmt(activePoints)}/${fmt(active.cost)} pts - ETA ${this.researchEta(active)} - +${fmt(active.monthly_points)} pts/mois</span>
           </div>
         </div>
       `
-      : `<div class="research-status" style="--research-progress:0%"><div><strong>Aucune recherche active</strong><span>Choisis un palier a lancer</span></div></div>`;
+      : `<div class="research-status" data-onboarding-target="research.status" style="--research-progress:0%"><div><strong>Aucune recherche active</strong><span>Choisis un palier a lancer</span></div></div>`;
     return `
       <div class="research-panel">
         ${statusMarkup}
@@ -644,7 +667,7 @@ export class GameHud {
     const progress = this.renderProgressValue(progressKey, targetProgress, "--progress");
     const lockCause = option.lock_cause ? `data-lock-cause="${option.lock_cause}"` : "";
     return `
-      <button class="research-card research-${option.status}" type="button" data-research="${option.id}" ${lockCause} ${enabled ? "" : "disabled"} title="${escapeHtml(option.reason || option.notes)}">
+      <button class="research-card research-${option.status}" type="button" data-research="${option.id}" data-onboarding-target="research.${option.id}" ${lockCause} ${enabled ? "" : "disabled"} title="${escapeHtml(option.reason || option.notes)}">
         <span class="research-card-head">
           <strong>${escapeHtml(option.display_name)}</strong>
           <small>${escapeHtml(option.branch)} T${option.tier} · ${fmt(option.cost)} pts · ${this.researchEta(option)}</small>
@@ -904,6 +927,8 @@ export class GameHud {
     } else if (action === "toggle-palette") {
       this.paletteOpen = !this.paletteOpen;
       this.render();
+    } else if (action === "replay-onboarding") {
+      this.callbacks.onReplayOnboarding();
     }
   }
 
@@ -992,9 +1017,15 @@ export class GameHud {
   }
 
   private applyPanelSizing(): void {
-    this.root.style.setProperty("--dock-height", `${this.dockHeight}px`);
-    this.root.style.setProperty("--dock-current-height", `${this.paletteOpen ? this.dockHeight : DOCK_COLLAPSED_HEIGHT}px`);
-    this.root.style.setProperty("--right-panel-width", `${this.rightPanelWidth}px`);
+    const dockHeight = `${this.dockHeight}px`;
+    const dockCurrentHeight = `${this.paletteOpen ? this.dockHeight : DOCK_COLLAPSED_HEIGHT}px`;
+    const rightPanelWidth = `${this.rightPanelWidth}px`;
+    this.root.style.setProperty("--dock-height", dockHeight);
+    this.root.style.setProperty("--dock-current-height", dockCurrentHeight);
+    this.root.style.setProperty("--right-panel-width", rightPanelWidth);
+    this.root.parentElement?.style.setProperty("--dock-height", dockHeight);
+    this.root.parentElement?.style.setProperty("--dock-current-height", dockCurrentHeight);
+    this.root.parentElement?.style.setProperty("--right-panel-width", rightPanelWidth);
   }
 
   private clampDockHeight(value: number): number {
