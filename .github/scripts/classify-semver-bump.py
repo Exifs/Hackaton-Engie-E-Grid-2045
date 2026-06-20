@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Classify a pull request as semver major/minor/patch and sync the PR label.
+"""Classify a pull request as semver major/minor/patch and optionally sync the PR label.
 
 The script is intentionally self-contained and only reads PR metadata/files through
 GitHub's REST API. It should be run from trusted workflow code and must not rely
@@ -37,6 +37,7 @@ VERSION_LABELS = {
     },
 }
 LABEL_TO_BUMP = {meta["name"]: bump for bump, meta in VERSION_LABELS.items()}
+SKIP_LABEL_VALUES = {"0", "false", "no", "off"}
 
 
 @dataclass(frozen=True)
@@ -254,6 +255,10 @@ def write_outputs(classification: Classification) -> None:
             summary_file.write(f"- Reason: {classification.reason}\n")
 
 
+def should_sync_labels() -> bool:
+    return os.environ.get("SYNC_LABELS", "true").strip().lower() not in SKIP_LABEL_VALUES
+
+
 def main() -> int:
     repository = os.environ.get("GITHUB_REPOSITORY", "").strip()
     pr_number = os.environ.get("PR_NUMBER", "").strip()
@@ -266,10 +271,13 @@ def main() -> int:
     pr, _ = github_api("GET", f"repos/{repository}/pulls/{pr_number}", token)
     files = github_paginate(f"repos/{repository}/pulls/{pr_number}/files", token)
     classification = classify(pr, files)
-    sync_pr_label(repository, pr_number, token, classification.bump)
+
+    if should_sync_labels():
+        sync_pr_label(repository, pr_number, token, classification.bump)
+
     write_outputs(classification)
 
-    print(f"Applied {VERSION_LABELS[classification.bump]['name']} to PR #{pr_number}: {classification.reason}")
+    print(f"Classified PR #{pr_number} as {VERSION_LABELS[classification.bump]['name']}: {classification.reason}")
     return 0
 
 
