@@ -34,7 +34,18 @@ jobs:
           sparse-checkout-cone-mode: false
           persist-credentials: false
 
+      - name: Check classifier availability
+        id: classifier
+        run: |
+          if [[ -f .github/scripts/classify-semver-bump.py ]]; then
+            echo "available=true" >> "${GITHUB_OUTPUT}"
+          else
+            echo "available=false" >> "${GITHUB_OUTPUT}"
+            echo "::notice::Classifier script is not present on the base branch yet; skipping label sync for this bootstrap PR."
+          fi
+
       - name: Apply semver label
+        if: ${{ steps.classifier.outputs.available == 'true' }}
         env:
           GITHUB_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
