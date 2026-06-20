@@ -1,0 +1,41 @@
+name: Label PR version bump
+
+on:
+  pull_request:
+    types:
+      - opened
+      - edited
+      - synchronize
+      - reopened
+      - ready_for_review
+    branches:
+      - main
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: read
+
+concurrency:
+  group: label-pr-version-bump-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  label:
+    name: Classify PR version bump
+    if: ${{ github.event.pull_request.state == 'open' }}
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout trusted workflow scripts
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          sparse-checkout: .github/scripts/classify-semver-bump.py
+          sparse-checkout-cone-mode: false
+          persist-credentials: false
+
+      - name: Apply semver label
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: python3 .github/scripts/classify-semver-bump.py
