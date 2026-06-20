@@ -66,6 +66,14 @@ const hud = new GameHud(hudRoot, simulation, {
     simulation.startResearch(technologyId);
     redraw();
   },
+  onRemoveQueuedResearch: (queueIndex) => {
+    simulation.removeQueuedResearch(queueIndex);
+    redraw();
+  },
+  onPromoteQueuedResearch: (queueIndex) => {
+    simulation.promoteQueuedResearch(queueIndex);
+    redraw();
+  },
   onAdvance: () => {
     simulation.advanceMonth();
     redraw();

@@ -63,20 +63,65 @@ test.describe("E-Grid 2045 web game visuals", () => {
     await page.screenshot({ path: testInfo.outputPath("construction-palette-open.png"), fullPage: true });
   });
 
-  test("construction palette keeps scroll after HUD rerender", async ({ page }, testInfo) => {
-    await openGame(page, 390, 844);
-    await page.getByRole("button", { name: "Construire" }).click();
-    const scrollState = await page.locator(".palette-body").evaluate((element) => {
-      element.scrollTop = element.scrollHeight;
-      return { before: element.scrollTop, max: element.scrollHeight - element.clientHeight };
-    });
-    expect(scrollState.before).toBeGreaterThan(0);
+  test("construction accordion keeps one category active without vertical scroll", async ({ page }, testInfo) => {
+    await openGame(page, 1600, 900);
+    await expect(page.locator(".build-category-tab.is-active")).toHaveCount(1);
 
+    await page.locator('[data-build-category="energy"]').click();
+    await expect(page.locator('[data-build-category="energy"]')).toHaveClass(/is-active/);
     await page.evaluate(() => window.__EGRID__?.hud.render());
-    const after = await page.locator(".palette-body").evaluate((element) => element.scrollTop);
-    expect(after).toBeGreaterThan(scrollState.max * 0.75);
-    await expect(page.locator(".build-card").last()).toBeVisible();
-    await page.screenshot({ path: testInfo.outputPath("phone-build-scroll-preserved.png"), fullPage: true });
+    await expect(page.locator('[data-build-category="energy"]')).toHaveClass(/is-active/);
+
+    const paletteMetrics = await page.locator(".palette-body-construction").evaluate((element) => ({
+      clientHeight: element.clientHeight,
+      scrollHeight: element.scrollHeight,
+      scrollWidth: element.scrollWidth,
+      clientWidth: element.clientWidth,
+      visibleCategories: document.querySelectorAll(".build-category-content .build-category").length
+    }));
+    expect(paletteMetrics.visibleCategories).toBe(1);
+    expect(paletteMetrics.scrollHeight).toBeLessThanOrEqual(paletteMetrics.clientHeight + 1);
+    expect(paletteMetrics.scrollWidth).toBeGreaterThan(paletteMetrics.clientWidth);
+    await page.screenshot({ path: testInfo.outputPath("construction-accordion-no-vertical-scroll.png"), fullPage: true });
+  });
+
+  test("bottom dock and right panel can be resized and reset", async ({ page }, testInfo) => {
+    await openGame(page, 1600, 900);
+
+    const dockBefore = await page.locator(".build-palette").boundingBox();
+    const dockHandle = await page.locator(".dock-resize-handle").boundingBox();
+    expect(dockBefore).toBeTruthy();
+    expect(dockHandle).toBeTruthy();
+    await page.mouse.move((dockHandle?.x ?? 0) + (dockHandle?.width ?? 0) / 2, (dockHandle?.y ?? 0) + 4);
+    await page.mouse.down();
+    await page.mouse.move((dockHandle?.x ?? 0) + (dockHandle?.width ?? 0) / 2, (dockHandle?.y ?? 0) - 82);
+    await page.mouse.up();
+
+    const dockAfter = await page.locator(".build-palette").boundingBox();
+    expect(dockAfter?.height ?? 0).toBeGreaterThan((dockBefore?.height ?? 0) + 50);
+    const storedDock = await page.evaluate(() => Number(localStorage.getItem("egrid:dock-height")));
+    expect(storedDock).toBeGreaterThan(320);
+
+    const panelBefore = await page.locator(".region-panel").boundingBox();
+    const panelHandle = await page.locator(".region-resize-handle").boundingBox();
+    expect(panelBefore).toBeTruthy();
+    expect(panelHandle).toBeTruthy();
+    await page.mouse.move((panelHandle?.x ?? 0) + 4, (panelHandle?.y ?? 0) + 40);
+    await page.mouse.down();
+    await page.mouse.move((panelHandle?.x ?? 0) - 84, (panelHandle?.y ?? 0) + 40);
+    await page.mouse.up();
+
+    const panelAfter = await page.locator(".region-panel").boundingBox();
+    expect(panelAfter?.width ?? 0).toBeGreaterThan((panelBefore?.width ?? 0) + 50);
+    const storedPanel = await page.evaluate(() => Number(localStorage.getItem("egrid:right-panel-width")));
+    expect(storedPanel).toBeGreaterThan(336);
+
+    await page.locator(".dock-resize-handle").dblclick();
+    await page.locator(".region-resize-handle").dblclick();
+    await expect(page.locator(".build-palette")).toHaveCSS("height", "320px");
+    const resetPanel = await page.locator(".region-panel").boundingBox();
+    expect(Math.round(resetPanel?.width ?? 0)).toBe(336);
+    await page.screenshot({ path: testInfo.outputPath("resized-panels-reset.png"), fullPage: true });
   });
 
   test("P0 completed buildings render as visual active cards", async ({ page }, testInfo) => {
@@ -183,26 +228,73 @@ test.describe("E-Grid 2045 web game visuals", () => {
       game.hud.render();
     });
     await page.locator('[data-palette-tab="construction"]').click();
+    await page.locator('[data-build-category="grid"]').click();
     const battery = page.locator(".build-card", { hasText: "Batterie" });
     await expect(battery).toBeVisible();
     await expect(battery).not.toBeDisabled();
     await page.screenshot({ path: testInfo.outputPath("research-unlocks-battery.png"), fullPage: true });
   });
 
-  test("research tab explains stalled research when technology output is zero", async ({ page }, testInfo) => {
+  test("research queue is visible and supports promote and remove", async ({ page }, testInfo) => {
     await openGame(page, 1600, 900);
+    await buildCompletedResearchCenter(page, "energy_research_center");
+
+    await page.locator('[data-palette-tab="research"]').click();
+    await page.locator('[data-research="batteries"]').click();
+    await expect(page.locator(".research-status")).toContainText("Batteries");
+
+    await page.locator('[data-research="offshore_wind"]').click();
+    await expect(page.locator('.research-queue-item[data-queued-research="offshore_wind"]')).toBeVisible();
+    await page.locator('[data-research="smart_grids"]').click();
+    await expect(page.locator(".research-queue-item")).toHaveCount(2);
+
+    await page.locator('.research-queue-item[data-queued-research="smart_grids"] [data-promote-research]').click();
+    await expect(page.locator(".research-queue-item").first()).toHaveAttribute("data-queued-research", "smart_grids");
+
+    await page.locator('.research-queue-item[data-queued-research="smart_grids"] [data-remove-research]').click();
+    await expect(page.locator('.research-queue-item[data-queued-research="smart_grids"]')).toHaveCount(0);
+    await expect(page.locator('.research-queue-item[data-queued-research="offshore_wind"]')).toBeVisible();
+    await page.screenshot({ path: testInfo.outputPath("research-queue-promote-remove.png"), fullPage: true });
+  });
+
+  test("research tab blocks research when the required building is missing", async ({ page }, testInfo) => {
+    await openGame(page, 1600, 900);
+    await page.locator('[data-palette-tab="research"]').click();
+    const batteries = page.locator('[data-research="batteries"]');
+    await expect(batteries).toBeDisabled();
+    await expect(batteries).toContainText("Centre recherche energie");
+    const result = await page.evaluate(() => window.__EGRID__?.simulation.startResearch("batteries"));
+    expect(result).toMatchObject({ ok: false, reason: "Requires an active Centre recherche energie." });
+    await page.screenshot({ path: testInfo.outputPath("research-blocked-no-building.png"), fullPage: true });
+  });
+
+  test("active research displays progress background and throughput details", async ({ page }, testInfo) => {
+    await openGame(page, 1600, 900);
+    await buildCompletedResearchCenter(page, "energy_research_center");
     await page.evaluate(() => {
       const game = window.__EGRID__;
       if (!game) {
         return;
       }
       game.simulation.startResearch("batteries");
+      for (let index = 0; index < 3; index += 1) {
+        game.simulation.advanceMonth();
+      }
       game.hud.render();
     });
+
     await page.locator('[data-palette-tab="research"]').click();
-    await expect(page.locator(".research-status")).toContainText("debit 0");
-    await expect(page.locator(".research-card", { hasText: "Batteries" })).toContainText("centres de recherche energie");
-    await page.screenshot({ path: testInfo.outputPath("research-stalled-zero-output.png"), fullPage: true });
+    const status = page.locator(".research-status.is-active");
+    await expect(status).toContainText("%");
+    await expect(status).toContainText("pts/mois");
+    await expect(status).toContainText("ETA");
+    const progressStyle = await status.evaluate((element) => ({
+      progress: getComputedStyle(element).getPropertyValue("--research-progress").trim(),
+      background: getComputedStyle(element).backgroundImage
+    }));
+    expect(parseFloat(progressStyle.progress)).toBeGreaterThan(0);
+    expect(progressStyle.background).toContain("linear-gradient");
+    await page.screenshot({ path: testInfo.outputPath("research-active-progress-background.png"), fullPage: true });
   });
 
   test("selected far region is focused inside the visible map safe area", async ({ page }, testInfo) => {
@@ -235,6 +327,24 @@ async function openGame(page: Page, width: number, height: number): Promise<void
   await page.waitForFunction(() => Boolean(window.__EGRID__));
   await page.locator("#game-canvas canvas").waitFor({ state: "visible" });
   await page.waitForTimeout(150);
+}
+
+async function buildCompletedResearchCenter(page: Page, buildingId: "energy_research_center" | "ai_research_center"): Promise<void> {
+  await page.evaluate((targetBuildingId) => {
+    const game = window.__EGRID__;
+    if (!game) {
+      return;
+    }
+    game.simulation.state.money = 10000;
+    game.simulation.requestBuilding("fr_nord", targetBuildingId);
+    for (let index = 0; index < 8; index += 1) {
+      game.simulation.advanceMonth();
+    }
+    game.simulation.selectRegion("fr_nord");
+    game.scene.focusRegion("fr_nord");
+    game.hud.render();
+    game.scene.renderState();
+  }, buildingId);
 }
 
 async function expectCanvasNonBlank(page: Page): Promise<void> {

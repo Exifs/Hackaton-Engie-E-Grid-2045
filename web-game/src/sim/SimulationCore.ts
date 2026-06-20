@@ -28,6 +28,9 @@ import type {
   TechnologyDefinition
 } from "./types";
 
+const ENERGY_RESEARCH_CENTER_ID = "energy_research_center";
+const AI_RESEARCH_CENTER_ID = "ai_research_center";
+
 export class SimulationCore {
   readonly state = new GameState();
 
@@ -172,18 +175,34 @@ export class SimulationCore {
     if (!technologyId || !technology) {
       return { ok: false, reason: "Unknown research." };
     }
-    if (this.state.completed_technologies[technologyId]) {
-      return { ok: false, reason: "Research already completed." };
+    const readiness = this.researchReadiness(technology);
+    if (!readiness.ok) {
+      return readiness;
     }
+
     if (this.state.active_research_id) {
-      return { ok: false, reason: "A research project is already active." };
+      this.state.research_queue.push(technologyId);
+      return { ok: true, reason: "Queued." };
     }
-    const missingPrereq = technology.prereq_technology_ids.find((prereq) => !this.state.completed_technologies[prereq]);
-    if (missingPrereq) {
-      return { ok: false, reason: `Locked: research ${missingPrereq} first.` };
+
+    this.beginResearch(technologyId);
+    return { ok: true, reason: "" };
+  }
+
+  removeQueuedResearch(queueIndex: number): ResearchStartResult {
+    if (!Number.isInteger(queueIndex) || queueIndex < 0 || queueIndex >= this.state.research_queue.length) {
+      return { ok: false, reason: "Unknown queued research." };
     }
-    this.state.active_research_id = technologyId;
-    this.state.active_research_points = 0;
+    this.state.research_queue.splice(queueIndex, 1);
+    return { ok: true, reason: "" };
+  }
+
+  promoteQueuedResearch(queueIndex: number): ResearchStartResult {
+    if (!Number.isInteger(queueIndex) || queueIndex <= 0 || queueIndex >= this.state.research_queue.length) {
+      return { ok: false, reason: "Queued research cannot move higher." };
+    }
+    const [technologyId] = this.state.research_queue.splice(queueIndex, 1);
+    this.state.research_queue.splice(queueIndex - 1, 0, technologyId);
     return { ok: true, reason: "" };
   }
 
@@ -247,29 +266,36 @@ export class SimulationCore {
   }
 
   getResearchOptions(): ResearchOption[] {
-    const monthlyPoints = this.currentTechnologyPointRate();
     return Object.values(this.technologies)
       .map((technology) => {
         const missingPrereq = technology.prereq_technology_ids.find((prereq) => !this.state.completed_technologies[prereq]);
         const isCompleted = Boolean(this.state.completed_technologies[technology.id]);
         const isActive = this.state.active_research_id === technology.id;
-        const progress = isActive ? clamp(this.state.active_research_points / Math.max(technology.cost, 1), 0, 1) : isCompleted ? 1 : 0;
-        const remainingPoints = Math.max(technology.cost - (isActive ? this.state.active_research_points : 0), 0);
+        const queueIndex = this.state.research_queue.indexOf(technology.id);
+        const isQueued = queueIndex >= 0;
+        const currentPoints = isActive ? this.state.active_research_points : isCompleted ? technology.cost : 0;
+        const monthlyPoints = this.currentTechnologyPointRate(technology.id);
+        const progress = isActive ? clamp(currentPoints / Math.max(technology.cost, 1), 0, 1) : isCompleted ? 1 : 0;
+        const remainingPoints = Math.max(technology.cost - currentPoints, 0);
         const estimatedMonths = monthlyPoints > 0 ? Math.ceil(remainingPoints / monthlyPoints) : Number.POSITIVE_INFINITY;
         let status: ResearchOption["status"] = "available";
-        let reason = "";
+        let reason = this.state.active_research_id ? "Ajouter a la file de recherche." : "Pret a lancer.";
+        const buildingRequirement = this.researchBuildingRequirement(technology);
         if (isCompleted) {
           status = "completed";
           reason = "Completed.";
         } else if (isActive) {
           status = "active";
-          reason = monthlyPoints > 0 ? "Research in progress." : "Construis des centres de recherche energie pour produire des points de technologie.";
+          reason = monthlyPoints > 0 ? "Research in progress." : `Debit 0: ${buildingRequirement.reason || "research output unavailable."}`;
+        } else if (isQueued) {
+          status = "queued";
+          reason = `File #${queueIndex + 1}.`;
         } else if (missingPrereq) {
           status = "locked";
           reason = `Requires ${this.technologies[missingPrereq]?.display_name ?? missingPrereq}.`;
-        } else if (this.state.active_research_id) {
+        } else if (!buildingRequirement.ok) {
           status = "locked";
-          reason = "Another research project is already active.";
+          reason = buildingRequirement.reason;
         }
 
         return {
@@ -287,7 +313,10 @@ export class SimulationCore {
           effect_value_pct: technology.effect_value_pct,
           notes: technology.notes,
           status,
-          reason
+          reason,
+          current_points: currentPoints,
+          monthly_points: monthlyPoints,
+          queue_position: isQueued ? queueIndex + 1 : 0
         };
       })
       .sort((a, b) => (a.tier === b.tier ? a.cost - b.cost : a.tier - b.tier));
@@ -312,6 +341,8 @@ export class SimulationCore {
       compute_demand: 0,
       co2_monthly: 0,
       technology_points: 0,
+      energy_technology_points: 0,
+      ai_technology_points: 0,
       ai_research_centers: 0,
       blackout_regions: 0,
       severe_blackout_regions: 0,
@@ -327,7 +358,9 @@ export class SimulationCore {
       const researcherEfficiency = regionMetrics.researcher_efficiency;
       const finalEfficiency = Math.min(energyEfficiency, coolingEfficiency, researcherEfficiency);
       const computeProduced = regionMetrics.compute_potential * finalEfficiency;
-      const technologyPoints = regionMetrics.technology_points * finalEfficiency;
+      const energyTechnologyPoints = regionMetrics.energy_technology_points * finalEfficiency;
+      const aiTechnologyPoints = regionMetrics.ai_technology_points * finalEfficiency;
+      const technologyPoints = energyTechnologyPoints + aiTechnologyPoints;
 
       const cached: RegionCachedMetrics = {
         energy_production: regionMetrics.energy_production,
@@ -351,6 +384,8 @@ export class SimulationCore {
         network_congested: network.network_congested,
         co2_monthly: regionMetrics.co2_monthly,
         technology_points: technologyPoints,
+        energy_technology_points: energyTechnologyPoints,
+        ai_technology_points: aiTechnologyPoints,
         problems: this.regionProblems(network, cooling, finalEfficiency)
       };
       region.cached = cached;
@@ -363,6 +398,8 @@ export class SimulationCore {
       totals.compute_demand += cached.compute_demand ?? 0;
       totals.co2_monthly += cached.co2_monthly ?? 0;
       totals.technology_points += technologyPoints;
+      totals.energy_technology_points += energyTechnologyPoints;
+      totals.ai_technology_points += aiTechnologyPoints;
       totals.ai_research_centers += regionMetrics.ai_research_centers;
       totals.network_efficiency_sum += energyEfficiency;
       if (cached.blackout_state !== "stable") {
@@ -388,7 +425,7 @@ export class SimulationCore {
     if (applyMonthlyChanges) {
       this.state.cumulative_co2 += totals.co2_monthly;
       this.state.co2_tier = this.co2TierForValue(this.state.cumulative_co2);
-      this.advanceResearch(totals.technology_points);
+      this.advanceResearch(this.currentTechnologyPointRate(this.state.active_research_id));
     }
 
     const networkStability =
@@ -469,6 +506,8 @@ export class SimulationCore {
       researcher_efficiency: 1,
       co2_monthly: region.starting_co2_pressure_per_month,
       technology_points: 0,
+      energy_technology_points: 0,
+      ai_technology_points: 0,
       ai_research_centers: 0
     };
   }
@@ -492,11 +531,13 @@ export class SimulationCore {
     metrics.compute_demand += definition.consumes_compute;
     metrics.co2_monthly += definition.co2_monthly * outputScale;
 
-    if (definition.id === "ai_research_center") {
+    if (definition.id === AI_RESEARCH_CENTER_ID) {
       metrics.ai_research_centers += 1;
-    } else if (definition.id === "energy_research_center") {
-      metrics.technology_points += 18 * outputScale;
+      metrics.ai_technology_points += 18 * outputScale;
+    } else if (definition.id === ENERGY_RESEARCH_CENTER_ID) {
+      metrics.energy_technology_points += 18 * outputScale;
     }
+    metrics.technology_points = metrics.energy_technology_points + metrics.ai_technology_points;
   }
 
   private researchersFromBuilding(definition: BuildingDefinition, region: RegionRuntime): number {
@@ -539,20 +580,102 @@ export class SimulationCore {
   }
 
   private advanceResearch(technologyPoints: number): void {
-    if (technologyPoints <= 0.01) {
+    if (!this.state.active_research_id) {
+      this.autoStartNextResearch();
       return;
     }
-    if (!this.state.active_research_id) {
+    if (technologyPoints <= 0.01) {
       return;
     }
 
     const technology = this.technologies[this.state.active_research_id];
+    if (!technology) {
+      this.state.active_research_id = "";
+      this.state.active_research_points = 0;
+      this.autoStartNextResearch();
+      return;
+    }
     this.state.active_research_points += technologyPoints;
-    if (technology && this.state.active_research_points >= technology.cost) {
+    if (this.state.active_research_points >= technology.cost) {
       this.state.completed_technologies[technology.id] = true;
       this.state.active_research_id = "";
       this.state.active_research_points = 0;
+      this.autoStartNextResearch();
     }
+  }
+
+  private beginResearch(technologyId: string): void {
+    this.state.active_research_id = technologyId;
+    this.state.active_research_points = 0;
+  }
+
+  private autoStartNextResearch(): void {
+    if (this.state.active_research_id) {
+      return;
+    }
+
+    for (let index = 0; index < this.state.research_queue.length; index += 1) {
+      const technologyId = this.state.research_queue[index];
+      const technology = this.technologies[technologyId];
+      if (!technology || this.state.completed_technologies[technologyId]) {
+        this.state.research_queue.splice(index, 1);
+        index -= 1;
+        continue;
+      }
+      const readiness = this.researchReadiness(technology, { ignoreQueued: true });
+      if (!readiness.ok) {
+        continue;
+      }
+      this.state.research_queue.splice(index, 1);
+      this.beginResearch(technologyId);
+      return;
+    }
+  }
+
+  private researchReadiness(
+    technology: TechnologyDefinition,
+    options: { ignoreQueued?: boolean } = {}
+  ): ResearchStartResult {
+    if (this.state.completed_technologies[technology.id]) {
+      return { ok: false, reason: "Research already completed." };
+    }
+    if (this.state.active_research_id === technology.id) {
+      return { ok: false, reason: "Research already active." };
+    }
+    if (!options.ignoreQueued && this.state.research_queue.includes(technology.id)) {
+      return { ok: false, reason: "Research already queued." };
+    }
+    const missingPrereq = technology.prereq_technology_ids.find((prereq) => !this.state.completed_technologies[prereq]);
+    if (missingPrereq) {
+      return { ok: false, reason: `Requires ${this.technologies[missingPrereq]?.display_name ?? missingPrereq}.` };
+    }
+    const buildingRequirement = this.researchBuildingRequirement(technology);
+    if (!buildingRequirement.ok) {
+      return buildingRequirement;
+    }
+    return { ok: true, reason: "" };
+  }
+
+  private researchBuildingRequirement(technology: TechnologyDefinition): ResearchStartResult {
+    const branch = technology.branch.toLowerCase();
+    if (branch === "ai") {
+      return this.hasActiveBuilding(AI_RESEARCH_CENTER_ID)
+        ? { ok: true, reason: "" }
+        : { ok: false, reason: "Requires an active Centre recherche IA." };
+    }
+    if (branch === "energy" || branch === "infrastructure") {
+      return this.hasActiveBuilding(ENERGY_RESEARCH_CENTER_ID)
+        ? { ok: true, reason: "" }
+        : { ok: false, reason: "Requires an active Centre recherche energie." };
+    }
+    if (this.hasActiveBuilding(ENERGY_RESEARCH_CENTER_ID) || this.hasActiveBuilding(AI_RESEARCH_CENTER_ID)) {
+      return { ok: true, reason: "" };
+    }
+    return { ok: false, reason: "Requires an active Centre recherche energie or Centre recherche IA." };
+  }
+
+  private hasActiveBuilding(buildingId: string): boolean {
+    return Object.values(this.regions).some((region) => region.buildings.includes(buildingId));
   }
 
   private generateAlerts(): Alert[] {
@@ -685,7 +808,18 @@ export class SimulationCore {
     return Boolean(this.state.completed_technologies.supergrid || this.state.completed_technologies.supergrid_european);
   }
 
-  private currentTechnologyPointRate(): number {
-    return Object.values(this.regions).reduce((total, region) => total + (region.cached.technology_points ?? 0), 0);
+  private currentTechnologyPointRate(technologyId = ""): number {
+    const branch = technologyId ? this.technologies[technologyId]?.branch.toLowerCase() ?? "" : "";
+    return Object.values(this.regions).reduce((total, region) => {
+      const energyPoints = region.cached.energy_technology_points ?? 0;
+      const aiPoints = region.cached.ai_technology_points ?? 0;
+      if (branch === "ai") {
+        return total + aiPoints;
+      }
+      if (branch === "energy" || branch === "infrastructure") {
+        return total + energyPoints;
+      }
+      return total + energyPoints + aiPoints;
+    }, 0);
   }
 }

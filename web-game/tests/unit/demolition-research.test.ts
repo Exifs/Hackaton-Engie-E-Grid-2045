@@ -46,20 +46,27 @@ describe("Demolition and manual research", () => {
 
     const start = core.startResearch("batteries");
     expect(start).toEqual({ ok: true, reason: "" });
-    expect(core.startResearch("offshore_wind").ok).toBe(false);
+    expect(core.startResearch("offshore_wind")).toEqual({ ok: true, reason: "Queued." });
+    expect(core.getSummary().research_queue).toEqual(["offshore_wind"]);
 
-    for (let index = 0; index < 20; index += 1) {
+    for (let index = 0; index < 20 && !core.getSummary().completed_technologies.batteries; index += 1) {
       core.advanceMonth();
     }
 
     expect(core.getSummary().completed_technologies.batteries).toBe(true);
+    expect(core.getSummary().active_research_id).toBe("offshore_wind");
     expect(core.getBuildAvailability("fr_nord").battery_storage.ok).toBe(true);
   });
 
   it("keeps research active but stalled when no technology points are produced", async () => {
     const core = await createCore("stalled-research");
 
+    expect(core.requestBuilding("fr_nord", "energy_research_center").ok).toBe(true);
+    for (let index = 0; index < 8; index += 1) {
+      core.advanceMonth();
+    }
     expect(core.startResearch("batteries").ok).toBe(true);
+    expect(core.requestDemolition("fr_nord", 0).ok).toBe(true);
     core.advanceMonth();
 
     const active = core.getResearchOptions().find((option) => option.id === "batteries");

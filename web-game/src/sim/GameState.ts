@@ -27,6 +27,7 @@ export class GameState {
   selected_region_id = "";
   active_research_id = "";
   active_research_points = 0;
+  research_queue: string[] = [];
   completed_technologies: Record<string, true> = {};
   alerts: Alert[] = [];
   network_flows: NetworkFlow[] = [];
@@ -57,6 +58,7 @@ export class GameState {
     this.selected_region_id = "";
     this.active_research_id = "";
     this.active_research_points = 0;
+    this.research_queue = [];
     this.completed_technologies = {};
     this.alerts = [];
     this.network_flows = [];
@@ -103,6 +105,7 @@ export class GameState {
       selected_region_id: this.selected_region_id,
       active_research_id: this.active_research_id,
       active_research_points: this.active_research_points,
+      research_queue: [...this.research_queue],
       completed_technologies: { ...this.completed_technologies },
       alerts: this.alerts.map((alert) => ({ ...alert })),
       network_flows: this.network_flows.map((flow) => ({ ...flow })),

@@ -6,6 +6,8 @@ interface HudCallbacks {
   onCancel: (queueIndex: number) => void;
   onDemolish: (buildingIndex: number) => void;
   onStartResearch: (technologyId: string) => void;
+  onRemoveQueuedResearch: (queueIndex: number) => void;
+  onPromoteQueuedResearch: (queueIndex: number) => void;
   onAdvance: () => void;
   onSpeed: (speed: number) => void;
   onSelectRegion: (regionId: string) => void;
@@ -22,6 +24,18 @@ const CATEGORY_LABELS: Record<string, string> = {
   grid: "Reseau"
 };
 
+const PANEL_STORAGE_KEYS = {
+  dockHeight: "egrid:dock-height",
+  rightPanelWidth: "egrid:right-panel-width"
+};
+const DEFAULT_DOCK_HEIGHT = 320;
+const DEFAULT_RIGHT_PANEL_WIDTH = 336;
+const DOCK_COLLAPSED_HEIGHT = 56;
+const MIN_DOCK_HEIGHT = 190;
+const MIN_RIGHT_PANEL_WIDTH = 280;
+
+type ResizeTarget = "dock" | "region";
+
 export class GameHud {
   private readonly root: HTMLElement;
   private readonly simulation: SimulationCore;
@@ -29,7 +43,22 @@ export class GameHud {
   private heatmapMode: HeatmapMode = "energy";
   private paletteOpen = !window.matchMedia("(max-width: 720px)").matches;
   private activeDockTab: "construction" | "research" = "construction";
-  private readonly paletteScrollTop: Record<string, number> = { construction: 0, research: 0 };
+  private activeBuildCategory = CATEGORY_ORDER[0];
+  private readonly paletteScroll: Record<string, { top: number; left: number }> = {
+    construction: { top: 0, left: 0 },
+    research: { top: 0, left: 0 }
+  };
+  private dockHeight = DEFAULT_DOCK_HEIGHT;
+  private rightPanelWidth = DEFAULT_RIGHT_PANEL_WIDTH;
+  private resizeDrag:
+    | {
+        target: ResizeTarget;
+        startX: number;
+        startY: number;
+        startDockHeight: number;
+        startRightPanelWidth: number;
+      }
+    | null = null;
   private readonly dismissedAlerts = new Set<string>();
   private readonly alertFirstSeen = new Map<string, number>();
   private readonly alertTimers = new Map<string, number>();
@@ -38,7 +67,14 @@ export class GameHud {
     this.root = root;
     this.simulation = simulation;
     this.callbacks = callbacks;
+    this.dockHeight = this.clampDockHeight(this.loadStoredNumber(PANEL_STORAGE_KEYS.dockHeight, DEFAULT_DOCK_HEIGHT));
+    this.rightPanelWidth = this.clampRightPanelWidth(
+      this.loadStoredNumber(PANEL_STORAGE_KEYS.rightPanelWidth, DEFAULT_RIGHT_PANEL_WIDTH)
+    );
     this.root.addEventListener("click", (event) => this.handleClick(event));
+    this.root.addEventListener("pointerdown", (event) => this.handlePointerDown(event));
+    this.root.addEventListener("dblclick", (event) => this.handleDoubleClick(event));
+    window.addEventListener("resize", () => this.handleViewportResize());
   }
 
   render(): void {
@@ -49,6 +85,8 @@ export class GameHud {
     const availability = this.simulation.getBuildAvailability();
     const researchOptions = this.simulation.getResearchOptions();
     const alerts = this.visibleAlerts(summary.alerts);
+    this.ensureActiveBuildCategory(buildings);
+    this.applyPanelSizing();
 
     this.root.innerHTML = `
       <section class="top-kpi" aria-label="Indicateurs">
@@ -84,10 +122,12 @@ export class GameHud {
       </section>
 
       <section class="region-panel" aria-label="Region selectionnee">
+        <div class="region-resize-handle" data-resize-panel="region" title="Redimensionner le panel droit"></div>
         ${selectedRegion ? this.regionPanel(selectedRegion, buildings) : `<div class="panel-title">Selection region</div>`}
       </section>
 
       <section class="build-palette ${this.paletteOpen ? "is-open" : ""}" aria-label="Construction">
+        <div class="dock-resize-handle" data-resize-panel="dock" title="Redimensionner le dock bas"></div>
         <div class="palette-header">
           <button class="palette-toggle" type="button" data-action="toggle-palette">
             <span>${this.paletteOpen ? "Fermer" : "Construire"}</span>
@@ -99,7 +139,7 @@ export class GameHud {
         </div>
         <div class="palette-body palette-body-${this.activeDockTab}" data-scroll-key="${this.activeDockTab}">
           ${this.activeDockTab === "construction"
-            ? CATEGORY_ORDER.map((category) => this.categoryBlock(category, buildings, availability)).join("")
+            ? this.constructionPanel(buildings, availability)
             : this.researchPanel(researchOptions, buildings)}
         </div>
       </section>
@@ -301,6 +341,48 @@ export class GameHud {
       .map((chip) => `<span class="metric-chip metric-${chip.tone}">${escapeHtml(chip.label)}</span>`)
       .join("");
   }
+
+  private constructionPanel(
+    buildings: Record<string, BuildingDefinition>,
+    availability: Record<string, BuildAvailability>
+  ): string {
+    const categories = CATEGORY_ORDER.filter((category) =>
+      Object.values(buildings).some((building) => building.category === category)
+    );
+    this.ensureActiveBuildCategory(buildings);
+    return `
+      <div class="build-accordion">
+        <div class="build-category-tabs" role="tablist" aria-label="Categories batiments">
+          ${categories.map((category) => this.buildCategoryTab(category, buildings)).join("")}
+        </div>
+        <div class="build-category-content">
+          ${this.categoryBlock(this.activeBuildCategory, buildings, availability)}
+        </div>
+      </div>
+    `;
+  }
+
+  private buildCategoryTab(category: string, buildings: Record<string, BuildingDefinition>): string {
+    const active = this.activeBuildCategory === category;
+    const count = Object.values(buildings).filter((building) => building.category === category).length;
+    return `
+      <button class="build-category-tab ${active ? "is-active" : ""}" type="button" data-build-category="${category}" role="tab" aria-selected="${active}">
+        <span>${CATEGORY_LABELS[category] ?? category}</span>
+        <strong>${count}</strong>
+      </button>
+    `;
+  }
+
+  private ensureActiveBuildCategory(buildings: Record<string, BuildingDefinition>): void {
+    const hasActive = Object.values(buildings).some((building) => building.category === this.activeBuildCategory);
+    if (hasActive) {
+      return;
+    }
+    this.activeBuildCategory =
+      CATEGORY_ORDER.find((category) => Object.values(buildings).some((building) => building.category === category)) ??
+      CATEGORY_ORDER[0];
+  }
+
   private categoryBlock(
 
     category: string,
@@ -359,16 +441,49 @@ export class GameHud {
 
   private researchPanel(options: ResearchOption[], buildings: Record<string, BuildingDefinition>): string {
     const active = options.find((option) => option.status === "active");
-    const activeSummary = active
-      ? `<div class="research-status"><strong>${escapeHtml(active.display_name)}</strong><span>${fmt(active.progress * 100)}% · ${this.researchEta(active)}</span></div>`
-      : `<div class="research-status"><strong>Aucune recherche active</strong><span>Choisis un palier a lancer</span></div>`;
+    const queued = options
+      .filter((option) => option.status === "queued")
+      .sort((a, b) => a.queue_position - b.queue_position);
+    const activeProgress = active ? clampPct(active.progress * 100) : 0;
+    const statusMarkup = active
+      ? `
+        <div class="research-status is-active" style="--research-progress:${activeProgress}%">
+          <div>
+            <strong>${escapeHtml(active.display_name)}</strong>
+            <span>${fmt(activeProgress)}% - ${fmt(active.current_points)}/${fmt(active.cost)} pts - ETA ${this.researchEta(active)} - +${fmt(active.monthly_points)} pts/mois</span>
+          </div>
+        </div>
+      `
+      : `<div class="research-status" style="--research-progress:0%"><div><strong>Aucune recherche active</strong><span>Choisis un palier a lancer</span></div></div>`;
     return `
       <div class="research-panel">
-        ${activeSummary}
+        ${statusMarkup}
+        <div class="research-queue" aria-label="File de recherche">
+          <div class="research-queue-title"><span>File</span><strong>${queued.length}</strong></div>
+          ${queued.length === 0
+            ? `<span class="research-queue-empty">Aucune recherche en attente</span>`
+            : queued.map((option) => this.researchQueueItem(option)).join("")}
+        </div>
         <div class="research-grid">
           ${options.map((option) => this.researchCard(option, buildings)).join("")}
         </div>
       </div>
+    `;
+  }
+
+  private researchQueueItem(option: ResearchOption): string {
+    const index = option.queue_position - 1;
+    return `
+      <article class="research-queue-item" data-queued-research="${escapeHtml(option.id)}">
+        <span>
+          <strong>${escapeHtml(option.display_name)}</strong>
+          <small>#${option.queue_position} - ETA ${this.researchEta(option)} - +${fmt(option.monthly_points)} pts/mois</small>
+        </span>
+        <span class="research-queue-actions">
+          <button type="button" data-promote-research="${index}" ${index <= 0 ? "disabled" : ""} title="Remonter ${escapeHtml(option.display_name)}">Monter</button>
+          <button type="button" data-remove-research="${index}" title="Retirer ${escapeHtml(option.display_name)}">Retirer</button>
+        </span>
+      </article>
     `;
   }
 
@@ -438,9 +553,29 @@ export class GameHud {
       return;
     }
 
+    const buildCategory = button.dataset.buildCategory;
+    if (buildCategory) {
+      this.activeBuildCategory = buildCategory;
+      this.capturePaletteScroll();
+      this.render();
+      return;
+    }
+
     const buildId = button.dataset.build;
     if (buildId) {
       this.callbacks.onBuild(buildId);
+      return;
+    }
+
+    const promoteResearch = button.dataset.promoteResearch;
+    if (promoteResearch !== undefined) {
+      this.callbacks.onPromoteQueuedResearch(Number(promoteResearch));
+      return;
+    }
+
+    const removeResearch = button.dataset.removeResearch;
+    if (removeResearch !== undefined) {
+      this.callbacks.onRemoveQueuedResearch(Number(removeResearch));
       return;
     }
 
@@ -497,7 +632,7 @@ export class GameHud {
       return;
     }
     const key = scroller.dataset.scrollKey ?? this.activeDockTab;
-    this.paletteScrollTop[key] = scroller.scrollTop;
+    this.paletteScroll[key] = { top: scroller.scrollTop, left: scroller.scrollLeft };
   }
 
   private restorePaletteScroll(): void {
@@ -506,7 +641,98 @@ export class GameHud {
       return;
     }
     const key = scroller.dataset.scrollKey ?? this.activeDockTab;
-    scroller.scrollTop = this.paletteScrollTop[key] ?? 0;
+    const scroll = this.paletteScroll[key] ?? { top: 0, left: 0 };
+    scroller.scrollTop = scroll.top;
+    scroller.scrollLeft = scroll.left;
+  }
+
+  private handlePointerDown(event: PointerEvent): void {
+    const target = event.target as HTMLElement;
+    const handle = target.closest<HTMLElement>("[data-resize-panel]");
+    const resizeTarget = handle?.dataset.resizePanel as ResizeTarget | undefined;
+    if (!handle || (resizeTarget !== "dock" && resizeTarget !== "region")) {
+      return;
+    }
+    event.preventDefault();
+    this.resizeDrag = {
+      target: resizeTarget,
+      startX: event.clientX,
+      startY: event.clientY,
+      startDockHeight: this.dockHeight,
+      startRightPanelWidth: this.rightPanelWidth
+    };
+    document.addEventListener("pointermove", this.handleResizeMove);
+    document.addEventListener("pointerup", this.handleResizeEnd, { once: true });
+  }
+
+  private handleDoubleClick(event: MouseEvent): void {
+    const target = event.target as HTMLElement;
+    const handle = target.closest<HTMLElement>("[data-resize-panel]");
+    const resizeTarget = handle?.dataset.resizePanel as ResizeTarget | undefined;
+    if (resizeTarget === "dock") {
+      this.dockHeight = this.clampDockHeight(DEFAULT_DOCK_HEIGHT);
+      this.storeNumber(PANEL_STORAGE_KEYS.dockHeight, this.dockHeight);
+      this.render();
+    } else if (resizeTarget === "region") {
+      this.rightPanelWidth = this.clampRightPanelWidth(DEFAULT_RIGHT_PANEL_WIDTH);
+      this.storeNumber(PANEL_STORAGE_KEYS.rightPanelWidth, this.rightPanelWidth);
+      this.render();
+    }
+  }
+
+  private readonly handleResizeMove = (event: PointerEvent): void => {
+    if (!this.resizeDrag) {
+      return;
+    }
+    if (this.resizeDrag.target === "dock") {
+      this.dockHeight = this.clampDockHeight(this.resizeDrag.startDockHeight + this.resizeDrag.startY - event.clientY);
+    } else {
+      this.rightPanelWidth = this.clampRightPanelWidth(
+        this.resizeDrag.startRightPanelWidth + this.resizeDrag.startX - event.clientX
+      );
+    }
+    this.applyPanelSizing();
+  };
+
+  private readonly handleResizeEnd = (): void => {
+    if (!this.resizeDrag) {
+      return;
+    }
+    this.storeNumber(PANEL_STORAGE_KEYS.dockHeight, this.dockHeight);
+    this.storeNumber(PANEL_STORAGE_KEYS.rightPanelWidth, this.rightPanelWidth);
+    this.resizeDrag = null;
+    document.removeEventListener("pointermove", this.handleResizeMove);
+  };
+
+  private handleViewportResize(): void {
+    this.dockHeight = this.clampDockHeight(this.dockHeight);
+    this.rightPanelWidth = this.clampRightPanelWidth(this.rightPanelWidth);
+    this.applyPanelSizing();
+  }
+
+  private applyPanelSizing(): void {
+    this.root.style.setProperty("--dock-height", `${this.dockHeight}px`);
+    this.root.style.setProperty("--dock-current-height", `${this.paletteOpen ? this.dockHeight : DOCK_COLLAPSED_HEIGHT}px`);
+    this.root.style.setProperty("--right-panel-width", `${this.rightPanelWidth}px`);
+  }
+
+  private clampDockHeight(value: number): number {
+    const max = Math.max(MIN_DOCK_HEIGHT, Math.min(560, window.innerHeight - 120));
+    return Math.round(Math.max(MIN_DOCK_HEIGHT, Math.min(max, value)));
+  }
+
+  private clampRightPanelWidth(value: number): number {
+    const max = Math.max(MIN_RIGHT_PANEL_WIDTH, Math.min(520, window.innerWidth - 48));
+    return Math.round(Math.max(MIN_RIGHT_PANEL_WIDTH, Math.min(max, value)));
+  }
+
+  private loadStoredNumber(key: string, fallback: number): number {
+    const value = Number(window.localStorage.getItem(key));
+    return Number.isFinite(value) && value > 0 ? value : fallback;
+  }
+
+  private storeNumber(key: string, value: number): void {
+    window.localStorage.setItem(key, String(Math.round(value)));
   }
 
   private visibleAlerts(alerts: Alert[]): Alert[] {
