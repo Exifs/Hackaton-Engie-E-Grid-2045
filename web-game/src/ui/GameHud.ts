@@ -132,15 +132,8 @@ export class GameHud {
         ${this.kpi("Froid", `${fmt(summary.cooling_available)} / ${fmt(summary.cooling_used)}`, "kpi.cooling")}
         ${this.kpi("Compute", `${fmt(summary.compute_produced)}`, "kpi.compute")}
         ${this.kpi("CO2", summary.co2_tier, "kpi.co2")}
-        <div class="time-controls" aria-label="Vitesse">
-          <span class="time-controls-label">Simulation speed</span>
-          ${this.speedButton(0, summary.simulation_speed === 0)}
-          ${this.speedButton(1, summary.simulation_speed === 1)}
-          ${this.speedButton(2, summary.simulation_speed === 2)}
-          ${this.speedButton(4, summary.simulation_speed === 4)}
-          <button class="icon-command" type="button" data-action="advance" title="Mois suivant">+1</button>
-          <button class="icon-command tutorial-replay-button" type="button" data-action="replay-onboarding" data-onboarding-target="onboarding.replay" title="Rejouer le tutoriel">?</button>
-        </div>
+        ${this.timeControls(summary)}
+        ${this.topMenuCommand()}
       </section>
 
       <section class="heatmap-switch" aria-label="Heatmaps" data-onboarding-target="overlay.switch">
@@ -328,6 +321,44 @@ export class GameHud {
       const active = index < activeTicks ? " is-active" : "";
       return `<i class="${active}" style="--tick-angle:${fmt((360 / tickCount) * index, 2)}deg"></i>`;
     }).join("");
+  }
+
+  private timeControls(summary: ReturnType<SimulationCore["getSummary"]>): string {
+    if (this.isConceptScenario()) {
+      return `
+        <div class="time-controls time-controls-concept" aria-label="Simulation speed" ${this.tooltipAttrs("Simulation speed", "Controle la cadence de la simulation tout en conservant un affichage proche du panneau de commande concept.", "Pause, lecture, avance rapide")}>
+          <span class="time-controls-label">Simulation speed</span>
+          ${this.conceptSpeedButton(0, summary.simulation_speed === 0, "||", "Pause")}
+          ${this.conceptSpeedButton(1, summary.simulation_speed === 1, "&#9654;", "Lecture")}
+          ${this.conceptSpeedButton(2, summary.simulation_speed === 2, "&#9654;&#9654;", "Avance rapide")}
+          ${this.conceptSpeedButton(4, summary.simulation_speed === 4, "&#9654;&#9654;&#9654;", "Avance maximale")}
+          <button class="speed-readout" type="button" data-speed="1" title="Vitesse normale">1.0x</button>
+        </div>
+      `;
+    }
+    return `
+      <div class="time-controls" aria-label="Vitesse">
+        <span class="time-controls-label">Simulation speed</span>
+        ${this.speedButton(0, summary.simulation_speed === 0)}
+        ${this.speedButton(1, summary.simulation_speed === 1)}
+        ${this.speedButton(2, summary.simulation_speed === 2)}
+        ${this.speedButton(4, summary.simulation_speed === 4)}
+        <button class="icon-command" type="button" data-action="advance" title="Mois suivant">+1</button>
+        <button class="icon-command tutorial-replay-button" type="button" data-action="replay-onboarding" data-onboarding-target="onboarding.replay" title="Rejouer le tutoriel">?</button>
+      </div>
+    `;
+  }
+
+  private conceptSpeedButton(speed: number, active: boolean, label: string, title: string): string {
+    return `<button class="speed-button ${active ? "is-active" : ""}" type="button" data-speed="${speed}" title="${escapeHtml(title)}">${label}</button>`;
+  }
+
+  private topMenuCommand(): string {
+    return `
+      <button class="top-menu-command" type="button" data-action="replay-onboarding" data-onboarding-target="onboarding.replay" ${this.tooltipAttrs("Command menu", "Ouvre les aides et commandes systeme disponibles pendant la simulation.", "Menu")}>
+        <span></span><span></span><span></span>
+      </button>
+    `;
   }
 
   private speedButton(speed: number, active: boolean): string {

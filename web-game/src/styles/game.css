@@ -143,6 +143,7 @@ html[data-egrid-scene-ready="0"] #game-canvas canvas {
 }
 
 .top-brand,
+.top-menu-command,
 .time-controls-label {
   display: none;
 }
@@ -216,6 +217,7 @@ html[data-egrid-scene-ready="0"] #game-canvas canvas {
 }
 
 .speed-button,
+.speed-readout,
 .icon-command,
 .heatmap-button {
   min-width: 38px;
@@ -2379,6 +2381,10 @@ html[data-egrid-scene-ready="0"] #game-canvas canvas {
     gap: 8px;
   }
 
+  html[data-concept-scenario="1"] .top-kpi {
+    grid-template-columns: 304px minmax(430px, 1fr) minmax(150px, 0.32fr) minmax(178px, 0.36fr) minmax(314px, 0.42fr) 88px;
+  }
+
   .top-kpi::before {
     content: none;
   }
@@ -2660,6 +2666,10 @@ html[data-egrid-scene-ready="0"] #game-canvas canvas {
     padding: 9px 10px 8px;
   }
 
+  .time-controls-concept {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) minmax(68px, 1.5fr);
+  }
+
   .time-controls-label {
     display: block;
     grid-column: 1 / -1;
@@ -2675,7 +2685,8 @@ html[data-egrid-scene-ready="0"] #game-canvas canvas {
   }
 
   .time-controls .speed-button,
-  .time-controls .icon-command {
+  .time-controls .icon-command,
+  .time-controls .speed-readout {
     min-width: 0;
     min-height: 0;
     padding: 0 8px;
@@ -2683,7 +2694,60 @@ html[data-egrid-scene-ready="0"] #game-canvas canvas {
     font-weight: 800;
   }
 
+  .time-controls-concept .speed-button {
+    font-size: 11px;
+    letter-spacing: 0;
+  }
+
+  .time-controls-concept .speed-button.is-active {
+    border-color: rgba(83, 231, 255, 0.92);
+    background:
+      linear-gradient(180deg, rgba(28, 159, 181, 0.7), rgba(9, 66, 78, 0.86));
+    color: #ffffff;
+    box-shadow:
+      0 0 16px rgba(83, 231, 255, 0.22),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+  }
+
+  .speed-readout {
+    color: #eaf8ff;
+    font-variant-numeric: tabular-nums;
+  }
+
+  html[data-concept-scenario="1"] .top-menu-command {
+    position: relative;
+    display: grid;
+    place-items: center;
+    min-height: 68px;
+    border: 1px solid rgba(137, 234, 255, 0.22);
+    border-radius: 5px;
+    background:
+      linear-gradient(145deg, rgba(137, 234, 255, 0.09), transparent 45%),
+      linear-gradient(180deg, rgba(10, 26, 35, 0.9), rgba(3, 10, 15, 0.92));
+    cursor: pointer;
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 255, 255, 0.035),
+      inset 0 0 22px rgba(83, 231, 255, 0.06);
+  }
+
+  html[data-concept-scenario="1"] .top-menu-command span {
+    display: block;
+    width: 28px;
+    height: 3px;
+    margin: 3px 0;
+    border-radius: 999px;
+    background: #aabdc3;
+    box-shadow: 0 0 9px rgba(83, 231, 255, 0.16);
+  }
+
+  html[data-concept-scenario="1"] .top-menu-command:hover,
+  html[data-concept-scenario="1"] .top-menu-command:focus-visible {
+    border-color: rgba(83, 231, 255, 0.7);
+    outline: none;
+  }
+
   .speed-button,
+  .speed-readout,
   .icon-command,
   .heatmap-button {
     border-radius: 3px;

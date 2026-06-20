@@ -1,6 +1,6 @@
 # Component diagnostics - E-Grid 2045 v2.0 convergence
 
-Current audit screenshot: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-17b-agi-ticks-only-no-ring-glow.png`
+Current audit screenshot: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-19-map-route-hierarchy.png`
 
 Reference: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\reference-v2-0.png`
 
@@ -27,14 +27,17 @@ Current state:
 - Brand, AGI duel rings, budget, date and speed controls are now structurally close to the concept.
 - `E-GRID 2045` is a real DOM brand panel with large title type and a rich tooltip.
 - AGI rings are now rendered as individual segmented ticks only, without a continuous progress circle underneath.
+- Simulation speed is a dedicated concept-like module with pause/play/fast buttons and a `1.0x` readout.
+- A separate hamburger command block now occupies the far-right top-bar slot.
 - Tooltips are available on brand/AGI/budget/date.
 
 Visible differences:
-- Right-side menu block is represented by playable controls plus `?`, not the concept hamburger block.
+- The deterministic game state highlights pause, while the static concept highlights play.
+- The hamburger currently triggers the existing onboarding/replay command rather than a full command menu.
 - AGI rings still lack the exact painted micro-detailing and value state of the concept.
 
 Future actions:
-- Replace `?` with a menu-like icon in concept state while keeping replay functionality accessible elsewhere or as tooltip/secondary action.
+- Add a real command menu behind the hamburger only if that becomes a functional requirement.
 - Add finer ring noise/micro-ticks only if top bar exactness remains a priority after map work.
 
 Priority: Medium.
@@ -46,16 +49,17 @@ Current state:
 - ImageGen-generated atlas assets now make modules more concrete than vector-only markers.
 - Concept mode limits visible module markers to the most important regions, reducing clutter versus the previous pass.
 - Concept mode now brightens module sprites with a small additive glow and slightly larger display size.
+- Concept mode now filters secondary route lines and draws active flows as curved highlighted routes with pulse points.
 
 Visible differences:
 - Current map is still darker than the concept.
 - Concept modules are still more integrated into the painted terrain and less icon-like.
-- The map backdrop relief and labels do not match the exact concept map.
+- The map backdrop relief, labels and generated route topology do not match the exact concept map.
 
 Future actions:
 - Generate a dedicated tiny in-map module atlas if the existing icon atlas remains too detailed or too icon-like.
-- Tune network line brightness and hierarchy so major routes read like the concept while secondary routes recede.
-- Add subtle sea labels and path arcs only if they do not reduce gameplay clarity.
+- Tune label density and terrain integration so country/sea text reads closer to the concept.
+- Add subtle sea labels only if they do not reduce gameplay clarity.
 
 Priority: High, but asset-heavy.
 

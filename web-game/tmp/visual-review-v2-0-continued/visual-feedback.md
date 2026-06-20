@@ -452,3 +452,57 @@ What should be tried next:
 
 Regressions introduced:
 - None observed. The top bar still reports no overflow; each gauge renders 48 ticks with active ticks derived from progress.
+
+## Iteration 18 - Top bar speed module and command menu
+
+Screenshots:
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-18-current-audit.png`
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-18-topbar-speed-menu.png`
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-18b-normal-overlap-fix.png`
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-18c-concept-speed-menu-scoped.png`
+
+What is closer to the concept art:
+- The right side of the top bar now has a dedicated simulation speed module with pause/play/fast controls and a `1.0x` readout.
+- A separate hamburger command block now occupies the far-right top-bar slot, matching the concept's terminal menu structure.
+- The top bar remains a single continuous row with stable spacing and no clipped KPI text.
+
+What still differs visibly:
+- The deterministic game state currently highlights pause, while the static concept highlights play.
+- The menu button reuses the existing onboarding/replay action rather than opening a full command menu.
+
+What was changed:
+- Replaced inline speed controls with `timeControls()` and concept-specific speed button markup in `GameHud`.
+- Added `topMenuCommand()` for a real hamburger panel in the top bar.
+- Updated desktop HUD CSS grid columns and added styling for the speed readout and menu block.
+- Scoped the 5-column concept speed layout and hamburger visibility to `data-concept-scenario="1"` after Playwright exposed a normal-mode overlap regression.
+
+What should be tried next:
+- Continue with central map route hierarchy/label treatment, since it remains a larger visual difference than the now-stabilized top bar.
+
+Regressions introduced:
+- Initial pass caused the normal desktop speed `?` button to wrap and triggered a `.top-kpi` overlap failure at 1600x900.
+- Fixed by restoring the normal 6-button speed grid and hiding the hamburger outside concept scenario. Final metrics showed no overflow for normal or concept top-bar components.
+
+## Iteration 19 - Concept map route hierarchy
+
+Screenshot: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-19-map-route-hierarchy.png`
+
+What is closer to the concept art:
+- The concept scenario now reduces secondary network clutter and gives active routes stronger visual priority.
+- Major flows are drawn as curved routes with dark backing, cyan/orange color, a fine highlight and a pulse point on the curve.
+- The map reads less like a dense graph overlay and more like the concept's curated strategic routes.
+
+What still differs visibly:
+- The map routes are still generated from live topology, so their exact layout does not match the painted concept routes.
+- The central map assets/modules remain more icon-like than hand-painted infrastructure.
+
+What was changed:
+- Added concept-only route filtering in `EGridMapScene.drawFlows`.
+- Added quadratic route helpers for curved route drawing and pulse placement.
+- Kept the full graph-line rendering unchanged outside concept scenario.
+
+What should be tried next:
+- Continue with map labels/terrain integration or generate a dedicated painted module atlas if asset fidelity remains the top priority.
+
+Regressions introduced:
+- None observed in the concept screenshot. Major HUD panels still report no overflow.

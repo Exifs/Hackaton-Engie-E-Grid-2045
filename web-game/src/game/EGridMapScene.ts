@@ -189,6 +189,12 @@ export class EGridMapScene extends Phaser.Scene {
     const regions = this.simulation.getRegionsSnapshot();
     const graph = this.simulation.getNetworkGraph();
     const drawnEdges = new Set<string>();
+    const isConceptScenario = document.documentElement.dataset.conceptScenario === "1";
+    const activeConceptEdges = new Set(
+      summary.network_flows
+        .slice(0, 16)
+        .map((flow) => [flow.source_region_id, flow.target_region_id].sort().join(":"))
+    );
 
     for (const [sourceId, targets] of Object.entries(graph)) {
       const source = regions[sourceId];
@@ -210,6 +216,29 @@ export class EGridMapScene extends Phaser.Scene {
         const targetPoint = this.regionPoint(rect, target.layout as RegionLayout);
         const hash = hashString(edgeKey);
         const color = hash % 4 === 0 ? HEATMAP_COLORS.compute : hash % 5 === 0 ? HEATMAP_COLORS.warning : HEATMAP_COLORS.energy;
+        const isActiveConceptEdge = activeConceptEdges.has(edgeKey);
+        if (isConceptScenario) {
+          if (!isActiveConceptEdge && hash % 5 !== 0) {
+            continue;
+          }
+          this.strokeConceptRoute(
+            graphics,
+            sourcePoint,
+            targetPoint,
+            hash,
+            color,
+            isActiveConceptEdge ? 1.15 : 0.72,
+            isActiveConceptEdge ? 0.18 : 0.08
+          );
+          if (isActiveConceptEdge || hash % 10 === 0) {
+            const nodeRatio = 0.32 + (hash % 30) / 90;
+            const control = this.conceptRouteControl(sourcePoint, targetPoint, hash);
+            const node = quadraticPoint(sourcePoint, control, targetPoint, nodeRatio);
+            graphics.fillStyle(color, isActiveConceptEdge ? 0.5 : 0.26);
+            graphics.fillCircle(node.x, node.y, isActiveConceptEdge ? 2.6 : 1.8);
+          }
+          continue;
+        }
         const alpha = hash % 4 === 0 ? 0.32 : 0.24;
         graphics.lineStyle(4, 0x02090f, 0.48);
         graphics.lineBetween(sourcePoint.x, sourcePoint.y, targetPoint.x, targetPoint.y);
@@ -238,6 +267,22 @@ export class EGridMapScene extends Phaser.Scene {
       const targetPoint = this.regionPoint(rect, target.layout as RegionLayout);
       const width = 1.5 + flow.intensity_normalized * 4;
       const color = flow.is_congested ? HEATMAP_COLORS.warning : HEATMAP_COLORS.energy;
+      if (isConceptScenario) {
+        const hash = hashString(`${flow.source_region_id}:${flow.target_region_id}`);
+        const control = this.conceptRouteControl(sourcePoint, targetPoint, hash);
+        graphics.lineStyle(width + 4.5, 0x03131b, 0.58);
+        this.drawQuadraticRoute(graphics, sourcePoint, control, targetPoint);
+        graphics.lineStyle(Math.max(1.2, width * 0.86), color, flow.is_congested ? 0.82 : 0.64);
+        this.drawQuadraticRoute(graphics, sourcePoint, control, targetPoint);
+        graphics.lineStyle(0.8, 0xd8fbff, flow.is_congested ? 0.2 : 0.12);
+        this.drawQuadraticRoute(graphics, sourcePoint, control, targetPoint);
+
+        const pulse = this.testMode ? 0.58 : (this.animationTime * 0.22 + flow.intensity_normalized) % 1;
+        const point = quadraticPoint(sourcePoint, control, targetPoint, pulse);
+        graphics.fillStyle(color, 0.82);
+        graphics.fillCircle(point.x, point.y, 2.4 + flow.intensity_normalized * 2.6);
+        continue;
+      }
       graphics.lineStyle(width + 4, 0x062431, 0.55);
       graphics.beginPath();
       graphics.moveTo(sourcePoint.x, sourcePoint.y);
@@ -255,6 +300,53 @@ export class EGridMapScene extends Phaser.Scene {
       graphics.fillStyle(color, 0.78);
       graphics.fillCircle(px, py, 2 + flow.intensity_normalized * 3);
     }
+  }
+
+  private strokeConceptRoute(
+    graphics: Phaser.GameObjects.Graphics,
+    sourcePoint: { x: number; y: number },
+    targetPoint: { x: number; y: number },
+    hash: number,
+    color: number,
+    width: number,
+    alpha: number
+  ): void {
+    const control = this.conceptRouteControl(sourcePoint, targetPoint, hash);
+    graphics.lineStyle(width + 2.4, 0x02090f, alpha * 1.5);
+    this.drawQuadraticRoute(graphics, sourcePoint, control, targetPoint, 10);
+    graphics.lineStyle(width, color, alpha);
+    this.drawQuadraticRoute(graphics, sourcePoint, control, targetPoint, 10);
+  }
+
+  private conceptRouteControl(
+    sourcePoint: { x: number; y: number },
+    targetPoint: { x: number; y: number },
+    hash: number
+  ): { x: number; y: number } {
+    const dx = targetPoint.x - sourcePoint.x;
+    const dy = targetPoint.y - sourcePoint.y;
+    const length = Math.max(1, Math.hypot(dx, dy));
+    const bend = Math.min(78, length * 0.18) * (hash % 2 === 0 ? 1 : -1);
+    return {
+      x: (sourcePoint.x + targetPoint.x) / 2 + (-dy / length) * bend,
+      y: (sourcePoint.y + targetPoint.y) / 2 + (dx / length) * bend - Math.min(26, length * 0.045)
+    };
+  }
+
+  private drawQuadraticRoute(
+    graphics: Phaser.GameObjects.Graphics,
+    sourcePoint: { x: number; y: number },
+    controlPoint: { x: number; y: number },
+    targetPoint: { x: number; y: number },
+    steps = 16
+  ): void {
+    graphics.beginPath();
+    graphics.moveTo(sourcePoint.x, sourcePoint.y);
+    for (let step = 1; step <= steps; step += 1) {
+      const point = quadraticPoint(sourcePoint, controlPoint, targetPoint, step / steps);
+      graphics.lineTo(point.x, point.y);
+    }
+    graphics.strokePath();
   }
 
   private drawStructures(rect: MapRect): void {
@@ -950,6 +1042,20 @@ function mixColor(start: number, end: number, ratio: number): number {
   const g = Math.round(Phaser.Math.Linear(g1, g2, ratio));
   const b = Math.round(Phaser.Math.Linear(b1, b2, ratio));
   return (r << 16) | (g << 8) | b;
+}
+
+function quadraticPoint(
+  sourcePoint: { x: number; y: number },
+  controlPoint: { x: number; y: number },
+  targetPoint: { x: number; y: number },
+  t: number
+): { x: number; y: number } {
+  const clamped = Math.max(0, Math.min(1, t));
+  const inverse = 1 - clamped;
+  return {
+    x: inverse * inverse * sourcePoint.x + 2 * inverse * clamped * controlPoint.x + clamped * clamped * targetPoint.x,
+    y: inverse * inverse * sourcePoint.y + 2 * inverse * clamped * controlPoint.y + clamped * clamped * targetPoint.y
+  };
 }
 
 function hashString(value: string): number {
