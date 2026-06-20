@@ -15,6 +15,7 @@ import type {
   CancelResult,
   Co2Tier,
   Constants,
+  DemolishResult,
   GameData,
   GameSummary,
   ProvisionalScore,
@@ -22,6 +23,8 @@ import type {
   RegionMetrics,
   RegionRuntime,
   RegionSnapshot,
+  ResearchOption,
+  ResearchStartResult,
   TechnologyDefinition
 } from "./types";
 
@@ -106,6 +109,7 @@ export class SimulationCore {
     this.state.advanceMonth();
     for (const region of Object.values(this.regions)) {
       this.buildingSystem.advanceConstruction(region);
+      this.buildingSystem.advanceDemolition(region);
     }
     this.recalculate(true);
     this.checkEndgame();
@@ -149,12 +153,38 @@ export class SimulationCore {
     return result;
   }
 
-  startResearch(technologyId: string): void {
-    if (!technologyId || !this.technologies[technologyId] || this.state.completed_technologies[technologyId]) {
-      return;
+  requestDemolition(regionId: string, buildingIndex: number): DemolishResult {
+    const targetRegionId = regionId || this.state.selected_region_id;
+    const region = this.regions[targetRegionId];
+    const check = this.buildingSystem.canStartDemolition(region, buildingIndex, this.state.money, this.buildingDefinitions);
+    if (!check.ok) {
+      return check;
+    }
+
+    this.state.money -= check.cost;
+    this.buildingSystem.startDemolition(region, buildingIndex, this.buildingDefinitions);
+    this.recalculate(false);
+    return { ok: true, cost: check.cost, reason: "" };
+  }
+
+  startResearch(technologyId: string): ResearchStartResult {
+    const technology = this.technologies[technologyId];
+    if (!technologyId || !technology) {
+      return { ok: false, reason: "Unknown research." };
+    }
+    if (this.state.completed_technologies[technologyId]) {
+      return { ok: false, reason: "Research already completed." };
+    }
+    if (this.state.active_research_id) {
+      return { ok: false, reason: "A research project is already active." };
+    }
+    const missingPrereq = technology.prereq_technology_ids.find((prereq) => !this.state.completed_technologies[prereq]);
+    if (missingPrereq) {
+      return { ok: false, reason: `Locked: research ${missingPrereq} first.` };
     }
     this.state.active_research_id = technologyId;
     this.state.active_research_points = 0;
+    return { ok: true, reason: "" };
   }
 
   getSummary(): GameSummary {
@@ -214,6 +244,53 @@ export class SimulationCore {
 
   getTechnologies(): Record<string, TechnologyDefinition> {
     return cloneRecord(this.technologies);
+  }
+
+  getResearchOptions(): ResearchOption[] {
+    const monthlyPoints = this.currentTechnologyPointRate();
+    return Object.values(this.technologies)
+      .map((technology) => {
+        const missingPrereq = technology.prereq_technology_ids.find((prereq) => !this.state.completed_technologies[prereq]);
+        const isCompleted = Boolean(this.state.completed_technologies[technology.id]);
+        const isActive = this.state.active_research_id === technology.id;
+        const progress = isActive ? clamp(this.state.active_research_points / Math.max(technology.cost, 1), 0, 1) : isCompleted ? 1 : 0;
+        const remainingPoints = Math.max(technology.cost - (isActive ? this.state.active_research_points : 0), 0);
+        const estimatedMonths = monthlyPoints > 0 ? Math.ceil(remainingPoints / monthlyPoints) : Number.POSITIVE_INFINITY;
+        let status: ResearchOption["status"] = "available";
+        let reason = "";
+        if (isCompleted) {
+          status = "completed";
+          reason = "Completed.";
+        } else if (isActive) {
+          status = "active";
+          reason = monthlyPoints > 0 ? "Research in progress." : "Construis des centres de recherche energie pour produire des points de technologie.";
+        } else if (missingPrereq) {
+          status = "locked";
+          reason = `Requires ${this.technologies[missingPrereq]?.display_name ?? missingPrereq}.`;
+        } else if (this.state.active_research_id) {
+          status = "locked";
+          reason = "Another research project is already active.";
+        }
+
+        return {
+          id: technology.id,
+          display_name: technology.display_name,
+          branch: technology.branch,
+          tier: technology.tier,
+          cost: technology.cost,
+          progress,
+          estimated_months_remaining: estimatedMonths,
+          prereq_technology_ids: [...technology.prereq_technology_ids],
+          unlocks: [...technology.unlocks],
+          effect_key: technology.effect_key,
+          effect_value: technology.effect_value,
+          effect_value_pct: technology.effect_value_pct,
+          notes: technology.notes,
+          status,
+          reason
+        };
+      })
+      .sort((a, b) => (a.tier === b.tier ? a.cost - b.cost : a.tier - b.tier));
   }
 
   getScore(): ProvisionalScore {
@@ -466,13 +543,6 @@ export class SimulationCore {
       return;
     }
     if (!this.state.active_research_id) {
-      this.state.active_research_id = this.researchSystem.nextAvailableTechnology(
-        this.technologies,
-        this.state.completed_technologies
-      );
-      this.state.active_research_points = 0;
-    }
-    if (!this.state.active_research_id) {
       return;
     }
 
@@ -512,9 +582,7 @@ export class SimulationCore {
       }
 
       if (this.regionSystem.slotsFree(region, this.buildingDefinitions) <= 0 && region.buildings.length > 0) {
-        alerts.push(
-          this.alert(6, "Slots saturated", displayName, "regional capacity is full", "choose another region", regionId, "market_info")
-        );
+        alerts.push(this.alert(6, "Slots saturated", displayName, "regional capacity is full", "choose another region", regionId, "market_info", false));
       }
     }
 
@@ -545,14 +613,19 @@ export class SimulationCore {
     cause: string,
     action: string,
     regionId: string,
-    stateName: string
+    stateName: string,
+    actionable = true
   ): Alert {
+    const id = [problem, regionId || regionName, stateName].map((part) => part.toLowerCase().replace(/[^a-z0-9]+/g, "-")).join(":");
     return {
+      id,
       priority,
       title: `${problem} - ${regionName}`,
       body: `${cause} -> ${action}`,
       region_id: regionId,
-      state: stateName
+      state: stateName,
+      actionable,
+      autoDismissMs: actionable ? 0 : 8000
     };
   }
 
@@ -610,5 +683,9 @@ export class SimulationCore {
 
   private hasSupergrid(): boolean {
     return Boolean(this.state.completed_technologies.supergrid || this.state.completed_technologies.supergrid_european);
+  }
+
+  private currentTechnologyPointRate(): number {
+    return Object.values(this.regions).reduce((total, region) => total + (region.cached.technology_points ?? 0), 0);
   }
 }

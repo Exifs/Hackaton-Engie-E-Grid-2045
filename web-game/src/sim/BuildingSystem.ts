@@ -6,8 +6,14 @@ import type {
   CancelResult,
   Constants,
   ConstructionItem,
+  DeconstructionItem,
+  DemolishResult,
   RegionRuntime
 } from "./types";
+
+const DEMOLITION_COST_RATIO = 0.2;
+const DEMOLITION_MONTH_RATIO = 0.35;
+const MIN_DEMOLITION_MONTHS = 2;
 
 export class BuildingSystem {
   private readonly regions = new RegionSystem();
@@ -69,6 +75,73 @@ export class BuildingSystem {
       }
     }
     region.construction_queue = remaining;
+    return completed;
+  }
+
+  demolitionCost(buildingDefinition: BuildingDefinition): number {
+    return Math.ceil(buildingDefinition.cost * DEMOLITION_COST_RATIO);
+  }
+
+  demolitionMonths(buildingDefinition: BuildingDefinition): number {
+    return Math.max(MIN_DEMOLITION_MONTHS, Math.ceil(buildingDefinition.construction_months * DEMOLITION_MONTH_RATIO));
+  }
+
+  canStartDemolition(
+    region: RegionRuntime | undefined,
+    buildingIndex: number,
+    money: number,
+    buildingDefinitions: Record<string, BuildingDefinition>
+  ): DemolishResult {
+    if (!region) {
+      return { ok: false, cost: 0, reason: "No region selected." };
+    }
+    if (buildingIndex < 0 || buildingIndex >= region.buildings.length) {
+      return { ok: false, cost: 0, reason: "No building at this slot." };
+    }
+    const definition = buildingDefinitions[region.buildings[buildingIndex]];
+    if (!definition) {
+      return { ok: false, cost: 0, reason: "Unknown building." };
+    }
+    const cost = this.demolitionCost(definition);
+    if (money < cost) {
+      return { ok: false, cost, reason: "Insufficient budget." };
+    }
+    return { ok: true, cost, reason: "" };
+  }
+
+  startDemolition(
+    region: RegionRuntime,
+    buildingIndex: number,
+    buildingDefinitions: Record<string, BuildingDefinition>
+  ): DeconstructionItem {
+    const [buildingId] = region.buildings.splice(buildingIndex, 1);
+    const definition = buildingDefinitions[buildingId];
+    if (!definition) {
+      throw new Error(`Unknown building '${buildingId}' during demolition.`);
+    }
+    const totalMonths = this.demolitionMonths(definition);
+    const item: DeconstructionItem = {
+      building_id: buildingId,
+      months_remaining: totalMonths,
+      total_months: totalMonths,
+      cost: this.demolitionCost(definition)
+    };
+    region.deconstruction_queue.push(item);
+    return item;
+  }
+
+  advanceDemolition(region: RegionRuntime): DeconstructionItem[] {
+    const completed: DeconstructionItem[] = [];
+    const remaining: DeconstructionItem[] = [];
+    for (const item of region.deconstruction_queue) {
+      const next = { ...item, months_remaining: item.months_remaining - 1 };
+      if (next.months_remaining <= 0) {
+        completed.push(next);
+      } else {
+        remaining.push(next);
+      }
+    }
+    region.deconstruction_queue = remaining;
     return completed;
   }
 

@@ -64,6 +64,7 @@ export interface RegionDefinition {
 export interface RegionRuntime extends RegionDefinition {
   buildings: string[];
   construction_queue: ConstructionItem[];
+  deconstruction_queue: DeconstructionItem[];
   cached: RegionCachedMetrics;
   layout: Partial<RegionLayout>;
 }
@@ -129,6 +130,13 @@ export interface VolumeEfficiencyTier {
 }
 
 export interface ConstructionItem {
+  building_id: string;
+  months_remaining: number;
+  total_months: number;
+  cost: number;
+}
+
+export interface DeconstructionItem {
   building_id: string;
   months_remaining: number;
   total_months: number;
@@ -201,11 +209,14 @@ export interface NetworkResult {
 }
 
 export interface Alert {
+  id: string;
   priority: number;
   title: string;
   body: string;
   region_id: string;
   state: string;
+  actionable: boolean;
+  autoDismissMs: number;
 }
 
 export interface GameSummary {
@@ -256,6 +267,35 @@ export interface BuildResult extends BuildAvailability {}
 export interface CancelResult {
   ok: boolean;
   refund: number;
+  reason: string;
+}
+
+export interface DemolishResult {
+  ok: boolean;
+  cost: number;
+  reason: string;
+}
+
+export interface ResearchOption {
+  id: string;
+  display_name: string;
+  branch: string;
+  tier: number;
+  cost: number;
+  progress: number;
+  estimated_months_remaining: number;
+  prereq_technology_ids: string[];
+  unlocks: string[];
+  effect_key: string;
+  effect_value: string;
+  effect_value_pct: number;
+  notes: string;
+  status: "available" | "active" | "completed" | "locked";
+  reason: string;
+}
+
+export interface ResearchStartResult {
+  ok: boolean;
   reason: string;
 }
 

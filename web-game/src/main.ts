@@ -58,6 +58,14 @@ const hud = new GameHud(hudRoot, simulation, {
     simulation.cancelConstruction(simulation.getSummary().selected_region_id, queueIndex);
     redraw();
   },
+  onDemolish: (buildingIndex) => {
+    simulation.requestDemolition(simulation.getSummary().selected_region_id, buildingIndex);
+    redraw();
+  },
+  onStartResearch: (technologyId) => {
+    simulation.startResearch(technologyId);
+    redraw();
+  },
   onAdvance: () => {
     simulation.advanceMonth();
     redraw();
@@ -68,6 +76,7 @@ const hud = new GameHud(hudRoot, simulation, {
   },
   onSelectRegion: (regionId) => {
     simulation.selectRegion(regionId);
+    scene.focusRegion(regionId);
     redraw();
   },
   onHeatmap: (mode) => {

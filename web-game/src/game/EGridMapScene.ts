@@ -41,6 +41,8 @@ export class EGridMapScene extends Phaser.Scene {
   private labelLayer?: Phaser.GameObjects.Container;
   private animationTime = 0;
   private dirty = true;
+  private currentMapRect?: MapRect;
+  private focusRegionId = "";
 
   constructor(config: SceneConfig) {
     super("EGridMapScene");
@@ -98,6 +100,21 @@ export class EGridMapScene extends Phaser.Scene {
     this.simulation = simulation;
     this.dirty = true;
     this.renderState();
+  }
+
+  focusRegion(regionId: string): void {
+    this.focusRegionId = regionId;
+    this.dirty = true;
+    this.renderState();
+  }
+
+  getRegionScreenPoint(regionId: string): { x: number; y: number } | undefined {
+    const region = this.simulation.getRegionsSnapshot()[regionId];
+    if (!region?.layout) {
+      return undefined;
+    }
+    const rect = this.currentMapRect ?? this.mapRect();
+    return this.regionPoint(rect, region.layout as RegionLayout);
   }
 
   renderState(): void {
@@ -339,6 +356,7 @@ export class EGridMapScene extends Phaser.Scene {
     }
     if (bestRegion) {
       this.simulation.selectRegion(bestRegion);
+      this.focusRegionId = bestRegion;
       this.onRegionSelected(bestRegion);
       this.dirty = true;
       this.renderState();
@@ -353,23 +371,122 @@ export class EGridMapScene extends Phaser.Scene {
   }
 
   private mapRect(): MapRect {
+    const target = this.targetMapRect();
+    if (this.testMode || !this.currentMapRect) {
+      this.currentMapRect = target;
+      return target;
+    }
+    const ratio = 0.16;
+    this.currentMapRect = {
+      x: Phaser.Math.Linear(this.currentMapRect.x, target.x, ratio),
+      y: Phaser.Math.Linear(this.currentMapRect.y, target.y, ratio),
+      width: Phaser.Math.Linear(this.currentMapRect.width, target.width, ratio),
+      height: Phaser.Math.Linear(this.currentMapRect.height, target.height, ratio)
+    };
+    return this.currentMapRect;
+  }
+
+  private targetMapRect(): MapRect {
     const width = this.scale.width;
     const height = this.scale.height;
     const texture = this.textures.get("map-backdrop").getSourceImage() as HTMLImageElement | HTMLCanvasElement;
     const imageRatio = texture.width / texture.height || 16 / 9;
-    const availableWidth = width;
-    const availableHeight = height;
-    const scale = Math.min(availableWidth / texture.width, availableHeight / texture.height);
+    const safe = this.safeViewportRect();
+    const fitScale = Math.min(safe.width / texture.width, safe.height / texture.height);
+    const focusScale = this.focusRegionId ? fitScale * 1.14 : fitScale;
+    const scale = Math.max(fitScale, focusScale);
     const mapWidth = texture.width * scale;
     const mapHeight = texture.height * scale;
-    if (mapWidth / mapHeight > imageRatio + 0.001) {
-      return { x: 0, y: 0, width: availableWidth, height: availableWidth / imageRatio };
+
+    let x = safe.x + (safe.width - mapWidth) / 2;
+    let y = safe.y + (safe.height - mapHeight) / 2;
+
+    const selectedRegion = this.simulation.getSummary().selected_region_id;
+    const focusRegion = this.focusRegionId === selectedRegion ? this.focusRegionId : selectedRegion;
+    const layout = focusRegion ? this.simulation.getRegionSnapshot(focusRegion)?.layout as RegionLayout | undefined : undefined;
+    if (layout?.x !== undefined && layout.y !== undefined) {
+      const margin = Math.min(84, Math.max(36, Math.min(safe.width, safe.height) * 0.12));
+      const point = { x: x + layout.x * mapWidth, y: y + layout.y * mapHeight };
+      if (point.x < safe.x + margin) {
+        x += safe.x + margin - point.x;
+      } else if (point.x > safe.x + safe.width - margin) {
+        x -= point.x - (safe.x + safe.width - margin);
+      }
+      if (point.y < safe.y + margin) {
+        y += safe.y + margin - point.y;
+      } else if (point.y > safe.y + safe.height - margin) {
+        y -= point.y - (safe.y + safe.height - margin);
+      }
     }
+
+    if (mapWidth > safe.width) {
+      x = Phaser.Math.Clamp(x, safe.x + safe.width - mapWidth, safe.x);
+    } else {
+      x = safe.x + (safe.width - mapWidth) / 2;
+    }
+    if (mapHeight > safe.height) {
+      y = Phaser.Math.Clamp(y, safe.y + safe.height - mapHeight, safe.y);
+    } else {
+      y = safe.y + (safe.height - mapHeight) / 2;
+    }
+
+    if (mapWidth / mapHeight > imageRatio + 0.001) {
+      return { x, y, width: mapWidth, height: mapWidth / imageRatio };
+    }
+    return { x, y, width: mapWidth, height: mapHeight };
+  }
+
+  private safeViewportRect(): MapRect {
+    const width = this.scale.width;
+    const height = this.scale.height;
+    let top = 0;
+    let right = 0;
+    let bottom = 0;
+    let left = 0;
+    const selectors = [".top-kpi", ".heatmap-switch", ".alerts-panel", ".region-panel", ".build-palette"];
+    for (const selector of selectors) {
+      const element = document.querySelector<HTMLElement>(selector);
+      if (!element) {
+        continue;
+      }
+      const style = getComputedStyle(element);
+      const rect = element.getBoundingClientRect();
+      if (style.display === "none" || rect.width < 2 || rect.height < 2) {
+        continue;
+      }
+
+      const spansHorizontal = rect.width > width * 0.5;
+      const spansVertical = rect.height > height * 0.18;
+      if (spansHorizontal && rect.top < height * 0.35) {
+        top = Math.max(top, rect.bottom + 12);
+      }
+      if (spansHorizontal && rect.bottom > height * 0.58) {
+        bottom = Math.max(bottom, height - rect.top + 12);
+      }
+      if (!spansHorizontal && spansVertical && rect.left < width * 0.22) {
+        left = Math.max(left, rect.right + 12);
+      }
+      if (!spansHorizontal && spansVertical && rect.right > width * 0.78) {
+        right = Math.max(right, width - rect.left + 12);
+      }
+    }
+
+    const minWidth = Math.max(280, width * 0.36);
+    const minHeight = Math.max(220, height * 0.32);
+    if (width - left - right < minWidth) {
+      left = 0;
+      right = 0;
+    }
+    if (height - top - bottom < minHeight) {
+      top = Math.min(top, height * 0.18);
+      bottom = Math.min(bottom, height * 0.22);
+    }
+
     return {
-      x: (availableWidth - mapWidth) / 2,
-      y: (availableHeight - mapHeight) / 2,
-      width: mapWidth,
-      height: mapHeight
+      x: left,
+      y: top,
+      width: Math.max(minWidth, width - left - right),
+      height: Math.max(minHeight, height - top - bottom)
     };
   }
 }
