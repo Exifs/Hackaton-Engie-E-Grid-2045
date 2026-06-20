@@ -25,6 +25,14 @@ jobs:
       target_ref: ${{ steps.version.outputs.target_ref }}
       bump: ${{ steps.version.outputs.bump }}
     steps:
+      - name: Checkout trusted classifier from base branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          sparse-checkout: .github/scripts/classify-semver-bump.py
+          sparse-checkout-cone-mode: false
+          persist-credentials: false
+
       - name: Compute next semver tag
         id: version
         env:
@@ -46,8 +54,8 @@ jobs:
           fi
 
           labels="$(gh api "repos/${REPOSITORY}/issues/${PR_NUMBER}/labels" --jq '.[].name')"
-          bump="patch"
-          bump_source="default fallback"
+          bump=""
+          bump_source=""
           if printf '%s\n' "${labels}" | grep -Fxq 'semver:major'; then
             bump="major"
             bump_source="semver:major label"
@@ -57,6 +65,18 @@ jobs:
           elif printf '%s\n' "${labels}" | grep -Fxq 'semver:patch'; then
             bump="patch"
             bump_source="semver:patch label"
+          else
+            echo "No semver label found on PR #${PR_NUMBER}; classifying PR content as fallback."
+            semver_output="$(mktemp)"
+            GITHUB_TOKEN="${GH_TOKEN}" \
+            PR_NUMBER="${PR_NUMBER}" \
+            SYNC_LABELS=false \
+            SEMVER_OUTPUT_FILE="${semver_output}" \
+              python3 .github/scripts/classify-semver-bump.py
+            # shellcheck source=/dev/null
+            source "${semver_output}"
+            bump="${BUMP}"
+            bump_source="classifier fallback: ${REASON}"
           fi
 
           latest_tag="$(
