@@ -90,7 +90,7 @@ jobs:
           set -euo pipefail
           for candidate in "semver:major" "semver:minor" "semver:patch"; do
             if [[ "${candidate}" != "${LABEL}" ]]; then
-              gh pr edit "${PR_NUMBER}" --remove-label "${candidate}" || true
+              gh issue edit "${PR_NUMBER}" --remove-label "${candidate}" || true
             fi
           done
-          gh pr edit "${PR_NUMBER}" --add-label "${LABEL}"
+          gh issue edit "${PR_NUMBER}" --add-label "${LABEL}"
