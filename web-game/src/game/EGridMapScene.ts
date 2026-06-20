@@ -38,6 +38,7 @@ export class EGridMapScene extends Phaser.Scene {
   private heatmapMode: HeatmapMode = "energy";
   private mapImage?: Phaser.GameObjects.Image;
   private flowLayer?: Phaser.GameObjects.Graphics;
+  private structureLayer?: Phaser.GameObjects.Graphics;
   private regionLayer?: Phaser.GameObjects.Graphics;
   private slotLayer?: Phaser.GameObjects.Graphics;
   private labelLayer?: Phaser.GameObjects.Container;
@@ -66,6 +67,7 @@ export class EGridMapScene extends Phaser.Scene {
   create(): void {
     this.mapImage = this.add.image(0, 0, "map-backdrop").setOrigin(0, 0).setAlpha(0.94);
     this.flowLayer = this.add.graphics();
+    this.structureLayer = this.add.graphics();
     this.regionLayer = this.add.graphics();
     this.slotLayer = this.add.graphics();
     this.labelLayer = this.add.container(0, 0);
@@ -77,6 +79,7 @@ export class EGridMapScene extends Phaser.Scene {
     });
 
     this.renderState();
+    document.documentElement.dataset.egridSceneReady = "1";
   }
 
   update(_time: number, delta: number): void {
@@ -129,7 +132,7 @@ export class EGridMapScene extends Phaser.Scene {
   }
 
   renderState(): void {
-    if (!this.flowLayer || !this.regionLayer || !this.slotLayer || !this.labelLayer || !this.mapImage) {
+    if (!this.flowLayer || !this.structureLayer || !this.regionLayer || !this.slotLayer || !this.labelLayer || !this.mapImage) {
       return;
     }
 
@@ -137,6 +140,7 @@ export class EGridMapScene extends Phaser.Scene {
     this.mapImage.setPosition(rect.x, rect.y).setDisplaySize(rect.width, rect.height);
     this.drawBackdropVignette(rect);
     this.drawFlows(rect);
+    this.drawStructures(rect);
     this.drawRegions(rect);
     this.drawSelectedSlots(rect);
     this.dirty = false;
@@ -152,9 +156,10 @@ export class EGridMapScene extends Phaser.Scene {
       .setDepth(0);
     this.mapImage?.setDepth(1);
     this.flowLayer?.setDepth(2);
-    this.regionLayer?.setDepth(3);
-    this.slotLayer?.setDepth(4);
-    this.labelLayer?.setDepth(5);
+    this.structureLayer?.setDepth(3);
+    this.regionLayer?.setDepth(4);
+    this.slotLayer?.setDepth(5);
+    this.labelLayer?.setDepth(6);
   }
 
   private addedVignette?: Phaser.GameObjects.Rectangle;
@@ -167,6 +172,46 @@ export class EGridMapScene extends Phaser.Scene {
     graphics.clear();
     const summary = this.simulation.getSummary();
     const regions = this.simulation.getRegionsSnapshot();
+    const graph = this.simulation.getNetworkGraph();
+    const drawnEdges = new Set<string>();
+
+    for (const [sourceId, targets] of Object.entries(graph)) {
+      const source = regions[sourceId];
+      if (!source) {
+        continue;
+      }
+      const sourcePoint = this.regionPoint(rect, source.layout as RegionLayout);
+      for (const targetId of targets) {
+        const target = regions[targetId];
+        if (!target) {
+          continue;
+        }
+        const edgeKey = [sourceId, targetId].sort().join(":");
+        if (drawnEdges.has(edgeKey)) {
+          continue;
+        }
+        drawnEdges.add(edgeKey);
+
+        const targetPoint = this.regionPoint(rect, target.layout as RegionLayout);
+        const hash = hashString(edgeKey);
+        const color = hash % 4 === 0 ? HEATMAP_COLORS.compute : hash % 5 === 0 ? HEATMAP_COLORS.warning : HEATMAP_COLORS.energy;
+        const alpha = hash % 4 === 0 ? 0.32 : 0.24;
+        graphics.lineStyle(4, 0x02090f, 0.48);
+        graphics.lineBetween(sourcePoint.x, sourcePoint.y, targetPoint.x, targetPoint.y);
+        graphics.lineStyle(1.15, color, alpha);
+        graphics.lineBetween(sourcePoint.x, sourcePoint.y, targetPoint.x, targetPoint.y);
+
+        if (hash % 3 !== 0) {
+          const nodeRatio = 0.28 + (hash % 34) / 80;
+          const nodeX = Phaser.Math.Linear(sourcePoint.x, targetPoint.x, nodeRatio);
+          const nodeY = Phaser.Math.Linear(sourcePoint.y, targetPoint.y, nodeRatio);
+          graphics.fillStyle(color, 0.48);
+          graphics.fillCircle(nodeX, nodeY, 2.2);
+          graphics.lineStyle(1, 0xd8fbff, 0.2);
+          graphics.strokeCircle(nodeX, nodeY, 4.2);
+        }
+      }
+    }
 
     for (const flow of summary.network_flows) {
       const source = regions[flow.source_region_id];
@@ -197,6 +242,91 @@ export class EGridMapScene extends Phaser.Scene {
     }
   }
 
+  private drawStructures(rect: MapRect): void {
+    const graphics = this.structureLayer;
+    if (!graphics) {
+      return;
+    }
+    graphics.clear();
+
+    const regions = this.simulation.getRegionsSnapshot();
+    for (const [regionId, region] of Object.entries(regions)) {
+      const layout = region.layout as RegionLayout;
+      if (!layout || layout.x === undefined || layout.y === undefined) {
+        continue;
+      }
+      const point = this.regionPoint(rect, layout);
+      const hash = hashString(regionId);
+      const visualWeight =
+        region.slots_used +
+        region.construction_queue.length +
+        (region.starting_compute > 0 ? 1 : 0) +
+        (region.starting_energy_generation > 0 ? 1 : 0) +
+        (region.potential_research > 0.7 ? 1 : 0) +
+        (region.potential_grid > 0.7 ? 1 : 0);
+
+      if (visualWeight <= 0 && hash % 3 !== 0) {
+        continue;
+      }
+
+      const scale = Phaser.Math.Clamp(Math.min(rect.width, rect.height) / 760, 0.82, 1.35);
+      const accent = hash % 5 === 0 ? HEATMAP_COLORS.compute : hash % 4 === 0 ? HEATMAP_COLORS.cooling : HEATMAP_COLORS.energy;
+      const offsetX = ((hash % 7) - 3) * scale * 1.6;
+      const offsetY = -8 * scale + (((hash >> 3) % 5) - 2) * scale;
+      this.drawModuleMarker(graphics, point.x + offsetX, point.y + offsetY, scale, accent, hash);
+    }
+  }
+
+  private drawModuleMarker(
+    graphics: Phaser.GameObjects.Graphics,
+    x: number,
+    y: number,
+    scale: number,
+    accent: number,
+    variant: number
+  ): void {
+    const width = 18 * scale;
+    const height = (28 + (variant % 3) * 6) * scale;
+    const baseY = y + 14 * scale;
+
+    graphics.fillStyle(0x02080d, 0.52);
+    graphics.fillEllipse(x, baseY, 36 * scale, 12 * scale);
+    graphics.lineStyle(1, accent, 0.25);
+    graphics.strokeEllipse(x, baseY, 34 * scale, 10 * scale);
+
+    if (variant % 4 === 0) {
+      graphics.fillStyle(0x132430, 0.92);
+      graphics.fillRoundedRect(x - 13 * scale, y - 6 * scale, 26 * scale, 18 * scale, 3 * scale);
+      graphics.lineStyle(2, 0x9fdcff, 0.72);
+      graphics.strokeCircle(x, y - 7 * scale, 9 * scale);
+      graphics.lineStyle(1, accent, 0.78);
+      graphics.strokeCircle(x, y - 7 * scale, 5 * scale);
+      graphics.fillStyle(accent, 0.55);
+      graphics.fillCircle(x, y - 7 * scale, 2.4 * scale);
+      return;
+    }
+
+    const towerCount = variant % 3 === 0 ? 2 : 1;
+    for (let index = 0; index < towerCount; index += 1) {
+      const towerX = x - (towerCount === 2 ? 9 * scale : 0) + index * 14 * scale;
+      const towerHeight = height * (index === 0 ? 1 : 0.78);
+      graphics.fillStyle(0x1d2d3a, 0.96);
+      graphics.fillRoundedRect(towerX - width / 2, y - towerHeight, width, towerHeight, 2 * scale);
+      graphics.fillStyle(0x2a4153, 0.72);
+      graphics.fillRect(towerX - width / 2 + 3 * scale, y - towerHeight + 3 * scale, width - 6 * scale, towerHeight - 6 * scale);
+      graphics.lineStyle(1.2, accent, 0.76);
+      graphics.strokeRoundedRect(towerX - width / 2, y - towerHeight, width, towerHeight, 2 * scale);
+
+      graphics.fillStyle(accent, 0.74);
+      const rowCount = Math.max(3, Math.floor(towerHeight / (7 * scale)));
+      for (let row = 0; row < rowCount; row += 1) {
+        const windowY = y - towerHeight + 5 * scale + row * 6 * scale;
+        graphics.fillRect(towerX - 5 * scale, windowY, 3 * scale, 2 * scale);
+        graphics.fillRect(towerX + 2 * scale, windowY, 3 * scale, 2 * scale);
+      }
+    }
+  }
+
   private drawRegions(rect: MapRect): void {
     const graphics = this.regionLayer;
     const labels = this.labelLayer;
@@ -217,7 +347,7 @@ export class EGridMapScene extends Phaser.Scene {
         continue;
       }
       const point = this.regionPoint(rect, layout);
-      const radius = Math.max(9, layout.hitbox_radius * Math.min(rect.width, rect.height) * 0.46);
+      const radius = Math.max(5.5, layout.hitbox_radius * Math.min(rect.width, rect.height) * 0.24);
       const color = this.regionColor(region, summary, maxCompute);
       const isSelected = regionId === selectedId;
       const alert = summary.alerts.find((item) => item.region_id === regionId);
@@ -229,26 +359,27 @@ export class EGridMapScene extends Phaser.Scene {
         graphics.strokeCircle(point.x, point.y, radius * (1.8 + pulse * 0.25));
       }
 
-      const haloAlpha = isSelected ? 0.52 : 0.18;
+      const haloAlpha = isSelected ? 0.46 : 0.1;
       graphics.fillStyle(color, haloAlpha);
-      graphics.fillCircle(point.x, point.y, radius * (isSelected ? 1.72 : 1.36));
-      graphics.lineStyle(isSelected ? 3 : 1.2, isSelected ? 0xf5fbff : color, isSelected ? 0.9 : 0.52);
-      graphics.fillStyle(color, isSelected ? 0.78 : 0.58);
+      graphics.fillCircle(point.x, point.y, radius * (isSelected ? 2.5 : 1.65));
+      graphics.lineStyle(isSelected ? 2.5 : 1, isSelected ? 0xf5fbff : color, isSelected ? 0.9 : 0.45);
+      graphics.fillStyle(color, isSelected ? 0.82 : 0.42);
       graphics.fillCircle(point.x, point.y, radius);
       graphics.strokeCircle(point.x, point.y, radius);
       graphics.fillStyle(0xf7fbff, isSelected ? 0.95 : 0.55);
-      graphics.fillCircle(point.x, point.y, Math.max(2.5, radius * 0.22));
+      graphics.fillCircle(point.x, point.y, Math.max(1.6, radius * 0.2));
 
-      if (isSelected || (region.cached.problems?.length ?? 0) > 0) {
+      if (isSelected || (region.cached.problems?.length ?? 0) > 0 || hashString(regionId) % 2 === 0) {
         const text = this.add
-          .text(point.x, point.y - radius - 20, region.display_name, {
+          .text(point.x, point.y - radius - (isSelected ? 21 : 15), region.display_name.toUpperCase(), {
             fontFamily: "Inter, Segoe UI, Arial, sans-serif",
-            fontSize: isSelected ? "13px" : "10px",
+            fontSize: isSelected ? "13px" : "9px",
             color: "#eaf8ff",
             stroke: "#06131d",
-            strokeThickness: 4
+            strokeThickness: isSelected ? 4 : 3
           })
-          .setOrigin(0.5, 0.5);
+          .setOrigin(0.5, 0.5)
+          .setAlpha(isSelected ? 0.95 : 0.62);
         labels.add(text);
       }
     }
@@ -412,9 +543,12 @@ export class EGridMapScene extends Phaser.Scene {
     const texture = this.textures.get("map-backdrop").getSourceImage() as HTMLImageElement | HTMLCanvasElement;
     const imageRatio = texture.width / texture.height || 16 / 9;
     const safe = this.safeViewportRect();
-    const fitScale = Math.min(safe.width / texture.width, safe.height / texture.height);
-    const focusScale = this.focusRegionId ? fitScale * 1.14 : fitScale;
-    const scale = Math.max(fitScale, focusScale);
+    const desktopConceptFrame = width >= 1180 && height >= 760;
+    const baseScale = desktopConceptFrame
+      ? Math.max(safe.width / texture.width, safe.height / texture.height)
+      : Math.min(safe.width / texture.width, safe.height / texture.height);
+    const focusScale = this.focusRegionId ? baseScale * (desktopConceptFrame ? 1.04 : 1.14) : baseScale;
+    const scale = Math.max(baseScale, focusScale);
     const mapWidth = texture.width * scale;
     const mapHeight = texture.height * scale;
 
@@ -526,4 +660,12 @@ function mixColor(start: number, end: number, ratio: number): number {
   const g = Math.round(Phaser.Math.Linear(g1, g2, ratio));
   const b = Math.round(Phaser.Math.Linear(b1, b2, ratio));
   return (r << 16) | (g << 8) | b;
+}
+
+function hashString(value: string): number {
+  let hash = 0;
+  for (let index = 0; index < value.length; index += 1) {
+    hash = (hash * 31 + value.charCodeAt(index)) >>> 0;
+  }
+  return hash;
 }

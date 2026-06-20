@@ -265,6 +265,10 @@ export class SimulationCore {
     return cloneRecord(this.gameData.region_layout);
   }
 
+  getNetworkGraph(): Record<string, string[]> {
+    return cloneRecord(this.gameData.network_graph);
+  }
+
   getTechnologies(): Record<string, TechnologyDefinition> {
     return cloneRecord(this.technologies);
   }

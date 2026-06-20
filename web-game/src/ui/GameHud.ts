@@ -84,6 +84,8 @@ export class GameHud {
   private readonly visualProgress = new Map<string, number>();
   private pendingProgressAnimations: PendingProgressAnimation[] = [];
   private progressAnimationFrame: number | null = null;
+  private tooltipElement?: HTMLElement;
+  private tooltipTrigger?: HTMLElement;
 
   constructor(root: HTMLElement, simulation: SimulationCore, callbacks: HudCallbacks) {
     this.root = root;
@@ -95,6 +97,11 @@ export class GameHud {
     );
     this.root.addEventListener("click", (event) => this.handleClick(event));
     this.root.addEventListener("pointerdown", (event) => this.handlePointerDown(event));
+    this.root.addEventListener("pointerover", (event) => this.handleTooltipOver(event));
+    this.root.addEventListener("pointermove", (event) => this.handleTooltipMove(event));
+    this.root.addEventListener("pointerout", (event) => this.handleTooltipOut(event));
+    this.root.addEventListener("focusin", (event) => this.handleTooltipFocus(event));
+    this.root.addEventListener("focusout", () => this.hideTooltip());
     this.root.addEventListener("dblclick", (event) => this.handleDoubleClick(event));
     window.addEventListener("resize", () => this.handleViewportResize());
   }
@@ -143,7 +150,7 @@ export class GameHud {
       </section>
 
       <section class="alerts-panel" aria-label="Alertes" data-onboarding-target="alerts.panel">
-        ${alerts.length === 0 ? `<div class="alert-empty">Systemes stables</div>` : alerts.map((alert) => `
+        ${alerts.length === 0 ? this.stableStatusCards(summary) : alerts.map((alert) => `
           ${this.alertCard(alert)}
         `).join("")}
       </section>
@@ -267,7 +274,7 @@ export class GameHud {
       : "";
     return `
       <article class="alert-item alert-${alert.state} ${alert.actionable ? "is-actionable" : "is-info"}" data-alert="${escapeHtml(alert.id)}">
-        <button class="alert-main" type="button" ${alert.region_id ? `data-region="${escapeHtml(alert.region_id)}"` : ""}>
+        <button class="alert-main" type="button" ${alert.region_id ? `data-region="${escapeHtml(alert.region_id)}"` : ""} ${this.tooltipAttrs(alert.title, alert.body, alert.actionable ? "Cliquer pour cadrer la region" : "Information systeme")}>
           <strong>${escapeHtml(alert.title)}</strong>
           <span>${escapeHtml(alert.body)}</span>
         </button>
@@ -275,6 +282,23 @@ export class GameHud {
         ${progress}
       </article>
     `;
+  }
+
+  private stableStatusCards(summary: ReturnType<SimulationCore["getSummary"]>): string {
+    const cards = [
+      ["GRID STABLE", "Systems nominal"],
+      ["MARKET UPDATE", `Budget ${fmt(summary.money)}M`],
+      ["RESEARCH READY", `${fmt(summary.researchers_available)} researchers`],
+      ["SIMULATION", summary.date_text]
+    ];
+    return cards.map(([title, body]) => `
+      <article class="alert-item alert-stable is-info">
+        <div class="alert-main">
+          <strong>${escapeHtml(title)}</strong>
+          <span>${escapeHtml(body)}</span>
+        </div>
+      </article>
+    `).join("");
   }
 
   private regionPanel(region: RegionSnapshot, buildings: Record<string, BuildingDefinition>, monthProgress: number): string {
@@ -399,7 +423,7 @@ export class GameHud {
   private builtCard(buildingId: string, building: BuildingDefinition | undefined, index: number): string {
     const demolishCost = building ? Math.ceil(building.cost * 0.2) : 0;
     return `
-      <button class="built-card" type="button" data-demolish="${index}" title="Demonter ${escapeHtml(building?.display_name ?? buildingId)} (${demolishCost}M)">
+      <button class="built-card" type="button" data-demolish="${index}" title="Demonter ${escapeHtml(building?.display_name ?? buildingId)} (${demolishCost}M)" ${this.tooltipAttrs(building?.display_name ?? buildingId, this.buildingTooltipBody(building), `Demontage ${demolishCost}M`)}>
         ${this.buildingArt(building)}
         <span class="built-copy">
           <strong>${escapeHtml(building?.display_name ?? buildingId)}</strong>
@@ -536,7 +560,7 @@ export class GameHud {
     const reason = availability?.reason ?? "";
     const cause = availability?.cause ? `data-availability-cause="${availability.cause}"` : "";
     return `
-      <button class="build-card ${enabled ? "" : "is-disabled"}" type="button" data-build="${building.id}" data-onboarding-target="build.${building.id}" ${cause} ${enabled ? "" : "disabled"} title="${escapeHtml(reason || building.description)}">
+      <button class="build-card ${enabled ? "" : "is-disabled"}" type="button" data-build="${building.id}" data-onboarding-target="build.${building.id}" ${cause} ${enabled ? "" : "disabled"} title="${escapeHtml(reason || building.description)}" ${this.tooltipAttrs(building.display_name, this.buildingTooltipBody(building), enabled ? "Disponible" : reason || "Verrouille")}>
         <span class="build-visual" aria-hidden="true">
           ${this.buildingArt(building)}
           ${this.buildingBadges(building, availability)}
@@ -560,6 +584,29 @@ export class GameHud {
       return true;
     }
     return !BUILD_ACCESS_LOCK_CAUSES.includes(availability.cause);
+  }
+
+  private tooltipAttrs(title: string, body: string, meta = ""): string {
+    return `data-rich-tooltip="1" data-tooltip-title="${escapeHtml(title)}" data-tooltip-body="${escapeHtml(body)}" data-tooltip-meta="${escapeHtml(meta)}"`;
+  }
+
+  private buildingTooltipBody(building: BuildingDefinition | undefined): string {
+    if (!building) {
+      return "Infrastructure regionale.";
+    }
+    const basics = `${CATEGORY_LABELS[building.category] ?? building.category} - ${building.cost}M - ${building.construction_months}m - ${building.slots_required} slots`;
+    const output = this.buildingSummary(building);
+    const demand: string[] = [];
+    if (building.consumes_energy > 0) {
+      demand.push(`-${fmt(building.consumes_energy)} Energie`);
+    }
+    if (building.consumes_cooling > 0) {
+      demand.push(`-${fmt(building.consumes_cooling)} Froid`);
+    }
+    if (building.researchers_required > 0) {
+      demand.push(`${fmt(building.researchers_required)} chercheurs`);
+    }
+    return [basics, output, demand.join(" / "), building.description].filter(Boolean).join(" | ");
   }
 
   private buildingBadges(building: BuildingDefinition, availability: BuildAvailability | undefined): string {
@@ -819,6 +866,103 @@ export class GameHud {
       return option.effect_value;
     }
     return option.effect_key;
+  }
+
+  private handleTooltipOver(event: PointerEvent): void {
+    const trigger = (event.target as HTMLElement).closest<HTMLElement>("[data-rich-tooltip]");
+    if (!trigger) {
+      return;
+    }
+    this.showTooltip(trigger, event.clientX, event.clientY);
+  }
+
+  private handleTooltipMove(event: PointerEvent): void {
+    if (!this.tooltipElement || !this.tooltipTrigger) {
+      return;
+    }
+    this.positionTooltip(event.clientX, event.clientY);
+  }
+
+  private handleTooltipOut(event: PointerEvent): void {
+    const trigger = (event.target as HTMLElement).closest<HTMLElement>("[data-rich-tooltip]");
+    if (!trigger) {
+      return;
+    }
+    const related = event.relatedTarget;
+    if (related instanceof Node && trigger.contains(related)) {
+      return;
+    }
+    this.hideTooltip();
+  }
+
+  private handleTooltipFocus(event: FocusEvent): void {
+    const trigger = (event.target as HTMLElement).closest<HTMLElement>("[data-rich-tooltip]");
+    if (!trigger) {
+      return;
+    }
+    const rect = trigger.getBoundingClientRect();
+    this.showTooltip(trigger, rect.left + rect.width / 2, rect.top + rect.height / 2);
+  }
+
+  private showTooltip(trigger: HTMLElement, x: number, y: number): void {
+    const title = trigger.dataset.tooltipTitle ?? "";
+    const body = trigger.dataset.tooltipBody ?? "";
+    const meta = trigger.dataset.tooltipMeta ?? "";
+    if (!title && !body && !meta) {
+      return;
+    }
+
+    const tooltip = this.ensureTooltipElement();
+    const titleElement = document.createElement("strong");
+    titleElement.textContent = title;
+    const bodyElement = document.createElement("span");
+    bodyElement.textContent = body;
+    tooltip.replaceChildren(titleElement, bodyElement);
+    if (meta) {
+      const metaElement = document.createElement("small");
+      metaElement.textContent = meta;
+      tooltip.append(metaElement);
+    }
+    tooltip.classList.add("is-visible");
+    this.tooltipTrigger = trigger;
+    this.positionTooltip(x, y);
+  }
+
+  private ensureTooltipElement(): HTMLElement {
+    if (this.tooltipElement?.isConnected) {
+      return this.tooltipElement;
+    }
+    const tooltip = document.createElement("div");
+    tooltip.className = "rich-tooltip";
+    tooltip.setAttribute("role", "tooltip");
+    this.root.append(tooltip);
+    this.tooltipElement = tooltip;
+    return tooltip;
+  }
+
+  private positionTooltip(x: number, y: number): void {
+    const tooltip = this.tooltipElement;
+    if (!tooltip) {
+      return;
+    }
+    const margin = 12;
+    const offset = 16;
+    const rect = tooltip.getBoundingClientRect();
+    let left = x + offset;
+    let top = y + offset;
+    if (left + rect.width > window.innerWidth - margin) {
+      left = x - rect.width - offset;
+    }
+    if (top + rect.height > window.innerHeight - margin) {
+      top = y - rect.height - offset;
+    }
+    tooltip.style.left = `${Math.max(margin, left)}px`;
+    tooltip.style.top = `${Math.max(margin, top)}px`;
+  }
+
+  private hideTooltip(): void {
+    this.tooltipElement?.classList.remove("is-visible");
+    this.tooltipTrigger = undefined;
   }
 
   private handleClick(event: Event): void {
