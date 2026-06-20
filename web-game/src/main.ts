@@ -80,7 +80,7 @@ const hud = new GameHud(hudRoot, simulation, {
   },
   onSpeed: (speed) => {
     simulation.setSimulationSpeed(speed);
-    redraw(false);
+    redraw();
   },
   onSelectRegion: (regionId) => {
     simulation.selectRegion(regionId);

@@ -86,6 +86,7 @@ test.describe("E-Grid 2045 web game visuals", () => {
     expect(paletteMetrics.scrollHeight).toBeLessThanOrEqual(paletteMetrics.clientHeight + 1);
     expect(paletteMetrics.gridDisplay).toBe("flex");
     expect(paletteMetrics.gridOverflowY).toBe("hidden");
+    await expectBuildPaletteNoInternalOverlap(page);
     await page.screenshot({ path: testInfo.outputPath("construction-accordion-no-vertical-scroll.png"), fullPage: true });
   });
 
@@ -97,11 +98,14 @@ test.describe("E-Grid 2045 web game visuals", () => {
       clientHeight: element.clientHeight,
       scrollHeight: element.scrollHeight,
       visibleCategories: document.querySelectorAll(".build-category-content .build-category").length,
+      contentDisplay: getComputedStyle(element).display,
       contentOverflowY: getComputedStyle(element).overflowY
     }));
     expect(allMetrics.visibleCategories).toBeGreaterThan(1);
     expect(allMetrics.scrollHeight).toBeGreaterThan(allMetrics.clientHeight);
+    expect(allMetrics.contentDisplay).toBe("flex");
     expect(allMetrics.contentOverflowY).toBe("auto");
+    await expectBuildPaletteNoInternalOverlap(page);
     await page.screenshot({ path: testInfo.outputPath("construction-all-mode-stacked.png"), fullPage: true });
   });
 
@@ -128,6 +132,57 @@ test.describe("E-Grid 2045 web game visuals", () => {
     await expect(lockedBattery).toBeDisabled();
     await expect(lockedBattery).toHaveAttribute("data-availability-cause", "technology");
     await page.screenshot({ path: testInfo.outputPath("construction-locked-filter.png"), fullPage: true });
+  });
+
+  test("dock filter toggles live in the palette header only when open", async ({ page }, testInfo) => {
+    await openGame(page, 1600, 900);
+
+    await expect(page.locator(".build-toolbar")).toHaveCount(0);
+    await expect(page.locator(".research-toolbar")).toHaveCount(0);
+    await expect(page.locator('.palette-header [data-filter-toggle="locked-buildings"]')).toBeVisible();
+    await expect(page.locator('[data-filter-toggle="unavailable-research"]')).toHaveCount(0);
+
+    await page.getByRole("button", { name: "Fermer" }).click();
+    await expect(page.locator(".build-palette")).not.toHaveClass(/is-open/);
+    await expect(page.locator(".palette-header [data-filter-toggle]")).toHaveCount(0);
+
+    await page.getByRole("button", { name: "Construire" }).click();
+    await page.locator('[data-palette-tab="research"]').click();
+    await expect(page.locator('.palette-header [data-filter-toggle="unavailable-research"]')).toBeVisible();
+    await expect(page.locator('[data-filter-toggle="locked-buildings"]')).toHaveCount(0);
+    await page.screenshot({ path: testInfo.outputPath("dock-filter-toggle-header.png"), fullPage: true });
+  });
+
+  test("construction cards are compact and content-sized across key viewports", async ({ page }, testInfo) => {
+    for (const [width, height] of [[1600, 900], [768, 1024], [390, 844]] as const) {
+      await openGame(page, width, height);
+      if (width < 720) {
+        await page.getByRole("button", { name: "Construire" }).click();
+      }
+      const metrics = await page.locator(".build-card").first().evaluate((element) => {
+        const style = getComputedStyle(element);
+        const visual = element.querySelector<HTMLElement>(".build-visual")?.getBoundingClientRect();
+        const rect = element.getBoundingClientRect();
+        return {
+          height: rect.height,
+          width: rect.width,
+          paddingTop: parseFloat(style.paddingTop),
+          paddingRight: parseFloat(style.paddingRight),
+          alignSelf: style.alignSelf,
+          visualWidth: visual?.width ?? 0,
+          visualHeight: visual?.height ?? 0
+        };
+      });
+      expect(metrics.height).toBeLessThanOrEqual(width < 720 ? 96 : 88);
+      expect(metrics.width).toBeLessThanOrEqual(width < 720 ? 214 : 226);
+      expect(metrics.paddingTop).toBe(4);
+      expect(metrics.paddingRight).toBe(4);
+      expect(metrics.alignSelf).toBe("flex-start");
+      expect(metrics.visualWidth).toBe(52);
+      expect(metrics.visualHeight).toBe(48);
+      await expectHudNoMajorOverlap(page);
+    }
+    await page.screenshot({ path: testInfo.outputPath("construction-card-compact-responsive.png"), fullPage: true });
   });
 
   test("bottom dock and right panel can be resized and reset", async ({ page }, testInfo) => {
@@ -539,6 +594,135 @@ test.describe("E-Grid 2045 web game visuals", () => {
     expect(afterThreshold).toBeGreaterThanOrEqual(startMonth + 1);
   });
 
+  test("speed controls pause immediately and stop month progress", async ({ page }, testInfo) => {
+    await openLiveGame(page, 1600, 900);
+    await page.evaluate(() => {
+      const game = window.__EGRID__;
+      if (!game) {
+        return;
+      }
+      game.simulation.setSimulationSpeed(1);
+      game.hud.render();
+      game.scene.renderState();
+    });
+    await expect(page.locator('[data-speed="1"]')).toHaveClass(/is-active/);
+    await page.waitForTimeout(260);
+
+    await page.locator('[data-speed="0"]').click();
+    await expect(page.locator('[data-speed="0"]')).toHaveClass(/is-active/);
+    const pausedState = await page.evaluate(() => {
+      const game = window.__EGRID__;
+      const summary = game?.simulation.getSummary();
+      return {
+        paused: summary?.paused,
+        running: game?.simulation.isRunning(),
+        month: summary?.month_index,
+        progress: game?.simulation.getMonthProgress()
+      };
+    });
+    expect(pausedState.paused).toBe(true);
+    expect(pausedState.running).toBe(false);
+
+    await page.waitForTimeout(650);
+    const afterWait = await page.evaluate(() => {
+      const game = window.__EGRID__;
+      const summary = game?.simulation.getSummary();
+      return {
+        month: summary?.month_index,
+        progress: game?.simulation.getMonthProgress()
+      };
+    });
+    expect(afterWait.month).toBe(pausedState.month);
+    expect(Math.abs((afterWait.progress ?? 0) - (pausedState.progress ?? 0))).toBeLessThan(0.01);
+    await page.screenshot({ path: testInfo.outputPath("speed-pause-active.png"), fullPage: true });
+  });
+
+  test("month progress updates visual bars without replacing dock DOM nodes", async ({ page }, testInfo) => {
+    await openGame(page, 1600, 900);
+    const before = await page.evaluate(() => {
+      const game = window.__EGRID__;
+      if (!game) {
+        return { progress: 0 };
+      }
+      game.simulation.state.money = 10000;
+      game.simulation.selectRegion("fr_nord");
+      game.simulation.requestBuilding("fr_nord", "university");
+      game.simulation.setSimulationSpeed(1);
+      game.hud.render();
+      game.scene.focusRegion("fr_nord");
+      game.scene.renderState();
+      const progress = document.querySelector<HTMLElement>('[data-progress-fill="construction"]');
+      (window as any).__EGRID_STABLE_NODES__ = {
+        palette: document.querySelector(".build-palette"),
+        paletteToggle: document.querySelector('[data-action="toggle-palette"]'),
+        constructionTab: document.querySelector('[data-palette-tab="construction"]'),
+        firstBuildButton: document.querySelector("[data-build]"),
+        progress
+      };
+      return {
+        progress: parseFloat(getComputedStyle(progress as HTMLElement).getPropertyValue("--progress"))
+      };
+    });
+
+    await page.evaluate(() => {
+      const game = window.__EGRID__;
+      if (!game) {
+        return;
+      }
+      game.simulation.stepSimulationTime(game.simulation.secondsPerMonth / 2);
+      game.hud.updateVisualProgress();
+    });
+
+    const after = await page.evaluate(() => {
+      const nodes = (window as any).__EGRID_STABLE_NODES__;
+      const progress = document.querySelector<HTMLElement>('[data-progress-fill="construction"]');
+      return {
+        progress: progress ? parseFloat(getComputedStyle(progress).getPropertyValue("--progress")) : 0,
+        paletteStable: nodes.palette === document.querySelector(".build-palette"),
+        toggleStable: nodes.paletteToggle === document.querySelector('[data-action="toggle-palette"]'),
+        tabStable: nodes.constructionTab === document.querySelector('[data-palette-tab="construction"]'),
+        buildButtonStable: nodes.firstBuildButton === document.querySelector("[data-build]"),
+        progressStable: nodes.progress === progress
+      };
+    });
+    expect(after.progress).toBeGreaterThan(before.progress);
+    expect(after.paletteStable).toBe(true);
+    expect(after.toggleStable).toBe(true);
+    expect(after.tabStable).toBe(true);
+    expect(after.buildButtonStable).toBe(true);
+    expect(after.progressStable).toBe(true);
+    await page.screenshot({ path: testInfo.outputPath("month-progress-dom-stability.png"), fullPage: true });
+  });
+
+  test("speed 4 keeps dock clicks reliable across filters tabs categories and build", async ({ page }, testInfo) => {
+    await openLiveGame(page, 1600, 900);
+    await page.evaluate(() => {
+      const game = window.__EGRID__;
+      if (!game) {
+        return;
+      }
+      game.simulation.state.money = 10000;
+      game.simulation.setSimulationSpeed(4);
+      game.hud.render();
+    });
+
+    await page.locator('[data-filter-toggle="locked-buildings"]').click();
+    await expect(page.locator('[data-build="battery_storage"]')).toBeVisible();
+    await page.locator('[data-palette-tab="research"]').click();
+    await expect(page.locator('[data-filter-toggle="unavailable-research"]')).toBeVisible();
+    await page.locator('[data-filter-toggle="unavailable-research"]').click();
+    await expect(page.locator('[data-research="batteries"]')).toBeVisible();
+    await page.locator('[data-palette-tab="construction"]').click();
+    await page.locator('[data-build-category="energy"]').click();
+    await page.locator('[data-build="gas_power_plant"]').click();
+
+    const queueLength = await page.evaluate(() =>
+      window.__EGRID__?.simulation.getRegionSnapshot("fr_nord")?.construction_queue.length ?? 0
+    );
+    expect(queueLength).toBeGreaterThan(0);
+    await page.screenshot({ path: testInfo.outputPath("speed4-dock-click-regression.png"), fullPage: true });
+  });
+
   test("selected far region is focused inside the visible map safe area", async ({ page }, testInfo) => {
     await openGame(page, 1600, 900);
     const focusedRegion = await page.evaluate(() => {
@@ -693,6 +877,51 @@ async function expectHudNoMajorOverlap(page: Page): Promise<void> {
       }
     }
   }
+  expect(collisions).toEqual([]);
+}
+
+async function expectBuildPaletteNoInternalOverlap(page: Page): Promise<void> {
+  const collisions = await page.evaluate(() => {
+    const elements = [
+      ...document.querySelectorAll<HTMLElement>(".build-category h2"),
+      ...document.querySelectorAll<HTMLElement>(".build-card")
+    ];
+    const rects = elements
+      .map((element) => {
+        const style = getComputedStyle(element);
+        const rect = element.getBoundingClientRect();
+        if (style.display === "none" || rect.width < 2 || rect.height < 2) {
+          return null;
+        }
+        return {
+          selector: `${element.matches("h2") ? "heading" : "card"}:${(element.textContent ?? "").trim().replace(/\s+/g, " ").slice(0, 32)}`,
+          x: rect.x,
+          y: rect.y,
+          width: rect.width,
+          height: rect.height
+        };
+      })
+      .filter(Boolean) as Rect[];
+
+    const found: string[] = [];
+    const intersects = (a: Rect, b: Rect): boolean => {
+      const pad = 2;
+      return !(
+        a.x + a.width <= b.x + pad ||
+        b.x + b.width <= a.x + pad ||
+        a.y + a.height <= b.y + pad ||
+        b.y + b.height <= a.y + pad
+      );
+    };
+    for (let a = 0; a < rects.length; a += 1) {
+      for (let b = a + 1; b < rects.length; b += 1) {
+        if (intersects(rects[a], rects[b])) {
+          found.push(`${rects[a].selector} overlaps ${rects[b].selector}`);
+        }
+      }
+    }
+    return found;
+  });
   expect(collisions).toEqual([]);
 }
 

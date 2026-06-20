@@ -10,6 +10,12 @@ on:
       - ready_for_review
     branches:
       - main
+  workflow_run:
+    workflows:
+      - Godot CI
+      - Web game CI
+    types:
+      - completed
 
 permissions:
   contents: read
@@ -17,37 +23,74 @@ permissions:
   pull-requests: read
 
 concurrency:
-  group: label-pr-version-bump-${{ github.event.pull_request.number }}
-  cancel-in-progress: true
+  group: label-pr-version-bump-${{ github.event_name == 'pull_request_target' && github.event.pull_request.number || github.event.workflow_run.pull_requests[0].number || github.run_id }}
+  cancel-in-progress: false
 
 jobs:
   label:
     name: Classify PR version bump
-    if: ${{ github.event.pull_request.state == 'open' }}
+    if: ${{ github.event_name == 'pull_request_target' || (github.event_name == 'workflow_run' && github.event.workflow_run.event == 'pull_request') }}
     runs-on: ubuntu-24.04
     steps:
+      - name: Resolve PR context
+        id: pr
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          event_path = Path(os.environ["GITHUB_EVENT_PATH"])
+          event = json.loads(event_path.read_text(encoding="utf-8"))
+          event_name = os.environ.get("GITHUB_EVENT_NAME", "")
+
+          pr_number = ""
+          checkout_ref = event.get("repository", {}).get("default_branch") or "main"
+
+          if event_name == "pull_request_target":
+              pr = event.get("pull_request", {})
+              if pr.get("state") == "open":
+                  pr_number = str(pr.get("number", ""))
+                  checkout_ref = pr.get("base", {}).get("sha") or checkout_ref
+          elif event_name == "workflow_run":
+              workflow_run = event.get("workflow_run", {})
+              pull_requests = workflow_run.get("pull_requests") or []
+              if workflow_run.get("event") == "pull_request" and pull_requests:
+                  pr_number = str(pull_requests[0].get("number", ""))
+
+          with Path(os.environ["GITHUB_OUTPUT"]).open("a", encoding="utf-8") as output:
+              output.write(f"pr_number={pr_number}\n")
+              output.write(f"checkout_ref={checkout_ref}\n")
+          PY
+
       - name: Checkout trusted classifier from base branch
+        if: ${{ steps.pr.outputs.pr_number != '' }}
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.base.sha }}
+          ref: ${{ steps.pr.outputs.checkout_ref }}
           sparse-checkout: .github/scripts/classify-semver-bump.py
           sparse-checkout-cone-mode: false
           persist-credentials: false
 
       - name: Check classifier availability
+        if: ${{ steps.pr.outputs.pr_number != '' }}
         id: classifier
         run: |
           if [[ -f .github/scripts/classify-semver-bump.py ]]; then
             echo "available=true" >> "${GITHUB_OUTPUT}"
           else
             echo "available=false" >> "${GITHUB_OUTPUT}"
-            echo "::error::Classifier script is not present on the base branch."
+            echo "::error::Classifier script is not present on the trusted ref."
             exit 1
           fi
 
       - name: Apply semver label
-        if: ${{ steps.classifier.outputs.available == 'true' }}
+        if: ${{ steps.pr.outputs.pr_number != '' && steps.classifier.outputs.available == 'true' }}
         env:
           GITHUB_TOKEN: ${{ secrets.REPO_ADMIN_TOKEN || github.token }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_NUMBER: ${{ steps.pr.outputs.pr_number }}
         run: python3 .github/scripts/classify-semver-bump.py
+
+      - name: Report skipped labeling
+        if: ${{ steps.pr.outputs.pr_number == '' }}
+        run: echo "No open pull request was found for this event; skipping semver labeling."

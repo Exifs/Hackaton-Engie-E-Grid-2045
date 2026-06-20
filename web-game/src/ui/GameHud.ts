@@ -160,6 +160,7 @@ export class GameHud {
             ${this.paletteTab("construction", "Construction")}
             ${this.paletteTab("research", "Recherche")}
           </div>
+          ${this.paletteOpen ? this.activeDockFilterToggle() : ""}
         </div>
         <div class="palette-body palette-body-${this.activeDockTab}" data-scroll-key="${this.activeDockTab}">
           ${this.activeDockTab === "construction"
@@ -332,7 +333,7 @@ export class GameHud {
         <span class="queue-copy">
           <strong>${escapeHtml(building?.display_name ?? item.building_id)}</strong>
           <small>${item.months_remaining}m restantes</small>
-          <i ${this.progressAttributes(progressKey, "--progress", "construction", targetProgress)} style="--progress:${progress}%"><b></b></i>
+          <i ${this.progressAttributes(progressKey, "--progress", "construction", targetProgress)} data-progress-fill="construction" data-progress-index="${index}" data-progress-building-id="${escapeHtml(item.building_id)}" style="--progress:${progress}%"><b></b></i>
         </span>
       </button>
     `;
@@ -354,7 +355,7 @@ export class GameHud {
         <span class="queue-copy">
           <strong>${escapeHtml(building?.display_name ?? item.building_id)}</strong>
           <small>Demolition · ${item.months_remaining}m restantes</small>
-          <i ${this.progressAttributes(progressKey, "--progress", "demolition", targetProgress)} style="--progress:${progress}%"><b></b></i>
+          <i ${this.progressAttributes(progressKey, "--progress", "demolition", targetProgress)} data-progress-fill="demolition" data-progress-index="${index}" data-progress-building-id="${escapeHtml(item.building_id)}" style="--progress:${progress}%"><b></b></i>
         </span>
       </span>
     `;
@@ -445,11 +446,8 @@ export class GameHud {
     const isAll = this.activeBuildCategory === ALL_BUILD_CATEGORY;
     return `
       <div class="build-accordion ${isAll ? "is-all" : "is-single"}">
-        <div class="build-toolbar">
-          <div class="build-category-tabs" role="tablist" aria-label="Categories batiments">
-            ${[ALL_BUILD_CATEGORY, ...categories].map((category) => this.buildCategoryTab(category, buildings, availability)).join("")}
-          </div>
-          ${this.filterToggle("locked-buildings", "Afficher verrouilles", this.showLockedBuildings)}
+        <div class="build-category-tabs" role="tablist" aria-label="Categories batiments">
+          ${[ALL_BUILD_CATEGORY, ...categories].map((category) => this.buildCategoryTab(category, buildings, availability)).join("")}
         </div>
         <div class="build-category-content">
           ${isAll
@@ -557,6 +555,13 @@ export class GameHud {
     return `<span class="build-badges">${badges.slice(0, 2).map((badge) => `<span>${escapeHtml(badge)}</span>`).join("")}</span>`;
   }
 
+  private activeDockFilterToggle(): string {
+    if (this.activeDockTab === "construction") {
+      return this.filterToggle("locked-buildings", "Afficher verrouilles", this.showLockedBuildings);
+    }
+    return this.filterToggle("unavailable-research", "Afficher indisponibles", this.showUnavailableResearch);
+  }
+
   private filterToggle(id: "locked-buildings" | "unavailable-research", label: string, checked: boolean): string {
     return `
       <button class="dock-filter-toggle ${checked ? "is-active" : ""}" type="button" data-filter-toggle="${id}" aria-pressed="${checked}">
@@ -583,10 +588,10 @@ export class GameHud {
     const activePoints = active ? this.visualResearchPoints(active, monthProgress) : 0;
     const statusMarkup = active
       ? `
-        <div class="research-status is-active" ${this.progressAttributes(this.activeResearchProgressKey(active), "--research-progress", "research-active", activeTargetProgress)} style="--research-progress:${activeProgress}%">
+        <div class="research-status is-active" ${this.progressAttributes(this.activeResearchProgressKey(active), "--research-progress", "research-active", activeTargetProgress)} data-progress-fill="research-active" data-progress-research-id="${escapeHtml(active.id)}" style="--research-progress:${activeProgress}%">
           <div>
             <strong>${escapeHtml(active.display_name)}</strong>
-            <span data-research-active-copy>${fmt(activeTargetProgress)}% - ${fmt(activePoints)}/${fmt(active.cost)} pts - ETA ${this.researchEta(active)} - +${fmt(active.monthly_points)} pts/mois</span>
+            <span data-research-active-copy data-research-active-detail>${fmt(activeTargetProgress)}% - ${fmt(activePoints)}/${fmt(active.cost)} pts - ETA ${this.researchEta(active)} - +${fmt(active.monthly_points)} pts/mois</span>
           </div>
         </div>
       `
@@ -594,9 +599,6 @@ export class GameHud {
     return `
       <div class="research-panel">
         ${statusMarkup}
-        <div class="research-toolbar">
-          ${this.filterToggle("unavailable-research", "Afficher indisponibles", this.showUnavailableResearch)}
-        </div>
         <div class="research-queue" aria-label="File de recherche">
           <div class="research-queue-title"><span>File</span><strong>${queued.length}</strong></div>
           ${queued.length === 0
@@ -647,7 +649,7 @@ export class GameHud {
           <strong>${escapeHtml(option.display_name)}</strong>
           <small>${escapeHtml(option.branch)} T${option.tier} · ${fmt(option.cost)} pts · ${this.researchEta(option)}</small>
         </span>
-        <span class="research-progress" ${this.progressAttributes(progressKey, "--progress", "research-card", targetProgress)} style="--progress:${progress}%"><b></b></span>
+        <span class="research-progress" ${this.progressAttributes(progressKey, "--progress", "research-card", targetProgress)} data-progress-fill="research-card" data-progress-research-id="${escapeHtml(option.id)}" style="--progress:${progress}%"><b></b></span>
         <span class="research-copy">${escapeHtml(option.reason || option.notes || effect)}</span>
         <span class="research-tags">
           ${unlocks.map((unlock) => `<span>Debloque ${escapeHtml(unlock)}</span>`).join("")}
