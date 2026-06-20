@@ -14,7 +14,7 @@ on:
 permissions:
   contents: read
   issues: write
-  pull-requests: read
+  pull-requests: write
 
 concurrency:
   group: label-pr-version-bump-${{ github.event.pull_request.number }}
@@ -68,6 +68,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
+          SEMVER_OUTPUT_FILE: semver-label.env
           SYNC_LABELS: "false"
         run: python3 .github/scripts/classify-semver-bump.py
 
@@ -85,15 +86,21 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
-          LABEL: ${{ steps.classify.outputs.label }}
         run: |
           set -euo pipefail
 
-          if [[ -z "${LABEL}" ]]; then
+          if [[ ! -f semver-label.env ]]; then
+            echo "::error::Classifier did not write semver-label.env."
+            exit 1
+          fi
+          source semver-label.env
+
+          if [[ -z "${LABEL:-}" ]]; then
             echo "::error::Classifier did not output a semver label."
             exit 1
           fi
 
+          echo "Applying ${LABEL} to PR #${PR_NUMBER}."
           for candidate in "semver:major" "semver:minor" "semver:patch"; do
             if [[ "${candidate}" != "${LABEL}" ]]; then
               encoded_label="$(python3 -c 'import sys, urllib.parse; print(urllib.parse.quote(sys.argv[1], safe=""))' "${candidate}")"
@@ -109,5 +116,6 @@ jobs:
             --method POST \
             -H "Accept: application/vnd.github+json" \
             "repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/labels" \
-            -f labels[]="${LABEL}" \
-            --silent
+            --input - <<JSON
+          {"labels":["${LABEL}"]}
+          JSON
