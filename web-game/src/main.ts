@@ -46,6 +46,18 @@ document.documentElement.style.setProperty(
   "--building-art-atlas",
   cssUrlForPageAsset("assets/generated/building-card-art-atlas.png")
 );
+for (const [name, file] of Object.entries({
+  energy: "00_energy.png",
+  datacenter: "01_datacenter.png",
+  cooling: "02_cooling.png",
+  research: "03_research.png",
+  grid: "04_grid.png"
+})) {
+  document.documentElement.style.setProperty(
+    `--utility-icon-${name}`,
+    cssUrlForPageAsset(`assets/ui/utility_icons_48px/${file}`)
+  );
+}
 
 const data = await DataLoader.load();
 const simulation = new SimulationCore(data);

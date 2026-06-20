@@ -39,6 +39,7 @@ export class EGridMapScene extends Phaser.Scene {
   private mapImage?: Phaser.GameObjects.Image;
   private flowLayer?: Phaser.GameObjects.Graphics;
   private structureLayer?: Phaser.GameObjects.Graphics;
+  private structureSpriteLayer?: Phaser.GameObjects.Container;
   private regionLayer?: Phaser.GameObjects.Graphics;
   private slotLayer?: Phaser.GameObjects.Graphics;
   private labelLayer?: Phaser.GameObjects.Container;
@@ -62,12 +63,17 @@ export class EGridMapScene extends Phaser.Scene {
       "map-backdrop",
       `${import.meta.env.BASE_URL}assets/map/europe_map_backdrop_generated_clean_v1.png`
     );
+    this.load.image(
+      "building-icon-atlas",
+      `${import.meta.env.BASE_URL}assets/generated/building-icon-atlas.png`
+    );
   }
 
   create(): void {
     this.mapImage = this.add.image(0, 0, "map-backdrop").setOrigin(0, 0).setAlpha(0.94);
     this.flowLayer = this.add.graphics();
     this.structureLayer = this.add.graphics();
+    this.structureSpriteLayer = this.add.container(0, 0);
     this.regionLayer = this.add.graphics();
     this.slotLayer = this.add.graphics();
     this.labelLayer = this.add.container(0, 0);
@@ -132,7 +138,15 @@ export class EGridMapScene extends Phaser.Scene {
   }
 
   renderState(): void {
-    if (!this.flowLayer || !this.structureLayer || !this.regionLayer || !this.slotLayer || !this.labelLayer || !this.mapImage) {
+    if (
+      !this.flowLayer ||
+      !this.structureLayer ||
+      !this.structureSpriteLayer ||
+      !this.regionLayer ||
+      !this.slotLayer ||
+      !this.labelLayer ||
+      !this.mapImage
+    ) {
       return;
     }
 
@@ -156,8 +170,9 @@ export class EGridMapScene extends Phaser.Scene {
       .setDepth(0);
     this.mapImage?.setDepth(1);
     this.flowLayer?.setDepth(2);
-    this.structureLayer?.setDepth(3);
-    this.regionLayer?.setDepth(4);
+    this.regionLayer?.setDepth(3);
+    this.structureLayer?.setDepth(4);
+    this.structureSpriteLayer?.setDepth(4.5);
     this.slotLayer?.setDepth(5);
     this.labelLayer?.setDepth(6);
   }
@@ -248,8 +263,20 @@ export class EGridMapScene extends Phaser.Scene {
       return;
     }
     graphics.clear();
+    this.structureSpriteLayer?.removeAll(true);
 
     const regions = this.simulation.getRegionsSnapshot();
+    const selectedRegionId = this.simulation.getSummary().selected_region_id;
+    const isConceptScenario = document.documentElement.dataset.conceptScenario === "1";
+    const scale = Phaser.Math.Clamp(Math.min(rect.width, rect.height) / 760, 0.82, 1.35);
+    const candidates: Array<{
+      region: RegionSnapshot;
+      point: { x: number; y: number };
+      hash: number;
+      visualWeight: number;
+      score: number;
+    }> = [];
+
     for (const [regionId, region] of Object.entries(regions)) {
       const layout = region.layout as RegionLayout;
       if (!layout || layout.x === undefined || layout.y === undefined) {
@@ -265,16 +292,121 @@ export class EGridMapScene extends Phaser.Scene {
         (region.potential_research > 0.7 ? 1 : 0) +
         (region.potential_grid > 0.7 ? 1 : 0);
 
-      if (visualWeight <= 0 && hash % 3 !== 0) {
+      if (visualWeight <= 0 && (isConceptScenario || hash % 3 !== 0)) {
         continue;
       }
 
-      const scale = Phaser.Math.Clamp(Math.min(rect.width, rect.height) / 760, 0.82, 1.35);
+      const score =
+        visualWeight +
+        region.buildings.length * 0.55 +
+        (regionId === selectedRegionId ? 8 : 0) +
+        ((region.cached.network_congested ?? false) ? 1.8 : 0);
+      candidates.push({ region, point, hash, visualWeight, score });
+    }
+
+    const visibleCandidates = isConceptScenario
+      ? candidates
+        .sort((left, right) => right.score - left.score)
+        .slice(0, 15)
+        .sort((left, right) => left.point.y - right.point.y)
+      : candidates;
+
+    for (const { region, point, hash } of visibleCandidates) {
       const accent = hash % 5 === 0 ? HEATMAP_COLORS.compute : hash % 4 === 0 ? HEATMAP_COLORS.cooling : HEATMAP_COLORS.energy;
       const offsetX = ((hash % 7) - 3) * scale * 1.6;
       const offsetY = -8 * scale + (((hash >> 3) % 5) - 2) * scale;
-      this.drawModuleMarker(graphics, point.x + offsetX, point.y + offsetY, scale, accent, hash);
+      const moduleX = point.x + offsetX;
+      const moduleY = point.y + offsetY;
+      this.drawIsoBase(graphics, moduleX, moduleY + 12 * scale, 38 * scale, 22 * scale, accent);
+      if (!this.drawModuleSprite(moduleX, moduleY, scale, this.moduleIconIndex(region, hash), accent)) {
+        this.drawModuleMarker(graphics, moduleX, moduleY, scale, accent, hash);
+      }
     }
+  }
+
+  private drawModuleSprite(x: number, y: number, scale: number, iconIndex: number, accent: number): boolean {
+    const container = this.structureSpriteLayer;
+    if (!container || !this.textures.exists("building-icon-atlas")) {
+      return false;
+    }
+    const texture = this.textures.get("building-icon-atlas");
+    const source = texture.getSourceImage() as HTMLImageElement | HTMLCanvasElement | undefined;
+    if (!source?.width || !source?.height) {
+      return false;
+    }
+
+    const columns = 4;
+    const rows = 4;
+    const cellWidth = source.width / columns;
+    const cellHeight = source.height / rows;
+    const clampedIndex = Phaser.Math.Clamp(Math.trunc(iconIndex), 0, columns * rows - 1);
+    const cropX = (clampedIndex % columns) * cellWidth;
+    const cropY = Math.floor(clampedIndex / columns) * cellHeight;
+    const isConceptScenario = document.documentElement.dataset.conceptScenario === "1";
+    const displaySize = (isConceptScenario ? 56 : 48) * scale;
+    const spriteScale = displaySize / cellWidth;
+    const spriteY = y - (isConceptScenario ? 8 : 6) * scale;
+    if (isConceptScenario) {
+      const glow = this.add
+        .image(x, spriteY + 2 * scale, "building-icon-atlas")
+        .setOrigin(0.5, 0.74)
+        .setCrop(cropX, cropY, cellWidth, cellHeight)
+        .setScale(spriteScale * 1.18)
+        .setTint(accent)
+        .setAlpha(0.28)
+        .setBlendMode(Phaser.BlendModes.ADD);
+      container.add(glow);
+    }
+    const image = this.add
+      .image(x, spriteY, "building-icon-atlas")
+      .setOrigin(0.5, 0.74)
+      .setCrop(cropX, cropY, cellWidth, cellHeight)
+      .setScale(spriteScale)
+      .setAlpha(isConceptScenario ? 1 : 0.95);
+    container.add(image);
+    return true;
+  }
+
+  private moduleIconIndex(region: RegionSnapshot, variant: number): number {
+    const ids = region.buildings.length > 0 ? region.buildings : [];
+    const selectedId = ids.length > 0 ? ids[Math.abs(variant) % ids.length] : "";
+    if (selectedId.includes("university")) {
+      return 0;
+    }
+    if (selectedId.includes("ai_research")) {
+      return 1;
+    }
+    if (selectedId.includes("research")) {
+      return 2;
+    }
+    if (selectedId.includes("datacenter")) {
+      return 3;
+    }
+    if (selectedId.includes("gas")) {
+      return 4;
+    }
+    if (selectedId.includes("nuclear")) {
+      return 5;
+    }
+    if (selectedId.includes("wind")) {
+      return 6;
+    }
+    if (selectedId.includes("solar")) {
+      return 7;
+    }
+    if (selectedId.includes("hydro")) {
+      return 8;
+    }
+    if (selectedId.includes("battery")) {
+      return 9;
+    }
+    if (selectedId.includes("cooling")) {
+      return 10;
+    }
+    if (selectedId.includes("grid") || selectedId.includes("supergrid")) {
+      return 11;
+    }
+    return variant % 5 === 0 ? 10 : variant % 5 === 1 ? 4 : 3;
   }
 
   private drawModuleMarker(
@@ -285,46 +417,204 @@ export class EGridMapScene extends Phaser.Scene {
     accent: number,
     variant: number
   ): void {
-    const width = 18 * scale;
-    const height = (28 + (variant % 3) * 6) * scale;
-    const baseY = y + 14 * scale;
+    const baseY = y + 12 * scale;
+    this.drawIsoBase(graphics, x, baseY, 38 * scale, 22 * scale, accent);
 
-    graphics.fillStyle(0x02080d, 0.52);
-    graphics.fillEllipse(x, baseY, 36 * scale, 12 * scale);
-    graphics.lineStyle(1, accent, 0.25);
-    graphics.strokeEllipse(x, baseY, 34 * scale, 10 * scale);
+    if (variant % 5 === 0) {
+      this.drawCoolingModule(graphics, x, baseY - 6 * scale, scale, accent);
+      return;
+    }
 
-    if (variant % 4 === 0) {
-      graphics.fillStyle(0x132430, 0.92);
-      graphics.fillRoundedRect(x - 13 * scale, y - 6 * scale, 26 * scale, 18 * scale, 3 * scale);
-      graphics.lineStyle(2, 0x9fdcff, 0.72);
-      graphics.strokeCircle(x, y - 7 * scale, 9 * scale);
-      graphics.lineStyle(1, accent, 0.78);
-      graphics.strokeCircle(x, y - 7 * scale, 5 * scale);
-      graphics.fillStyle(accent, 0.55);
-      graphics.fillCircle(x, y - 7 * scale, 2.4 * scale);
+    if (variant % 5 === 1) {
+      this.drawEnergyModule(graphics, x, baseY - 6 * scale, scale, accent);
       return;
     }
 
     const towerCount = variant % 3 === 0 ? 2 : 1;
     for (let index = 0; index < towerCount; index += 1) {
-      const towerX = x - (towerCount === 2 ? 9 * scale : 0) + index * 14 * scale;
-      const towerHeight = height * (index === 0 ? 1 : 0.78);
-      graphics.fillStyle(0x1d2d3a, 0.96);
-      graphics.fillRoundedRect(towerX - width / 2, y - towerHeight, width, towerHeight, 2 * scale);
-      graphics.fillStyle(0x2a4153, 0.72);
-      graphics.fillRect(towerX - width / 2 + 3 * scale, y - towerHeight + 3 * scale, width - 6 * scale, towerHeight - 6 * scale);
-      graphics.lineStyle(1.2, accent, 0.76);
-      graphics.strokeRoundedRect(towerX - width / 2, y - towerHeight, width, towerHeight, 2 * scale);
+      const towerX = x - (towerCount === 2 ? 8 * scale : 0) + index * 15 * scale;
+      const towerHeight = (28 + ((variant + index) % 3) * 6) * scale;
+      this.drawIsoTower(graphics, towerX, baseY - 5 * scale, 16 * scale, towerHeight, scale, accent, variant + index);
+    }
+  }
 
-      graphics.fillStyle(accent, 0.74);
-      const rowCount = Math.max(3, Math.floor(towerHeight / (7 * scale)));
-      for (let row = 0; row < rowCount; row += 1) {
-        const windowY = y - towerHeight + 5 * scale + row * 6 * scale;
-        graphics.fillRect(towerX - 5 * scale, windowY, 3 * scale, 2 * scale);
-        graphics.fillRect(towerX + 2 * scale, windowY, 3 * scale, 2 * scale);
+  private drawIsoBase(
+    graphics: Phaser.GameObjects.Graphics,
+    x: number,
+    y: number,
+    width: number,
+    depth: number,
+    accent: number
+  ): void {
+    const halfW = width / 2;
+    const halfD = depth / 2;
+    graphics.fillStyle(0x02080d, 0.58);
+    graphics.fillEllipse(x, y + halfD + 3, width * 1.08, depth * 0.72);
+
+    this.fillPoly(graphics, 0x132b37, 0.96, [
+      [x, y - halfD],
+      [x + halfW, y],
+      [x, y + halfD],
+      [x - halfW, y]
+    ]);
+    this.fillPoly(graphics, 0x081923, 0.9, [
+      [x - halfW, y],
+      [x, y + halfD],
+      [x, y + halfD + 7],
+      [x - halfW, y + 7]
+    ]);
+    this.fillPoly(graphics, 0x0d202c, 0.92, [
+      [x + halfW, y],
+      [x, y + halfD],
+      [x, y + halfD + 7],
+      [x + halfW, y + 7]
+    ]);
+
+    graphics.lineStyle(1, accent, 0.42);
+    this.strokePoly(graphics, [
+      [x, y - halfD],
+      [x + halfW, y],
+      [x, y + halfD],
+      [x - halfW, y]
+    ]);
+    graphics.fillStyle(accent, 0.16);
+    graphics.fillEllipse(x, y - halfD * 0.04, width * 0.56, depth * 0.34);
+    graphics.lineStyle(1, 0xd9fbff, 0.13);
+    graphics.lineBetween(x - halfW, y, x, y + halfD + 7);
+    graphics.lineBetween(x + halfW, y, x, y + halfD + 7);
+  }
+
+  private drawIsoTower(
+    graphics: Phaser.GameObjects.Graphics,
+    x: number,
+    footY: number,
+    width: number,
+    height: number,
+    scale: number,
+    accent: number,
+    variant: number
+  ): void {
+    const side = 5 * scale;
+    const topY = footY - height;
+    this.fillPoly(graphics, 0x152b39, 0.98, [
+      [x - width / 2, topY + side],
+      [x + width / 2, topY],
+      [x + width / 2, footY],
+      [x - width / 2, footY + side]
+    ]);
+    this.fillPoly(graphics, 0x071722, 0.95, [
+      [x + width / 2, topY],
+      [x + width / 2 + side, topY + side],
+      [x + width / 2 + side, footY + side],
+      [x + width / 2, footY]
+    ]);
+    this.fillPoly(graphics, 0x274656, 0.95, [
+      [x - width / 2, topY + side],
+      [x, topY - side * 0.42],
+      [x + width / 2 + side, topY + side],
+      [x + width / 2, topY + side * 2],
+      [x - width / 2, topY + side * 2]
+    ]);
+
+    graphics.lineStyle(1.2, accent, 0.72);
+    this.strokePoly(graphics, [
+      [x - width / 2, topY + side],
+      [x + width / 2, topY],
+      [x + width / 2 + side, topY + side],
+      [x + width / 2 + side, footY + side],
+      [x, footY + side * 1.38],
+      [x - width / 2, footY + side]
+    ]);
+
+    graphics.fillStyle(accent, 0.76);
+    const rowCount = Math.max(3, Math.floor(height / (7 * scale)));
+    for (let row = 0; row < rowCount; row += 1) {
+      const windowY = topY + 8 * scale + row * 6 * scale;
+      graphics.fillRect(x - width / 2 + 4 * scale, windowY, 2.6 * scale, 2 * scale);
+      graphics.fillRect(x + 1.2 * scale, windowY - 1 * scale, 2.6 * scale, 2 * scale);
+      if ((variant + row) % 2 === 0) {
+        graphics.fillRect(x + width / 2 + side * 0.32, windowY + 1 * scale, 1.5 * scale, 2 * scale);
       }
     }
+
+    graphics.fillStyle(0xdff8ff, 0.18);
+    graphics.fillRect(x - width / 2 + 2 * scale, topY + 6 * scale, 1.4 * scale, height * 0.78);
+  }
+
+  private drawCoolingModule(
+    graphics: Phaser.GameObjects.Graphics,
+    x: number,
+    y: number,
+    scale: number,
+    accent: number
+  ): void {
+    graphics.fillStyle(0x102532, 0.96);
+    graphics.fillRoundedRect(x - 15 * scale, y - 12 * scale, 30 * scale, 18 * scale, 3 * scale);
+    graphics.lineStyle(1.2, accent, 0.58);
+    graphics.strokeRoundedRect(x - 15 * scale, y - 12 * scale, 30 * scale, 18 * scale, 3 * scale);
+    graphics.lineStyle(2, 0xd8fbff, 0.52);
+    graphics.strokeCircle(x, y - 7 * scale, 8.4 * scale);
+    graphics.lineStyle(1.2, accent, 0.76);
+    graphics.strokeCircle(x, y - 7 * scale, 4.5 * scale);
+    for (let blade = 0; blade < 4; blade += 1) {
+      const angle = blade * Math.PI * 0.5 + 0.35;
+      const x2 = x + Math.cos(angle) * 7 * scale;
+      const y2 = y - 7 * scale + Math.sin(angle) * 7 * scale;
+      graphics.lineBetween(x, y - 7 * scale, x2, y2);
+    }
+    graphics.fillStyle(accent, 0.72);
+    graphics.fillCircle(x, y - 7 * scale, 2.4 * scale);
+  }
+
+  private drawEnergyModule(
+    graphics: Phaser.GameObjects.Graphics,
+    x: number,
+    y: number,
+    scale: number,
+    accent: number
+  ): void {
+    for (let index = 0; index < 2; index += 1) {
+      const stackX = x - 7 * scale + index * 13 * scale;
+      const stackHeight = (24 - index * 5) * scale;
+      graphics.fillStyle(0x22313b, 0.96);
+      graphics.fillRoundedRect(stackX - 4 * scale, y - stackHeight, 8 * scale, stackHeight, 2 * scale);
+      graphics.fillStyle(0x5d6f77, 0.5);
+      graphics.fillRect(stackX - 2.4 * scale, y - stackHeight + 3 * scale, 2 * scale, stackHeight - 6 * scale);
+      graphics.lineStyle(1.1, accent, 0.62);
+      graphics.strokeRoundedRect(stackX - 4 * scale, y - stackHeight, 8 * scale, stackHeight, 2 * scale);
+      graphics.fillStyle(0xffb25f, 0.74);
+      graphics.fillEllipse(stackX, y - stackHeight, 7 * scale, 3 * scale);
+    }
+    graphics.fillStyle(0x102532, 0.92);
+    graphics.fillRoundedRect(x - 16 * scale, y - 8 * scale, 32 * scale, 16 * scale, 3 * scale);
+    graphics.lineStyle(1, accent, 0.45);
+    graphics.strokeRoundedRect(x - 16 * scale, y - 8 * scale, 32 * scale, 16 * scale, 3 * scale);
+  }
+
+  private fillPoly(
+    graphics: Phaser.GameObjects.Graphics,
+    color: number,
+    alpha: number,
+    points: Array<[number, number]>
+  ): void {
+    graphics.fillStyle(color, alpha);
+    graphics.beginPath();
+    graphics.moveTo(points[0][0], points[0][1]);
+    for (const [pointX, pointY] of points.slice(1)) {
+      graphics.lineTo(pointX, pointY);
+    }
+    graphics.closePath();
+    graphics.fillPath();
+  }
+
+  private strokePoly(graphics: Phaser.GameObjects.Graphics, points: Array<[number, number]>): void {
+    graphics.beginPath();
+    graphics.moveTo(points[0][0], points[0][1]);
+    for (const [pointX, pointY] of points.slice(1)) {
+      graphics.lineTo(pointX, pointY);
+    }
+    graphics.closePath();
+    graphics.strokePath();
   }
 
   private drawRegions(rect: MapRect): void {

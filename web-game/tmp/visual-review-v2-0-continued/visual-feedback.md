@@ -1,0 +1,454 @@
+# Visual feedback - continued v2.0 pass
+
+Reference: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\reference-v2-0.png`
+
+## Iteration 00 - Continued baseline
+
+Screenshot: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-00-current.png`
+
+What is closer to the concept art:
+- Previous pass already solved the main panel fill/crop problems and the bottom alert strip.
+- The left and right panels occupy the correct edges and the map fills the central space.
+
+What still differs visibly:
+- Top bar still uses simple KPI chips for AGI progress instead of the two circular EU/USA progress rings.
+- Mini GRID OVERVIEW is a CSS decoration, not a real data HUD module.
+- Map modules are still flat and partially icon-like rather than small painted infrastructure assets.
+
+What was changed:
+- No code change in this baseline step.
+
+What should be tried next:
+- Build the AGI duel as a real component first because it is a high-visibility top-bar landmark.
+
+Regressions introduced:
+- None observed.
+
+## Iteration 01 - AGI rings and top bar structure
+
+Screenshots:
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-01-agi-rings.png`
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-01b-agi-kpi-order.png`
+
+What is closer to the concept art:
+- The top bar now has a dedicated EU vs USA AGI section with circular progress rings, VS separator, cyan/orange color split, and strong uppercase labels.
+- Budget and date are separate top-bar panels with secondary lines, closer to the concept's budget/date blocks.
+- Top-bar tooltip affordances remain available for richer hover detail.
+
+What still differs visibly:
+- The concept has more industrial trim and a right-side menu block; the game HUD still keeps its playable speed controls.
+- Ring geometry is CSS-rendered, not identical to the painted concept's exact tick marks.
+
+What was changed:
+- Added `agiDuel`, `budgetKpi`, and `dateKpi` rendering in `GameHud`.
+- Added desktop AGI-ring styling and KPI subline styling in CSS.
+- Added rich tooltip data to AGI, budget, and date components.
+
+What should be tried next:
+- Replace the simplified GRID OVERVIEW pseudo-element with a real component tied to network data.
+
+Regressions introduced:
+- A later Playwright check found the taller desktop top bar overlapped non-concept desktop panels. This was fixed in the final pass by increasing desktop offsets.
+
+## Iteration 02 - Real GRID OVERVIEW
+
+Screenshot: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-02-grid-overview.png`
+
+What is closer to the concept art:
+- The lower-left panel now has a contained GRID OVERVIEW card with heading, mini map, nodes, flow lines, and legend.
+- The card is data-driven from current network flows and region layout rather than being a static CSS label.
+- The mini panel fills the formerly incomplete lower-left area without cropping.
+
+What still differs visibly:
+- The mini-map remains stylized and abstract, not the same hand-painted Europe inset from the concept.
+- It intentionally stays compact to avoid stealing space from the construction controls.
+
+What was changed:
+- Added `gridOverviewCard`, graph line, flow line, and node generation in `GameHud`.
+- Disabled the old `build-palette::before` pseudo overview.
+- Added CSS for the real overview card, mini map, SVG flows, node glows, and legend.
+
+What should be tried next:
+- Improve the map modules so the central map reads less like simple icons and more like built infrastructure.
+
+Regressions introduced:
+- None observed. DOM measurements showed no overflow in the grid overview card.
+
+## Iteration 03 - Map module assets
+
+Screenshots:
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-03-map-modules.png`
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-03b-module-depth.png`
+
+What is closer to the concept art:
+- Map modules are now drawn as small isometric infrastructure pieces with bases, side faces, roof highlights, windows, cooling fans, and energy stacks.
+- The building layer now sits above region halos, so modules remain readable like the concept's placed infrastructure assets.
+- Labels and selected slots remain above or readable around the modules.
+
+What still differs visibly:
+- The modules are vector-drawn game assets, not the same high-detail painted buildings used in the concept.
+- The exact geography relief and painted coast/city details still come from the current generated map backdrop.
+
+What was changed:
+- Reworked `drawModuleMarker` in `EGridMapScene`.
+- Added reusable helpers for isometric bases, towers, cooling modules, energy modules, and polygon drawing.
+- Swapped region/structure layer depths so infrastructure is not buried under region halos.
+
+What should be tried next:
+- Stop broad map-asset work unless a dedicated painted/atlas asset pass is requested; the remaining gap is mainly art-source fidelity.
+
+Regressions introduced:
+- None observed in the final capture. Panel measurements showed no overflow or collisions.
+
+## Iteration 04 - Final offset and validation pass
+
+Screenshots:
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-04-final-pass.png`
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-04b-agi-tooltip.png`
+
+What is closer to the concept art:
+- Final capture combines AGI rings, denser top bar, real GRID OVERVIEW, and more dimensional map modules.
+- The main panels fill the screen without cropped or incomplete zones.
+- Bottom alert strip remains contained and readable.
+
+What still differs visibly:
+- The concept uses a more bespoke painted map and building asset set.
+- The right panel still remains a playable game panel, not a pixel-identical reproduction of the static concept's Netherlands detail panel.
+- The top bar keeps gameplay speed controls instead of exactly matching every menu glyph in the concept.
+
+What was changed:
+- Increased desktop offsets for heatmap, build palette, and region panel to prevent overlap with the taller top bar in non-concept desktop tests.
+- Enabled pointer events on every HUD element with `data-rich-tooltip`, so rich tooltips also work on non-button KPI panels such as the AGI duel.
+- Re-captured the concept scenario at 1672x941.
+
+What should be tried next:
+- A future high-impact pass would be a dedicated painted map/module atlas and a fuller right-panel concept skin, but those are larger art-system tasks.
+
+Regressions introduced:
+- None after the offset fix. Final DOM capture reported no JS errors, no panel overflow, and no panel collisions.
+
+## Iteration 05 - Right region panel convergence
+
+Screenshots:
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-05-right-panel.png`
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-05b-right-panel-tuned.png`
+
+What is closer to the concept art:
+- The right panel now follows the concept structure more closely: region title, close glyph, level/XP row, Overview/Buildings/Stats tabs, building slots, lock placeholders, status bars, and a Manage Region command.
+- The building slot grid uses four compact columns and shows six active assets plus two locked cells, much closer to the concept's dense module grid.
+- Energy, cooling, and compute status blocks now expose production/demand/reserve style detail instead of only generic meter rows.
+
+What still differs visibly:
+- The panel is still tied to the live Benelux simulation data, so values are adapted rather than copied from the static Netherlands concept.
+- The tabs are visual state indicators for this pass; they are not separate subviews yet.
+
+What was changed:
+- Reworked `regionPanel` markup in `GameHud`.
+- Added a `regionStatusBlock` helper.
+- Added a real `open-construction` action for the Manage Region button.
+- Added right-panel CSS for level, tabs, compact slots, lock cells, status blocks, and desktop fit.
+
+What should be tried next:
+- Improve the map module assets by reusing the existing ImageGen building atlas in Phaser.
+
+Regressions introduced:
+- None observed. DOM measurements showed no panel overflow.
+
+## Iteration 06 - ImageGen atlas on map modules
+
+Screenshots:
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-06-map-imagegen-atlas.png`
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-06b-map-atlas-scale.png`
+
+What is closer to the concept art:
+- Map modules now use the existing ImageGen-generated `building-icon-atlas.png` instead of relying only on vector primitives.
+- Infrastructure markers are more asset-like and readable from the map view, with recognizable wind, datacenter, gas, research, and cooling silhouettes.
+- The atlas was already project-local and transparent, so no new low-quality or external bitmap was introduced.
+
+What still differs visibly:
+- The map is now richer but also busier than the concept in some areas because live regional modules are distributed across Europe.
+- The exact painted concept buildings are not reproduced one-for-one; this is a reuse of the current game atlas.
+
+What was changed:
+- Loaded `assets/generated/building-icon-atlas.png` in `EGridMapScene`.
+- Added a sprite container above region halos and below labels/slots.
+- Cropped atlas cells per region building type and rendered them on top of existing isometric bases.
+- Fixed atlas crop scaling so cells render at intended map size.
+
+What should be tried next:
+- Only generate a new dedicated map-module atlas if the current atlas feels too busy or too icon-like in playtests; otherwise the remaining gap is mostly art direction rather than layout.
+
+Regressions introduced:
+- Initial atlas scaling made sprites too small and showed mostly bases; fixed in `iteration-06b-map-atlas-scale.png`.
+- Validation after the fix passed lint, unit tests, build, and the focused Playwright visual subset.
+
+## Iteration 07 - Final continuation capture
+
+Screenshot: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-07-final-continuation.png`
+
+What is closer to the concept art:
+- The full composition now combines the AGI top bar, concept-like right region panel, real GRID OVERVIEW, dense alert strip, and raster-backed map modules.
+- Final panel measurements reported no overflow and no collisions between top bar, side panels, grid overview, and alerts.
+
+What still differs visibly:
+- The atlas-based map modules are more game-icon-like than the exact painted concept modules.
+- The concept's exact relief map and static Netherlands panel values are not copied; this remains a playable Benelux game state.
+
+What was changed:
+- No additional code change after iteration 06; this is the final verification capture for the continued pass.
+
+What should be tried next:
+- If further art convergence is needed, generate a dedicated map-module atlas with ImageGen specifically for tiny in-map buildings rather than reusing the larger UI icon atlas.
+
+Regressions introduced:
+- None observed.
+
+## Iteration 08 - Component audit baseline
+
+Screenshot: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-08-current-audit.png`
+
+What is closer to the concept art:
+- The previous work holds: top bar, right panel, GRID OVERVIEW and atlas map modules are stable.
+- DOM measurements showed no overflow or panel collisions.
+
+What still differs visibly:
+- The left BUILD rail is still structurally different from the concept: generic dock header, missing category icon column, and category order differs.
+- Map modules remain more icon-like than painted concept modules.
+
+What was changed:
+- Added a separate component-by-component audit at `component-diagnostics.md`.
+
+What should be tried next:
+- Prioritize the left BUILD rail because it is the largest remaining component-level mismatch that can be improved without new art generation.
+
+Regressions introduced:
+- None observed.
+
+## Iteration 09 - BUILD rail category structure
+
+Screenshots:
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-09-build-rail-categories.png`
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-09b-build-rail-order.png`
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-09c-build-rail-fit.png`
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-09d-build-rail-no-overlap.png`
+
+What is closer to the concept art:
+- Left rail now has a fixed `BUILD` header with collapse glyph.
+- Construction categories now use a large category icon tile on the left and compact building cells on the right.
+- Concept mode orders categories as Energy, Datacenters, Cooling, Research, Grid & Network.
+- `GRID & NETWORK` is visible before the mini GRID OVERVIEW.
+
+What still differs visibly:
+- The category icon art comes from the existing building icon atlas, not the exact monochrome utility symbols from the concept.
+- Some locked/research-gated cells show current game art/disabled state rather than the concept's exact placeholders.
+
+What was changed:
+- Added concept-only category label/order logic in `GameHud`.
+- Added category icon key mapping and category heading markup.
+- Added concept desktop CSS for BUILD header, category rows, large icon tiles, compact card cells and a shorter GRID OVERVIEW.
+- Limited concept mode category rows to four visible cards so the rail does not overlap the mini-map.
+
+What should be tried next:
+- If the left rail remains a priority, generate or draw monochrome utility category symbols closer to the concept's lightning/datacenter/fan/microscope/grid set.
+- Otherwise return to map art fidelity and module density.
+
+Regressions introduced:
+- First category-order pass overlapped `GRID OVERVIEW`; fixed by limiting visible cards and reducing the mini overview height. Final measurement showed no overlap.
+
+## Iteration 10 - Utility category icons
+
+Screenshots:
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-10-utility-category-icons.png`
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-10b-utility-icons-contrast.png`
+
+What is closer to the concept art:
+- The left BUILD rail category tiles now use the existing utility symbols: lightning, datacenter, cooling fan, research microscope and grid tower.
+- These symbols are closer to the concept's icon-first build rail than the previous large building thumbnails.
+- The icon tiles have stronger borders, cyan glow and a more readable monochrome silhouette.
+
+What still differs visibly:
+- The exact concept glyph style is not identical; current glyphs come from existing project PNG assets.
+- The category rows are still game-driven, so locked/research-gated cells use current disabled card treatment.
+
+What was changed:
+- Exposed utility icon URLs as CSS variables from `main.ts`.
+- Swapped build category icon markup to use `utility-category-icon-*` classes.
+- Added CSS for centered utility icon backgrounds, larger symbol sizing, glow and borders.
+
+What should be tried next:
+- Continue with map module density and visual hierarchy, which remains a marked difference.
+
+Regressions introduced:
+- None observed. Measurements showed no rail/grid overview overlap.
+
+## Iteration 11 - Map module density
+
+Screenshot: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-11-map-module-density.png`
+
+What is closer to the concept art:
+- Concept scenario now shows fewer map module sprites, prioritizing regions with stronger visual/gameplay weight.
+- The central map reads less cluttered and closer to the concept's lower-density painted infrastructure distribution.
+
+What still differs visibly:
+- Some map markers still use icon-like raster sprites rather than fully integrated painted structures.
+- Region halos and network lines remain gameplay-forward compared with the concept's more art-directed routes.
+
+What was changed:
+- In `EGridMapScene.drawStructures`, concept mode now collects candidates, scores them by importance, limits to 15 visible module markers, then draws them back-to-front.
+- Normal gameplay keeps the broader marker set.
+
+What should be tried next:
+- If map fidelity remains the top priority, generate or build a dedicated small in-map module atlas with fewer details and stronger terrain integration.
+- Otherwise improve panel chrome/corner trim and bottom alert icons.
+
+Regressions introduced:
+- None observed in the concept capture; major panels still report no overflow.
+
+## Iteration 12 - Alert strip actions and icons
+
+Screenshots:
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-12-alert-strip-baseline.png`
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-12-alert-strip-actions.png`
+
+What is closer to the concept art:
+- Bottom alert cards now have a dedicated left icon, compact title/body area, and right action button.
+- Action labels match concept behavior more closely: `VIEW` for map/region alerts and `CLAIM` for research-style alerts.
+- A final collapse control now occupies the rightmost slot, matching the concept's extra bottom-bar control.
+
+What still differs visibly:
+- Alert icons are CSS/text symbols rather than exact concept glyph art.
+- Alert copy is live gameplay text, so truncation and wording differ from the static concept cards.
+
+What was changed:
+- Added alert kind classification, action labels, action titles, icon markup and action buttons in `GameHud`.
+- Added a `dismiss-all-alerts` action for the rightmost collapse control.
+- Added concept desktop CSS for alert icons, action buttons, hidden per-card dismiss buttons, and the collapse slot.
+
+What should be tried next:
+- If bottom-strip fidelity remains a priority, replace CSS/text symbols with proper utility alert icons.
+- Otherwise focus on panel chrome/borders or map art integration.
+
+Regressions introduced:
+- None observed. The alert strip remains within 84px and no card overflows.
+
+## Iteration 13 - Panel chrome and bevels
+
+Screenshots:
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-13-chrome-baseline.png`
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-13-panel-chrome.png`
+
+What is closer to the concept art:
+- Major HUD panels now have stronger borders, corner bevels, subtle internal scan texture and cyan edge highlights.
+- The top bar, left rail, region panel, alerts strip and mini overview read more like hard sci-fi panels than generic translucent cards.
+
+What still differs visibly:
+- The concept uses more layered mechanical corner brackets and richer edge hardware.
+- The chrome remains CSS-driven rather than custom painted panel art.
+
+What was changed:
+- Added concept-only bevel clipping, layered corner gradients and stronger inner panel shadows in `game.css`.
+- Kept the established panel bounds to avoid reintroducing clipping or overlap.
+
+What should be tried next:
+- Strengthen the top brand typography and mini GRID OVERVIEW, which still look simplified next to the concept.
+
+Regressions introduced:
+- None observed. Measurements showed no overflow for `.top-kpi`, `.build-palette`, `.region-panel`, `.alerts-panel`, `.grid-overview-card` or alert cards.
+
+## Iteration 14 - Top brand and mini GRID OVERVIEW geography
+
+Screenshot: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-14-brand-minimap.png`
+
+What is closer to the concept art:
+- The `E-GRID 2045` brand is now a real dominant top-bar panel with large title type and a compact subtitle.
+- The simulation speed area now has a concept-style label above the controls.
+- The mini `GRID OVERVIEW` now uses a left legend and a right-side Europe silhouette with live flow dots/lines, closer to the concept's inset map composition.
+
+What still differs visibly:
+- The top bar still lacks the concept's separate hamburger/menu block.
+- The mini Europe silhouette is simplified SVG geography rather than the exact painted glowing inset.
+
+What was changed:
+- Added `topBrand()` markup and rich tooltip metadata in `GameHud`.
+- Added a `Simulation speed` label in the time-controls block.
+- Reworked concept CSS for top-bar grid columns, brand typography and speed control layout.
+- Added SVG Europe land paths to the mini overview and changed its layout to legend-left/map-right.
+
+What should be tried next:
+- Improve central map module legibility without increasing density or causing label collisions.
+
+Regressions introduced:
+- None observed. Screenshot metrics showed no overflow for top bar children, mini overview map or legend.
+
+## Iteration 15 - Map module contrast and tooltip check
+
+Screenshots:
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-15-map-module-contrast.png`
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-15b-rich-tooltip-brand.png`
+
+What is closer to the concept art:
+- Map modules are larger and brighter in concept scenario, with additive glow behind atlas sprites and a brighter isometric base.
+- Buildings read more clearly against the dark terrain while the previous reduced-density pass still prevents heavy clutter.
+- The new top brand tooltip renders in the same rich HUD style as the rest of the interface.
+
+What still differs visibly:
+- Some markers remain icon-like and dark compared with the concept's hand-painted building clusters.
+- The map still uses live region labels and network topology, so it differs from the concept's country-label rhythm.
+
+What was changed:
+- Added concept-only sprite glow and slightly larger display size in `EGridMapScene.drawModuleSprite`.
+- Added a subtle accent fill on isometric module bases.
+- Captured a hover screenshot to validate rich tooltip styling on the new top brand component.
+
+What should be tried next:
+- If continuing, choose between: map route hierarchy/label treatment, dedicated painted module atlas, or small status icons in the right region panel.
+
+Regressions introduced:
+- None observed. Major HUD panels still report no overflow after the map-module pass.
+
+## Iteration 16 - AGI ring tick detailing
+
+Screenshot: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-16-agi-ring-ticks.png`
+
+What is closer to the concept art:
+- AGI rings now have segmented outer tick marks instead of a simple dashed outline.
+- The cyan Europe and orange USA rings read closer to the reference top-bar gauges.
+
+What still differs visibly:
+- The gauge values come from live deterministic game state rather than the exact concept numbers.
+- The ring rendering is still CSS-based, so it does not exactly match the concept's painted edge noise and micro-ticks.
+
+What was changed:
+- Replaced the dashed AGI pseudo-border with a solid subtle ring plus a masked repeating-conic tick layer.
+- Lifted the ring value text above the tick layer.
+
+What should be tried next:
+- If continuing, the next highest-value items are map route hierarchy/label treatment or a dedicated painted module atlas.
+
+Regressions introduced:
+- None observed. The tick pseudo-elements intentionally extend beyond each ring box, but the AGI duel and top bar still report no overflow.
+
+## Iteration 17 - AGI rings as ticks only
+
+Screenshots:
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-17-agi-ticks-only.png`
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-17b-agi-ticks-only-no-ring-glow.png`
+
+What is closer to the concept art:
+- AGI gauges are now built from individual tick elements only.
+- The continuous conic progress circle and the extra circular glow behind the ticks were removed.
+- The central percentage remains readable on a dark disk while the surrounding ring is entirely segmented.
+
+What still differs visibly:
+- The exact tick count, tick weight and live progress values are still game-driven rather than matching the static concept exactly.
+
+What was changed:
+- Added deterministic tick markup in `GameHud.agiRingTicks`.
+- Replaced CSS pseudo-ring rendering with per-tick styling in `game.css`.
+- Removed the continuous conic-gradient progress layer and the continuous radial ring glow.
+
+What should be tried next:
+- Continue with map route hierarchy, label treatment or painted module atlas if further convergence is required.
+
+Regressions introduced:
+- None observed. The top bar still reports no overflow; each gauge renders 48 ticks with active ticks derived from progress.

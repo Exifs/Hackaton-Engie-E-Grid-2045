@@ -122,8 +122,10 @@ export class GameHud {
 
     this.root.innerHTML = `
       <section class="top-kpi" aria-label="Indicateurs" data-onboarding-target="kpi.bar">
-        ${this.kpi("Date", summary.date_text, "kpi.date")}
-        ${this.kpi("Budget", `${fmt(summary.money)} M`, "kpi.money") }
+        ${this.topBrand()}
+        ${this.agiDuel(summary.eu_agi_progress, summary.usa_agi_progress)}
+        ${this.budgetKpi(summary)}
+        ${this.dateKpi(summary)}
         ${this.kpi("EU AGI", `${fmt(summary.eu_agi_progress)}%`, "kpi.agi") }
         ${this.kpi("USA", `${fmt(summary.usa_agi_progress)}%`, "kpi.usa") }
         ${this.kpi("Energie", `${fmt(summary.energy_produced)} / ${fmt(summary.energy_consumed)}`, "kpi.energy")}
@@ -131,6 +133,7 @@ export class GameHud {
         ${this.kpi("Compute", `${fmt(summary.compute_produced)}`, "kpi.compute")}
         ${this.kpi("CO2", summary.co2_tier, "kpi.co2")}
         <div class="time-controls" aria-label="Vitesse">
+          <span class="time-controls-label">Simulation speed</span>
           ${this.speedButton(0, summary.simulation_speed === 0)}
           ${this.speedButton(1, summary.simulation_speed === 1)}
           ${this.speedButton(2, summary.simulation_speed === 2)}
@@ -153,6 +156,7 @@ export class GameHud {
         ${alerts.length === 0 ? this.stableStatusCards(summary) : alerts.map((alert) => `
           ${this.alertCard(alert)}
         `).join("")}
+        <button class="alerts-collapse" type="button" data-action="dismiss-all-alerts" title="Masquer les alertes">v</button>
       </section>
 
       <section class="region-panel" aria-label="Region selectionnee" data-onboarding-target="region.panel">
@@ -177,6 +181,7 @@ export class GameHud {
             ? this.constructionPanel(buildings, availability)
             : this.researchPanel(researchOptions, buildings, monthProgress)}
         </div>
+        ${this.gridOverviewCard(summary)}
       </section>
     `;
     this.restorePaletteScroll();
@@ -253,6 +258,78 @@ export class GameHud {
     return `<div class="kpi-chip"${targetAttr}><span>${label}</span><strong>${escapeHtml(value)}</strong></div>`;
   }
 
+  private topBrand(): string {
+    return `
+      <div class="top-brand" ${this.tooltipAttrs("E-Grid 2045", "Build, optimize, and stabilize Europe's compute energy grid.", "Strategic command layer")}>
+        <strong>E-GRID 2045</strong>
+        <span>Build. Optimize. Power Europe.</span>
+      </div>
+    `;
+  }
+
+  private budgetKpi(summary: ReturnType<SimulationCore["getSummary"]>): string {
+    const trend = summary.monthly_income >= 0 ? "+" : "-";
+    const body = `Tresorerie disponible ${moneyBillions(summary.money)}. Variation mensuelle ${trend}${moneyBillions(Math.abs(summary.monthly_income))}.`;
+    return `
+      <div class="kpi-chip kpi-budget" data-onboarding-target="kpi.money" ${this.tooltipAttrs("Budget", body, "Projection economique")}>
+        <span>Budget</span>
+        <strong>${escapeHtml(moneyBillions(summary.money))}</strong>
+        <small>${trend}${escapeHtml(moneyBillions(Math.abs(summary.monthly_income)))} / mois</small>
+      </div>
+    `;
+  }
+
+  private dateKpi(summary: ReturnType<SimulationCore["getSummary"]>): string {
+    const week = Math.max(1, Math.min(52, summary.month * 4));
+    const body = `Fenetre de simulation courante: ${summary.date_text}, semaine ${week}.`;
+    return `
+      <div class="kpi-chip kpi-date" data-onboarding-target="kpi.date" ${this.tooltipAttrs("Date", body, "Calendrier de campagne")}>
+        <span>Date</span>
+        <strong>${escapeHtml(summary.date_text)}</strong>
+        <small>Semaine ${week}</small>
+      </div>
+    `;
+  }
+
+  private agiDuel(europeProgress: number, usaProgress: number): string {
+    const eu = clampPctFloat(europeProgress);
+    const usa = clampPctFloat(usaProgress);
+    const delta = eu - usa;
+    const meta = delta >= 0 ? `Europe +${fmt(delta)} pts` : `USA +${fmt(Math.abs(delta))} pts`;
+    return `
+      <section class="agi-duel" aria-label="Progression AGI Europe contre USA" data-onboarding-target="kpi.agi" ${this.tooltipAttrs("Course AGI", `Europe ${fmt(eu)}% contre USA ${fmt(usa)}%. Les anneaux indiquent la progression strategique globale.`, meta)}>
+        <div class="agi-side agi-side-europe">
+          <span>AGI Progress</span>
+          <strong>Europe</strong>
+          <i></i>
+        </div>
+        <div class="agi-ring agi-ring-europe" style="--agi-progress:${eu}">
+          <span class="agi-ticks" aria-hidden="true">${this.agiRingTicks(eu)}</span>
+          <b>${fmt(eu)}%</b>
+        </div>
+        <em>VS</em>
+        <div class="agi-ring agi-ring-usa" style="--agi-progress:${usa}">
+          <span class="agi-ticks" aria-hidden="true">${this.agiRingTicks(usa)}</span>
+          <b>${fmt(usa)}%</b>
+        </div>
+        <div class="agi-side agi-side-usa">
+          <span>Rival Curve</span>
+          <strong>USA</strong>
+          <i></i>
+        </div>
+      </section>
+    `;
+  }
+
+  private agiRingTicks(progress: number): string {
+    const tickCount = 48;
+    const activeTicks = Math.round((clampPctFloat(progress) / 100) * tickCount);
+    return Array.from({ length: tickCount }, (_, index) => {
+      const active = index < activeTicks ? " is-active" : "";
+      return `<i class="${active}" style="--tick-angle:${fmt((360 / tickCount) * index, 2)}deg"></i>`;
+    }).join("");
+  }
+
   private speedButton(speed: number, active: boolean): string {
     const label = speed === 0 ? "II" : `${speed}x`;
     return `<button class="speed-button ${active ? "is-active" : ""}" type="button" data-speed="${speed}" title="Vitesse ${label}">${label}</button>`;
@@ -273,15 +350,46 @@ export class GameHud {
       ? `<i class="alert-life" style="--alert-life:${alert.autoDismissMs}ms; --alert-elapsed:${elapsed}ms"></i>`
       : "";
     return `
-      <article class="alert-item alert-${alert.state} ${alert.actionable ? "is-actionable" : "is-info"}" data-alert="${escapeHtml(alert.id)}">
+      <article class="alert-item alert-${alert.state} alert-kind-${this.alertKind(alert)} ${alert.actionable ? "is-actionable" : "is-info"}" data-alert="${escapeHtml(alert.id)}">
+        <span class="alert-icon" aria-hidden="true"></span>
         <button class="alert-main" type="button" ${alert.region_id ? `data-region="${escapeHtml(alert.region_id)}"` : ""} ${this.tooltipAttrs(alert.title, alert.body, alert.actionable ? "Cliquer pour cadrer la region" : "Information systeme")}>
           <strong>${escapeHtml(alert.title)}</strong>
           <span>${escapeHtml(alert.body)}</span>
         </button>
+        <button class="alert-action" type="button" ${alert.region_id ? `data-region="${escapeHtml(alert.region_id)}"` : ""} title="${escapeHtml(this.alertActionTitle(alert))}">${escapeHtml(this.alertActionLabel(alert))}</button>
         <button class="alert-dismiss" type="button" data-dismiss-alert="${escapeHtml(alert.id)}" title="Fermer">x</button>
         ${progress}
       </article>
     `;
+  }
+
+  private alertKind(alert: Alert): string {
+    const text = `${alert.id} ${alert.title} ${alert.body}`.toLowerCase();
+    if (text.includes("research")) {
+      return "research";
+    }
+    if (text.includes("cooling") || text.includes("froid")) {
+      return "cooling";
+    }
+    if (text.includes("network") || text.includes("grid") || text.includes("saturated")) {
+      return "network";
+    }
+    if (text.includes("market") || text.includes("budget")) {
+      return "market";
+    }
+    return "warning";
+  }
+
+  private alertActionLabel(alert: Alert): string {
+    const kind = this.alertKind(alert);
+    if (kind === "research") {
+      return "Claim";
+    }
+    return alert.actionable ? "View" : "Info";
+  }
+
+  private alertActionTitle(alert: Alert): string {
+    return this.alertActionLabel(alert) === "View" ? `Voir ${alert.title}` : alert.title;
   }
 
   private stableStatusCards(summary: ReturnType<SimulationCore["getSummary"]>): string {
@@ -303,7 +411,12 @@ export class GameHud {
 
   private regionPanel(region: RegionSnapshot, buildings: Record<string, BuildingDefinition>, monthProgress: number): string {
     const cached = region.cached;
-    const slotPct = region.slots_max > 0 ? (region.slots_used / region.slots_max) * 100 : 0;
+    const levelXp = Math.min(2000, Math.round((region.buildings.length * 110 + region.tags.length * 40) / 10) * 10);
+    const regionLevel = Math.max(1, Math.min(9, Math.floor(levelXp / 400) + 1));
+    const levelPct = (levelXp / 2000) * 100;
+    const freeSlotCards = Array.from({ length: Math.min(Math.max(region.slots_max - region.slots_used, 0), 2) })
+      .map(() => `<span class="locked-slot-card" aria-label="Slot verrouille"><i></i></span>`)
+      .join("");
     const queueCards = region.construction_queue.length === 0
       ? `<span class="empty-slot-card">Aucun chantier</span>`
       : region.construction_queue
@@ -319,21 +432,67 @@ export class GameHud {
       : region.buildings
         .map((id, index) => this.builtCard(id, buildings[id], index))
         .join("");
+    const energyProduction = cached.energy_production ?? 0;
+    const energyDemand = cached.energy_consumption ?? 0;
+    const energyReserve = Math.max(0, energyProduction + (cached.energy_imported ?? 0) - energyDemand);
+    const coolingAvailable = cached.cooling_available ?? 0;
+    const coolingUsed = cached.cooling_used ?? 0;
+    const coolingReserve = Math.max(0, coolingAvailable - coolingUsed);
+    const computeDemand = cached.compute_demand ?? 0;
+    const computeSupply = cached.compute_produced ?? 0;
+    const computeDeficit = Math.max(0, computeDemand - computeSupply);
+    const computePct = computeDemand > 0 ? (computeSupply / computeDemand) * 100 : 100;
 
     return `
-      <div class="panel-title">
-        <span>Region</span>
-        <strong>${escapeHtml(region.display_name)}</strong>
+      <div class="panel-title region-title">
+        <div>
+          <span>Region</span>
+          <strong>${escapeHtml(region.display_name)}</strong>
+        </div>
+        <span class="region-close" aria-hidden="true">x</span>
       </div>
-      <div class="region-stats">
-        ${this.bar("Slots", slotPct, `${region.slots_used}/${region.slots_max}`, "cyan")}
-        ${this.bar("Energie", (cached.energy_efficiency ?? 1) * 100, `${fmt(cached.energy_efficiency ?? 1, 2)}`, "green")}
-        ${this.bar("Froid", (cached.cooling_efficiency ?? 1) * 100, `${fmt(cached.cooling_efficiency ?? 1, 2)}`, "blue")}
-        ${this.bar("Compute", Math.min((cached.compute_produced ?? 0) * 4, 100), fmt(cached.compute_produced ?? 0), "violet")}
+      <div class="region-level-card">
+        <strong>${regionLevel}</strong>
+        <div>
+          <span>Region level</span>
+          <i style="--meter:${clampPctFloat(levelPct)}%"></i>
+        </div>
+        <small>${fmt(levelXp)} / 2 000 XP</small>
+      </div>
+      <div class="region-tabs" role="tablist" aria-label="Vues region">
+        <span class="is-active" role="tab" aria-selected="true">Overview</span>
+        <span role="tab" aria-selected="false">Buildings</span>
+        <span role="tab" aria-selected="false">Stats</span>
       </div>
       <div class="region-tags">
         ${region.tags.slice(0, 6).map((tag) => `<span>${escapeHtml(tag)}</span>`).join("")}
       </div>
+      <div class="region-section region-buildings">
+        <div class="panel-subtitle"><span>Building slots</span><strong>${region.slots_used}/${region.slots_max}</strong></div>
+        <div class="built-grid">
+          ${builtCards}${freeSlotCards}
+        </div>
+      </div>
+      <div class="region-status-stack">
+        ${this.regionStatusBlock("energy", "Energy status", (cached.energy_efficiency ?? 1) * 100, [
+          ["Production", `${fmt(energyProduction, 1)} GW`],
+          ["Demand", `${fmt(energyDemand, 1)} GW`],
+          ["Reserve", `${fmt(energyReserve, 1)} GW`]
+        ])}
+        ${this.regionStatusBlock("cooling", "Cooling status", (cached.cooling_efficiency ?? 1) * 100, [
+          ["Capacity", `${fmt(coolingAvailable, 1)} GWth`],
+          ["Usage", `${fmt(coolingUsed, 1)} GWth`],
+          ["Reserve", `${fmt(coolingReserve, 1)} GWth`]
+        ])}
+        ${this.regionStatusBlock("compute", "Compute demand", computePct, [
+          ["Demand", `${fmt(computeDemand, 1)} EFLOPS`],
+          ["Supply", `${fmt(computeSupply, 1)} EFLOPS`],
+          [computeDeficit > 0 ? "Deficit" : "Reserve", `${fmt(computeDeficit > 0 ? computeDeficit : computeSupply - computeDemand, 1)} EFLOPS`]
+        ], computeDeficit > 0)}
+      </div>
+      <button class="region-manage-button" type="button" data-action="open-construction" ${this.tooltipAttrs("Manage region", `Open the construction dock for ${region.display_name}.`, `${region.slots_max - region.slots_used} free slots`)}>
+        Manage region
+      </button>
       <div class="region-section region-queue">
         <div class="panel-subtitle"><span>Chantier</span><strong>${region.construction_queue.length}</strong></div>
         <div class="queue-list">
@@ -346,10 +505,25 @@ export class GameHud {
           ${demolitionCards}
         </div>
       </div>
-      <div class="region-section region-buildings">
-        <div class="panel-subtitle"><span>Batiments actifs</span><strong>${region.buildings.length}/${region.slots_max}</strong></div>
-        <div class="built-grid">
-          ${builtCards}
+    `;
+  }
+
+  private regionStatusBlock(
+    tone: "energy" | "cooling" | "compute",
+    title: string,
+    pct: number,
+    metrics: Array<[string, string]>,
+    isDeficit = false
+  ): string {
+    return `
+      <div class="region-status region-status-${tone} ${isDeficit ? "has-deficit" : ""}">
+        <div class="region-status-title">
+          <span>${escapeHtml(title)}</span>
+          <strong>${fmt(clampPctFloat(pct))}%</strong>
+        </div>
+        <i style="--meter:${clampPctFloat(pct)}%"></i>
+        <div class="region-status-metrics">
+          ${metrics.map(([label, value]) => `<span><small>${escapeHtml(label)}</small><b>${escapeHtml(value)}</b></span>`).join("")}
         </div>
       </div>
     `;
@@ -486,7 +660,10 @@ export class GameHud {
     buildings: Record<string, BuildingDefinition>,
     availability: Record<string, BuildAvailability>
   ): string {
-    const categories = CATEGORY_ORDER.filter((category) =>
+    const categoryOrder = this.isConceptScenario()
+      ? ["energy", "compute", "cooling", "research", "grid"]
+      : CATEGORY_ORDER;
+    const categories = categoryOrder.filter((category) =>
       Object.values(buildings).some((building) => building.category === category)
     );
     this.ensureActiveBuildCategory(buildings);
@@ -505,6 +682,136 @@ export class GameHud {
     `;
   }
 
+  private gridOverviewCard(summary: ReturnType<SimulationCore["getSummary"]>): string {
+    const layout = this.simulation.getRegionLayout();
+    const graph = this.simulation.getNetworkGraph();
+    const graphLines = this.gridOverviewGraphLines(layout, graph);
+    const flowLines = this.gridOverviewFlowLines(layout, summary);
+    const nodes = this.gridOverviewNodes(layout, summary);
+    const activeFlows = summary.network_flows.length;
+    const congestedFlows = summary.network_flows.filter((flow) => flow.is_congested).length;
+    const tooltip =
+      `${activeFlows} liaisons actives. ${congestedFlows} congestions. ` +
+      `Flux energie ${fmt(summary.energy_consumed)} / ${fmt(summary.energy_produced)} GW.`;
+
+    return `
+      <aside class="grid-overview-card" aria-label="Grid overview" ${this.tooltipAttrs("Grid overview", tooltip, "Carte reseau compacte")}>
+        <div class="grid-overview-heading">
+          <strong>Grid overview</strong>
+          <span class="grid-overview-expand" aria-hidden="true">[]</span>
+        </div>
+        <div class="grid-overview-map" aria-hidden="true">
+          <svg viewBox="0 0 100 100" preserveAspectRatio="none">
+            ${this.gridOverviewEuropePaths()}
+            ${graphLines}
+            ${flowLines}
+          </svg>
+          ${nodes}
+        </div>
+        <div class="grid-overview-legend">
+          <span class="legend-power">Power flow <b>${fmt(activeFlows)}</b></span>
+          <span class="legend-data">Data flow <b>${fmt(summary.compute_used)}</b></span>
+          <span class="legend-congestion">Congestion <b>${fmt(congestedFlows)}</b></span>
+          <span class="legend-planned">Planned</span>
+        </div>
+      </aside>
+    `;
+  }
+
+  private gridOverviewEuropePaths(): string {
+    return `
+      <path class="mini-europe-land mini-europe-uk" d="M18 31 C13 34 11 42 15 48 C19 55 29 52 31 45 C33 38 26 29 18 31 Z" />
+      <path class="mini-europe-land mini-europe-scandinavia" d="M50 10 C60 4 72 9 78 19 C71 21 65 29 66 40 C58 38 53 31 47 30 C43 24 43 15 50 10 Z" />
+      <path class="mini-europe-land mini-europe-main" d="M28 38 C37 28 53 29 63 35 C75 40 83 48 82 62 C74 65 69 73 61 72 C54 77 43 73 38 67 C31 67 23 62 21 54 C18 48 22 42 28 38 Z" />
+      <path class="mini-europe-land mini-europe-iberia" d="M18 62 C25 55 37 57 42 65 C40 76 30 82 19 78 C12 74 11 67 18 62 Z" />
+      <path class="mini-europe-land mini-europe-italy" d="M55 65 C61 69 65 76 64 86 C58 84 54 77 51 69 Z" />
+      <path class="mini-europe-land mini-europe-balkans" d="M68 66 C76 65 84 70 87 78 C80 80 72 77 66 72 Z" />
+    `;
+  }
+
+  private gridOverviewGraphLines(
+    layout: ReturnType<SimulationCore["getRegionLayout"]>,
+    graph: ReturnType<SimulationCore["getNetworkGraph"]>
+  ): string {
+    const seen = new Set<string>();
+    const lines: string[] = [];
+    for (const [sourceId, targets] of Object.entries(graph)) {
+      for (const targetId of targets) {
+        const key = [sourceId, targetId].sort().join(":");
+        if (seen.has(key)) {
+          continue;
+        }
+        seen.add(key);
+        const source = layout[sourceId];
+        const target = layout[targetId];
+        if (!source || !target) {
+          continue;
+        }
+        lines.push(
+          `<line class="mini-flow mini-flow-data" x1="${miniCoord(source.x)}" y1="${miniCoord(source.y)}" x2="${miniCoord(target.x)}" y2="${miniCoord(target.y)}" />`
+        );
+        if (lines.length >= 18) {
+          return lines.join("");
+        }
+      }
+    }
+    return lines.join("");
+  }
+
+  private gridOverviewFlowLines(
+    layout: ReturnType<SimulationCore["getRegionLayout"]>,
+    summary: ReturnType<SimulationCore["getSummary"]>
+  ): string {
+    return [...summary.network_flows]
+      .sort((a, b) => b.intensity_normalized - a.intensity_normalized)
+      .slice(0, 14)
+      .map((flow) => {
+        const source = layout[flow.source_region_id];
+        const target = layout[flow.target_region_id];
+        if (!source || !target) {
+          return "";
+        }
+        const tone = flow.is_congested ? "congestion" : "power";
+        const width = 0.7 + flow.intensity_normalized * 1.7;
+        const opacity = 0.36 + flow.intensity_normalized * 0.5;
+        return (
+          `<line class="mini-flow mini-flow-${tone}" ` +
+          `x1="${miniCoord(source.x)}" y1="${miniCoord(source.y)}" ` +
+          `x2="${miniCoord(target.x)}" y2="${miniCoord(target.y)}" ` +
+          `style="--flow-width:${fmt(width, 2)}; --flow-opacity:${fmt(opacity, 2)}" />`
+        );
+      })
+      .join("");
+  }
+
+  private gridOverviewNodes(
+    layout: ReturnType<SimulationCore["getRegionLayout"]>,
+    summary: ReturnType<SimulationCore["getSummary"]>
+  ): string {
+    const ranked = new Map<string, number>();
+    for (const flow of summary.network_flows) {
+      ranked.set(flow.source_region_id, (ranked.get(flow.source_region_id) ?? 0) + flow.intensity_normalized);
+      ranked.set(flow.target_region_id, (ranked.get(flow.target_region_id) ?? 0) + flow.intensity_normalized);
+    }
+    ranked.set(summary.selected_region_id, (ranked.get(summary.selected_region_id) ?? 0) + 4);
+    return [...ranked.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 18)
+      .map(([regionId, weight]) => {
+        const point = layout[regionId];
+        if (!point) {
+          return "";
+        }
+        const selected = regionId === summary.selected_region_id ? " is-selected" : "";
+        const size = Math.min(8.5, 3.2 + weight * 2.1);
+        return (
+          `<span class="grid-overview-node${selected}" ` +
+          `style="--node-x:${miniCoord(point.x)}%; --node-y:${miniCoord(point.y)}%; --node-size:${fmt(size, 2)}px"></span>`
+        );
+      })
+      .join("");
+  }
+
   private buildCategoryTab(
     category: string,
     buildings: Record<string, BuildingDefinition>,
@@ -517,10 +824,30 @@ export class GameHud {
     ).length;
     return `
       <button class="build-category-tab ${active ? "is-active" : ""}" type="button" data-build-category="${category}" data-onboarding-target="build.category.${category}" role="tab" aria-selected="${active}">
-        <span>${CATEGORY_LABELS[category] ?? category}</span>
+        <span>${escapeHtml(this.buildCategoryLabel(category))}</span>
         <strong>${count}</strong>
       </button>
     `;
+  }
+
+  private buildCategoryLabel(category: string): string {
+    if (this.isConceptScenario()) {
+      const conceptLabels: Record<string, string> = {
+        all: "All",
+        research: "Research",
+        energy: "Energy",
+        storage: "Storage",
+        cooling: "Cooling",
+        compute: "Datacenters",
+        grid: "Grid & Network"
+      };
+      return conceptLabels[category] ?? category;
+    }
+    return CATEGORY_LABELS[category] ?? category;
+  }
+
+  private isConceptScenario(): boolean {
+    return document.documentElement.dataset.conceptScenario === "1";
   }
 
   private ensureActiveBuildCategory(buildings: Record<string, BuildingDefinition>): void {
@@ -539,20 +866,39 @@ export class GameHud {
     buildings: Record<string, BuildingDefinition>,
     availability: Record<string, BuildAvailability>
   ): string {
-    const items = Object.values(buildings).filter((building) =>
-      building.category === category && this.shouldShowBuilding(building, availability[building.id])
+    let items = Object.values(buildings).filter((building) =>
+      building.category === category && (this.isConceptScenario() || this.shouldShowBuilding(building, availability[building.id]))
     );
+    if (this.isConceptScenario()) {
+      items = items.slice(0, 4);
+    }
     if (items.length === 0) {
       return "";
     }
     return `
       <div class="build-category">
-        <h2>${CATEGORY_LABELS[category] ?? category}</h2>
+        <div class="build-category-heading">
+          <span class="build-category-icon utility-category-icon utility-category-icon-${this.categoryIconKey(category)}" aria-hidden="true"></span>
+          <h2>${escapeHtml(this.buildCategoryLabel(category))}</h2>
+        </div>
         <div class="build-grid">
           ${items.map((building) => this.buildButton(building, availability[building.id])).join("")}
         </div>
       </div>
     `;
+  }
+
+  private categoryIconKey(category: string): string {
+    const icons: Record<string, string> = {
+      research: "research",
+      energy: "energy",
+      storage: "grid",
+      cooling: "cooling",
+      compute: "datacenter",
+      grid: "grid",
+      all: "grid"
+    };
+    return icons[category] ?? "grid";
   }
 
   private buildButton(building: BuildingDefinition, availability: BuildAvailability | undefined): string {
@@ -1068,9 +1414,17 @@ export class GameHud {
     const action = button.dataset.action;
     if (action === "advance") {
       this.callbacks.onAdvance();
+    } else if (action === "open-construction") {
+      this.paletteOpen = true;
+      this.activeDockTab = "construction";
+      this.render();
     } else if (action === "toggle-palette") {
       this.paletteOpen = !this.paletteOpen;
       this.render();
+    } else if (action === "dismiss-all-alerts") {
+      for (const alert of this.simulation.getSummary().alerts) {
+        this.dismissAlert(alert.id);
+      }
     } else if (action === "replay-onboarding") {
       this.callbacks.onReplayOnboarding();
     }
@@ -1238,6 +1592,20 @@ function fmt(value: number, digits = 0): string {
     return "0";
   }
   return value.toFixed(digits);
+}
+
+function moneyBillions(valueInMillions: number): string {
+  if (!Number.isFinite(valueInMillions)) {
+    return "EUR 0.0B";
+  }
+  return `EUR ${(valueInMillions / 1000).toFixed(1)}B`;
+}
+
+function miniCoord(value: number): number {
+  if (!Number.isFinite(value)) {
+    return 50;
+  }
+  return Math.max(4, Math.min(96, Math.round(value * 1000) / 10));
 }
 
 function clampPctFloat(value: number): number {
