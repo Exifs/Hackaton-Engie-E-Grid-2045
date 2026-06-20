@@ -34,7 +34,7 @@ const AI_RESEARCH_CENTER_ID = "ai_research_center";
 export class SimulationCore {
   readonly state = new GameState();
 
-  secondsPerMonth = 1.6;
+  secondsPerMonth = 4.8;
 
   private gameData: GameData;
   private constants!: Constants;
