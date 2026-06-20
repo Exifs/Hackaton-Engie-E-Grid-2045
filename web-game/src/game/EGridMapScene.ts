@@ -87,7 +87,7 @@ export class EGridMapScene extends Phaser.Scene {
         this.onSimulationAdvanced();
         this.hudProgressAccumulatorMs = 0;
         this.dirty = true;
-      } else if (this.simulation.getSummary().simulation_speed > 0) {
+      } else if (this.simulation.isRunning()) {
         this.hudProgressAccumulatorMs += delta;
         if (this.hudProgressAccumulatorMs >= 160) {
           this.hudProgressAccumulatorMs = 0;
