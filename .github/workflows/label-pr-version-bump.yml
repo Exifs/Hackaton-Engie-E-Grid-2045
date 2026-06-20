@@ -88,9 +88,26 @@ jobs:
           LABEL: ${{ steps.classify.outputs.label }}
         run: |
           set -euo pipefail
+
+          if [[ -z "${LABEL}" ]]; then
+            echo "::error::Classifier did not output a semver label."
+            exit 1
+          fi
+
           for candidate in "semver:major" "semver:minor" "semver:patch"; do
             if [[ "${candidate}" != "${LABEL}" ]]; then
-              gh issue edit "${PR_NUMBER}" --remove-label "${candidate}" || true
+              encoded_label="$(python3 -c 'import sys, urllib.parse; print(urllib.parse.quote(sys.argv[1], safe=""))' "${candidate}")"
+              gh api \
+                --method DELETE \
+                -H "Accept: application/vnd.github+json" \
+                "repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/labels/${encoded_label}" \
+                --silent >/dev/null 2>&1 || true
             fi
           done
-          gh issue edit "${PR_NUMBER}" --add-label "${LABEL}"
+
+          gh api \
+            --method POST \
+            -H "Accept: application/vnd.github+json" \
+            "repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/labels" \
+            -f labels[]="${LABEL}" \
+            --silent
