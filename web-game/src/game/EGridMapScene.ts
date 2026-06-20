@@ -8,6 +8,7 @@ interface SceneConfig {
   testMode: boolean;
   onRegionSelected: (regionId: string) => void;
   onSimulationAdvanced: () => void;
+  onSimulationProgress: () => void;
 }
 
 interface MapRect {
@@ -32,6 +33,7 @@ export class EGridMapScene extends Phaser.Scene {
   private readonly testMode: boolean;
   private readonly onRegionSelected: (regionId: string) => void;
   private readonly onSimulationAdvanced: () => void;
+  private readonly onSimulationProgress: () => void;
 
   private heatmapMode: HeatmapMode = "energy";
   private mapImage?: Phaser.GameObjects.Image;
@@ -40,6 +42,7 @@ export class EGridMapScene extends Phaser.Scene {
   private slotLayer?: Phaser.GameObjects.Graphics;
   private labelLayer?: Phaser.GameObjects.Container;
   private animationTime = 0;
+  private hudProgressAccumulatorMs = 0;
   private dirty = true;
   private currentMapRect?: MapRect;
   private focusRegionId = "";
@@ -50,6 +53,7 @@ export class EGridMapScene extends Phaser.Scene {
     this.testMode = config.testMode;
     this.onRegionSelected = config.onRegionSelected;
     this.onSimulationAdvanced = config.onSimulationAdvanced;
+    this.onSimulationProgress = config.onSimulationProgress;
   }
 
   preload(): void {
@@ -81,7 +85,14 @@ export class EGridMapScene extends Phaser.Scene {
       const advanced = this.simulation.stepSimulationTime(delta / 1000);
       if (advanced > 0) {
         this.onSimulationAdvanced();
+        this.hudProgressAccumulatorMs = 0;
         this.dirty = true;
+      } else if (this.simulation.getSummary().simulation_speed > 0) {
+        this.hudProgressAccumulatorMs += delta;
+        if (this.hudProgressAccumulatorMs >= 160) {
+          this.hudProgressAccumulatorMs = 0;
+          this.onSimulationProgress();
+        }
       }
     }
 

@@ -26,27 +26,27 @@ export class BuildingSystem {
     buildingDefinitions: Record<string, BuildingDefinition>
   ): BuildAvailability {
     if (!region) {
-      return { ok: false, reason: "Select a region first." };
+      return { ok: false, reason: "Select a region first.", cause: "no_region" };
     }
     if (!buildingDefinition) {
-      return { ok: false, reason: "Unknown building." };
-    }
-    if (money < buildingDefinition.cost) {
-      return { ok: false, reason: "Insufficient budget." };
-    }
-    if (this.regions.slotsFree(region, buildingDefinitions) < buildingDefinition.slots_required) {
-      return { ok: false, reason: "Not enough regional slots." };
+      return { ok: false, reason: "Unknown building.", cause: "unknown_building" };
     }
     if (buildingDefinition.unlock_technology && !completedTechnologies[buildingDefinition.unlock_technology]) {
-      return { ok: false, reason: `Locked: research ${buildingDefinition.unlock_technology}.` };
+      return { ok: false, reason: `Locked: research ${buildingDefinition.unlock_technology}.`, cause: "technology" };
     }
     if (!this.regions.regionHasAnyTag(region, buildingDefinition.required_tags)) {
-      return { ok: false, reason: "Region lacks required tag." };
+      return { ok: false, reason: "Region lacks required tag.", cause: "region_tag" };
     }
     if (buildingDefinition.required_potential && buildingDefinition.required_potential_min > 0) {
       if (this.regions.potential(region, buildingDefinition.required_potential) < buildingDefinition.required_potential_min) {
-        return { ok: false, reason: "Regional potential too low." };
+        return { ok: false, reason: "Regional potential too low.", cause: "region_potential" };
       }
+    }
+    if (money < buildingDefinition.cost) {
+      return { ok: false, reason: "Insufficient budget.", cause: "budget" };
+    }
+    if (this.regions.slotsFree(region, buildingDefinitions) < buildingDefinition.slots_required) {
+      return { ok: false, reason: "Not enough regional slots.", cause: "slots" };
     }
     return { ok: true, reason: "" };
   }

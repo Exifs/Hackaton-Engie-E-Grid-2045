@@ -96,7 +96,8 @@ scene = new EGridMapScene({
   simulation,
   testMode,
   onRegionSelected: () => hud.render(),
-  onSimulationAdvanced: () => hud.render()
+  onSimulationAdvanced: () => hud.render(),
+  onSimulationProgress: () => hud.render()
 });
 
 new Phaser.Game({

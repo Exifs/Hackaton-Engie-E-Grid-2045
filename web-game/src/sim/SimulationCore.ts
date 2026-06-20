@@ -173,7 +173,7 @@ export class SimulationCore {
   startResearch(technologyId: string): ResearchStartResult {
     const technology = this.technologies[technologyId];
     if (!technologyId || !technology) {
-      return { ok: false, reason: "Unknown research." };
+      return { ok: false, reason: "Unknown research.", cause: "unknown" };
     }
     const readiness = this.researchReadiness(technology);
     if (!readiness.ok) {
@@ -280,6 +280,7 @@ export class SimulationCore {
         const estimatedMonths = monthlyPoints > 0 ? Math.ceil(remainingPoints / monthlyPoints) : Number.POSITIVE_INFINITY;
         let status: ResearchOption["status"] = "available";
         let reason = this.state.active_research_id ? "Ajouter a la file de recherche." : "Pret a lancer.";
+        let lockCause: ResearchOption["lock_cause"];
         const buildingRequirement = this.researchBuildingRequirement(technology);
         if (isCompleted) {
           status = "completed";
@@ -293,9 +294,11 @@ export class SimulationCore {
         } else if (missingPrereq) {
           status = "locked";
           reason = `Requires ${this.technologies[missingPrereq]?.display_name ?? missingPrereq}.`;
+          lockCause = "prerequisite";
         } else if (!buildingRequirement.ok) {
           status = "locked";
           reason = buildingRequirement.reason;
+          lockCause = buildingRequirement.cause ?? "building";
         }
 
         return {
@@ -314,6 +317,7 @@ export class SimulationCore {
           notes: technology.notes,
           status,
           reason,
+          lock_cause: lockCause,
           current_points: currentPoints,
           monthly_points: monthlyPoints,
           queue_position: isQueued ? queueIndex + 1 : 0
@@ -637,17 +641,21 @@ export class SimulationCore {
     options: { ignoreQueued?: boolean } = {}
   ): ResearchStartResult {
     if (this.state.completed_technologies[technology.id]) {
-      return { ok: false, reason: "Research already completed." };
+      return { ok: false, reason: "Research already completed.", cause: "completed" };
     }
     if (this.state.active_research_id === technology.id) {
-      return { ok: false, reason: "Research already active." };
+      return { ok: false, reason: "Research already active.", cause: "active" };
     }
     if (!options.ignoreQueued && this.state.research_queue.includes(technology.id)) {
-      return { ok: false, reason: "Research already queued." };
+      return { ok: false, reason: "Research already queued.", cause: "queued" };
     }
     const missingPrereq = technology.prereq_technology_ids.find((prereq) => !this.state.completed_technologies[prereq]);
     if (missingPrereq) {
-      return { ok: false, reason: `Requires ${this.technologies[missingPrereq]?.display_name ?? missingPrereq}.` };
+      return {
+        ok: false,
+        reason: `Requires ${this.technologies[missingPrereq]?.display_name ?? missingPrereq}.`,
+        cause: "prerequisite"
+      };
     }
     const buildingRequirement = this.researchBuildingRequirement(technology);
     if (!buildingRequirement.ok) {
@@ -661,17 +669,17 @@ export class SimulationCore {
     if (branch === "ai") {
       return this.hasActiveBuilding(AI_RESEARCH_CENTER_ID)
         ? { ok: true, reason: "" }
-        : { ok: false, reason: "Requires an active Centre recherche IA." };
+        : { ok: false, reason: "Requires an active Centre recherche IA.", cause: "building" };
     }
     if (branch === "energy" || branch === "infrastructure") {
       return this.hasActiveBuilding(ENERGY_RESEARCH_CENTER_ID)
         ? { ok: true, reason: "" }
-        : { ok: false, reason: "Requires an active Centre recherche energie." };
+        : { ok: false, reason: "Requires an active Centre recherche energie.", cause: "building" };
     }
     if (this.hasActiveBuilding(ENERGY_RESEARCH_CENTER_ID) || this.hasActiveBuilding(AI_RESEARCH_CENTER_ID)) {
       return { ok: true, reason: "" };
     }
-    return { ok: false, reason: "Requires an active Centre recherche energie or Centre recherche IA." };
+    return { ok: false, reason: "Requires an active Centre recherche energie or Centre recherche IA.", cause: "building" };
   }
 
   private hasActiveBuilding(buildingId: string): boolean {

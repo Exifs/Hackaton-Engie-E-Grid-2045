@@ -262,9 +262,19 @@ export interface RegionSnapshot extends RegionRuntime {
   slots_free: number;
 }
 
+export type BuildAvailabilityCause =
+  | "no_region"
+  | "unknown_building"
+  | "technology"
+  | "region_tag"
+  | "region_potential"
+  | "budget"
+  | "slots";
+
 export interface BuildAvailability {
   ok: boolean;
   reason: string;
+  cause?: BuildAvailabilityCause;
 }
 
 export interface BuildResult extends BuildAvailability {}
@@ -297,14 +307,24 @@ export interface ResearchOption {
   notes: string;
   status: "available" | "active" | "completed" | "locked" | "queued";
   reason: string;
+  lock_cause?: ResearchLockCause;
   current_points: number;
   monthly_points: number;
   queue_position: number;
 }
 
+export type ResearchLockCause =
+  | "unknown"
+  | "completed"
+  | "active"
+  | "queued"
+  | "prerequisite"
+  | "building";
+
 export interface ResearchStartResult {
   ok: boolean;
   reason: string;
+  cause?: ResearchLockCause;
 }
 
 export interface GameData {
