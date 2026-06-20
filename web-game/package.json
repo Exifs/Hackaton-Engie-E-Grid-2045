@@ -1,0 +1,32 @@
+{
+  "name": "e-grid-2045-web-game",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.30.3",
+  "scripts": {
+    "sync:data": "node scripts/sync-data.mjs",
+    "predev": "pnpm sync:data",
+    "dev": "vite",
+    "pretest": "pnpm sync:data",
+    "prebuild": "pnpm sync:data",
+    "build": "tsc -p tsconfig.json && vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "pretest:visual": "pnpm sync:data",
+    "test:visual": "playwright test"
+  },
+  "dependencies": {
+    "d3-dsv": "^3.0.1",
+    "phaser": "4.2.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.61.0",
+    "@types/d3-dsv": "3.0.7",
+    "@types/node": "26.0.0",
+    "typescript": "6.0.3",
+    "vite": "8.0.16",
+    "vitest": "4.1.9"
+  }
+}

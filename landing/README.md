@@ -36,6 +36,7 @@ http://127.0.0.1:8080/landing/download.html
 - `download-polish.css` : correctifs de layout, notamment le conflit de classe Linux, plus les styles du bloc partenaires.
 - `main.js` : canvas de réseau énergétique, tilt 3D, parallax souris, magnetic buttons, reveal au scroll et barre de progression.
 - `download.js` : détection OS, résolution des assets de la dernière GitHub Release, mise en avant du build recommandé, terminal animé, overlay de téléchargement et confettis canvas.
+- `../play-js/` : version JS/TypeScript + Phaser publiée par le workflow Pages, séparée du build Godot historique.
 
 ## Métadonnées de partage
 
@@ -53,14 +54,16 @@ https://exifs.github.io/Hackaton-Engie-E-Grid-2045/Docs/Concept%20art%20-%20EU-G
 Le jeu et le Region Shape Editor sont disponibles sur GitHub Pages. Depuis la landing publiée, les liens publics ciblent :
 
 ```text
+../play-js/
 ../play/
 ../region-editor/
 ```
 
-Ces chemins correspondent à la même URL publique que la landing, avec `/play/` et `/region-editor/` à la racine du site GitHub Pages. Exemples attendus après publication :
+Ces chemins correspondent à la même URL publique que la landing, avec `/play-js/`, `/play/` et `/region-editor/` à la racine du site GitHub Pages. `/play-js/` sert la version Vite + Phaser ; `/play/` conserve le build Web Godot. Exemples attendus après publication :
 
 ```text
 https://exifs.github.io/Hackaton-Engie-E-Grid-2045/landing/
+https://exifs.github.io/Hackaton-Engie-E-Grid-2045/play-js/
 https://exifs.github.io/Hackaton-Engie-E-Grid-2045/play/
 https://exifs.github.io/Hackaton-Engie-E-Grid-2045/region-editor/
 ```
@@ -115,6 +118,7 @@ Le workflow `.github/workflows/godot-release.yml` se déclenche à chaque tag. A
 
 - le répertoire `landing/` ;
 - la version Web Godot dans `play/` ;
+- la version Web JS/Phaser dans `play-js/` ;
 - le Region Shape Editor dans `region-editor/` ;
 - les assets `Docs/` et `egrid_region_editor_tool/assets/map/` référencés par les pages HTML ;
 - un `index.html` racine qui redirige vers `./landing/`.

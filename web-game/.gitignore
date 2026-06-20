@@ -1,0 +1,10 @@
+node_modules/
+dist/
+coverage/
+test-results/
+playwright-report/
+.vite/
+public/data/
+public/assets/map/
+public/assets/ui/
+public/assets/generated/building-icon-atlas-chroma.png

@@ -1,0 +1,47 @@
+name: Web game CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+    tags-ignore:
+      - '*'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  web-game:
+    name: Test and build Phaser web game
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: web-game
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 25
+
+      - name: Enable pnpm
+        run: corepack enable
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run Vitest
+        run: pnpm test
+
+      - name: Build Vite app
+        run: pnpm build
+
+      - name: Install Playwright Chromium
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Run Playwright visual tests
+        run: pnpm test:visual
