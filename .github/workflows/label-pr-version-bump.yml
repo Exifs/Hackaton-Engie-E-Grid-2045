@@ -1,7 +1,7 @@
 name: Label PR version bump
 
 on:
-  pull_request:
+  pull_request_target:
     types:
       - opened
       - edited
@@ -41,12 +41,13 @@ jobs:
             echo "available=true" >> "${GITHUB_OUTPUT}"
           else
             echo "available=false" >> "${GITHUB_OUTPUT}"
-            echo "::notice::Classifier script is not present on the base branch yet. Skipping automatic label sync for this bootstrap PR."
+            echo "::error::Classifier script is not present on the base branch."
+            exit 1
           fi
 
       - name: Apply semver label
         if: ${{ steps.classifier.outputs.available == 'true' }}
         env:
-          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ secrets.REPO_ADMIN_TOKEN || github.token }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
         run: python3 .github/scripts/classify-semver-bump.py
