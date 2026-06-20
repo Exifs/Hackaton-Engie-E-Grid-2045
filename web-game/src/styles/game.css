@@ -27,9 +27,11 @@ body,
   height: 100%;
   margin: 0;
   overflow: hidden;
+  overscroll-behavior: none;
 }
 
 body {
+  min-height: 100dvh;
   background:
     radial-gradient(circle at 52% 48%, rgba(45, 118, 132, 0.18), transparent 44%),
     linear-gradient(180deg, #07151f 0%, #041018 100%);
@@ -37,6 +39,7 @@ body {
 
 button {
   font: inherit;
+  touch-action: manipulation;
 }
 
 .game-shell {
@@ -48,6 +51,7 @@ button {
   position: absolute;
   inset: 0;
   z-index: 0;
+  touch-action: none;
 }
 
 #game-canvas canvas {
@@ -501,22 +505,54 @@ button {
   .top-kpi {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 6px;
+    top: max(8px, env(safe-area-inset-top));
+    left: 8px;
+    right: 8px;
   }
 
   .kpi-chip:nth-child(n + 5) {
     display: none;
   }
 
+  .kpi-chip {
+    min-height: 54px;
+    padding: 8px 10px;
+  }
+
+  .kpi-chip strong {
+    font-size: 18px;
+  }
+
   .time-controls {
     grid-column: span 2;
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    padding: 5px;
+  }
+
+  .speed-button,
+  .icon-command,
+  .heatmap-button {
+    min-height: 36px;
   }
 
   .heatmap-switch {
-    top: 246px;
-    left: 12px;
-    right: 12px;
+    top: calc(max(8px, env(safe-area-inset-top)) + 176px);
+    left: 8px;
+    right: 8px;
     transform: none;
     overflow-x: auto;
+    padding: 5px;
+    scrollbar-width: none;
+  }
+
+  .heatmap-switch::-webkit-scrollbar {
+    display: none;
+  }
+
+  .heatmap-button {
+    flex: 1 0 auto;
+    padding: 6px 8px;
   }
 
   .alerts-panel {
@@ -524,19 +560,104 @@ button {
   }
 
   .region-panel {
-    left: 12px;
-    right: 12px;
+    left: 8px;
+    right: 8px;
     width: auto;
-    bottom: calc(30vh + 24px);
-    max-height: 24vh;
+    bottom: calc(68px + env(safe-area-inset-bottom));
+    max-height: min(178px, 25dvh);
+    padding: 10px;
+    overflow: auto;
+    z-index: 4;
+  }
+
+  .panel-title {
+    margin-bottom: 8px;
+  }
+
+  .panel-title strong {
+    font-size: 18px;
+  }
+
+  .region-stats {
+    gap: 6px;
+  }
+
+  .meter div {
+    font-size: 11px;
+  }
+
+  .meter i {
+    height: 5px;
+  }
+
+  .region-tags {
+    gap: 5px;
+    margin-top: 8px;
+    max-height: 26px;
+    overflow: hidden;
+  }
+
+  .region-tags span,
+  .built-list span {
+    padding: 3px 7px;
+    font-size: 10px;
+  }
+
+  .queue-list,
+  .built-list {
+    display: none;
   }
 
   .build-palette {
-    max-height: 30vh;
-    width: calc(100vw - 24px);
+    left: 8px;
+    right: 8px;
+    bottom: calc(8px + env(safe-area-inset-bottom));
+    width: auto;
+    max-height: none;
+    z-index: 5;
+  }
+
+  .hud-root:has(.build-palette.is-open) .region-panel {
+    display: none;
+  }
+
+  .palette-toggle {
+    min-height: 44px;
+    margin: 7px;
+    padding: 8px 13px;
+    font-size: 18px;
+  }
+
+  .palette-body {
+    max-height: 0;
+    padding: 0 10px;
   }
 
   .build-palette.is-open .palette-body {
+    max-height: min(58dvh, 480px);
     grid-template-columns: 1fr;
+    overflow-y: auto;
+    padding: 8px 10px 12px;
+    scrollbar-width: thin;
+  }
+
+  .build-palette.is-open {
+    max-height: calc(68dvh - env(safe-area-inset-bottom));
+  }
+
+  .build-category h2 {
+    margin-top: 4px;
+  }
+
+  .build-card {
+    min-height: 58px;
+  }
+
+  .build-copy strong {
+    font-size: 14px;
+  }
+
+  .build-copy small {
+    font-size: 12px;
   }
 }

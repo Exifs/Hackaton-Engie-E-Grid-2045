@@ -19,6 +19,22 @@ test.describe("E-Grid 2045 web game visuals", () => {
     await page.screenshot({ path: testInfo.outputPath("initial-tablet-768x1024.png"), fullPage: true });
   });
 
+  test("phone portrait layout keeps map and construction usable", async ({ page }, testInfo) => {
+    await openGame(page, 390, 844);
+    await expectCanvasNonBlank(page);
+    await expectHudNoMajorOverlap(page);
+    await expect(page.locator(".build-palette")).not.toHaveClass(/is-open/);
+    await expect(page.locator(".region-panel")).toBeVisible();
+    await page.screenshot({ path: testInfo.outputPath("initial-phone-390x844.png"), fullPage: true });
+
+    await page.getByRole("button", { name: "Construire" }).click();
+    await expect(page.locator(".build-palette")).toHaveClass(/is-open/);
+    await expect(page.locator(".region-panel")).toBeHidden();
+    await expect(page.locator(".build-card").first()).toBeVisible();
+    await expectHudNoMajorOverlap(page);
+    await page.screenshot({ path: testInfo.outputPath("phone-build-sheet-open.png"), fullPage: true });
+  });
+
   test("France Nord selection shows the region panel", async ({ page }, testInfo) => {
     await openGame(page, 1600, 900);
     await page.evaluate(() => {
