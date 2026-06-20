@@ -116,6 +116,5 @@ jobs:
             --method POST \
             -H "Accept: application/vnd.github+json" \
             "repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/labels" \
-            --input - <<JSON
-          {"labels":["${LABEL}"]}
-          JSON
+            -f labels[]="${LABEL}" \
+            --silent
