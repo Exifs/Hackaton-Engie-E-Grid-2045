@@ -147,6 +147,7 @@ export class GameHud {
             ${this.paletteTab("construction", "Construction")}
             ${this.paletteTab("research", "Recherche")}
           </div>
+          ${this.paletteOpen ? this.activeDockFilterToggle() : ""}
         </div>
         <div class="palette-body palette-body-${this.activeDockTab}" data-scroll-key="${this.activeDockTab}">
           ${this.activeDockTab === "construction"
@@ -156,6 +157,72 @@ export class GameHud {
       </section>
     `;
     this.restorePaletteScroll();
+  }
+
+  updateVisualProgress(): void {
+    const monthProgress = this.simulation.getMonthProgress();
+    this.updateQueueProgress(monthProgress);
+    this.updateActiveResearchProgress(monthProgress);
+  }
+
+  private updateQueueProgress(monthProgress: number): void {
+    const selectedRegion = this.simulation.getRegionSnapshot();
+    if (!selectedRegion) {
+      return;
+    }
+
+    this.root.querySelectorAll<HTMLElement>('[data-progress-fill="construction"]').forEach((element) => {
+      const index = Number(element.dataset.progressIndex);
+      const item = selectedRegion.construction_queue[index];
+      if (!item) {
+        return;
+      }
+      const progress = this.visualQueueProgress(item, monthProgress);
+      element.style.setProperty("--progress", `${progress}%`);
+      const text = element.parentElement?.querySelector<HTMLElement>('[data-progress-text="construction"]');
+      if (text) {
+        text.textContent = `${item.months_remaining}m restantes - ${fmt(progress)}%`;
+      }
+    });
+
+    this.root.querySelectorAll<HTMLElement>('[data-progress-fill="demolition"]').forEach((element) => {
+      const index = Number(element.dataset.progressIndex);
+      const item = selectedRegion.deconstruction_queue[index];
+      if (!item) {
+        return;
+      }
+      const progress = this.visualQueueProgress(item, monthProgress);
+      element.style.setProperty("--progress", `${progress}%`);
+      const text = element.parentElement?.querySelector<HTMLElement>('[data-progress-text="demolition"], small');
+      if (text) {
+        text.textContent = `Demolition - ${item.months_remaining}m restantes - ${fmt(progress)}%`;
+      }
+    });
+  }
+
+  private updateActiveResearchProgress(monthProgress: number): void {
+    const active = this.simulation.getResearchOptions().find((option) => option.status === "active");
+    if (!active) {
+      return;
+    }
+
+    const activeProgress = this.visualResearchProgress(active, monthProgress);
+    const activePoints = this.visualResearchPoints(active, monthProgress);
+    const status = this.root.querySelector<HTMLElement>('[data-progress-fill="research-active"]');
+    if (status) {
+      status.style.setProperty("--research-progress", `${activeProgress}%`);
+      const detail = status.querySelector<HTMLElement>("[data-research-active-detail]");
+      if (detail) {
+        detail.textContent = `${fmt(activeProgress)}% - ${fmt(activePoints)}/${fmt(active.cost)} pts - ETA ${this.researchEta(active)} - +${fmt(active.monthly_points)} pts/mois`;
+      }
+    }
+
+    this.root.querySelectorAll<HTMLElement>('[data-progress-fill="research-card"]').forEach((element) => {
+      if (element.dataset.progressResearchId !== active.id) {
+        return;
+      }
+      element.style.setProperty("--progress", `${activeProgress}%`);
+    });
   }
 
   private kpi(label: string, value: string): string {
@@ -204,7 +271,7 @@ export class GameHud {
     const demolitionCards = region.deconstruction_queue.length === 0
       ? `<span class="empty-slot-card">Aucune demolition</span>`
       : region.deconstruction_queue
-        .map((item) => this.demolitionCard(item, buildings[item.building_id], monthProgress))
+        .map((item, index) => this.demolitionCard(item, buildings[item.building_id], index, monthProgress))
         .join("");
     const builtCards = region.buildings.length === 0
       ? `<span class="empty-slot-card">Aucun actif</span>`
@@ -268,8 +335,8 @@ export class GameHud {
         ${this.buildingArt(building)}
         <span class="queue-copy">
           <strong>${escapeHtml(building?.display_name ?? item.building_id)}</strong>
-          <small>${item.months_remaining}m restantes</small>
-          <i style="--progress:${progress}%"><b></b></i>
+          <small data-progress-text="construction">${item.months_remaining}m restantes - ${fmt(progress)}%</small>
+          <i data-progress-fill="construction" data-progress-index="${index}" data-progress-building-id="${escapeHtml(item.building_id)}" style="--progress:${progress}%"><b></b></i>
         </span>
       </button>
     `;
@@ -278,6 +345,7 @@ export class GameHud {
   private demolitionCard(
     item: { building_id: string; months_remaining: number; total_months: number },
     building: BuildingDefinition | undefined,
+    index: number,
     monthProgress: number
   ): string {
     const progress = this.visualQueueProgress(item, monthProgress);
@@ -287,7 +355,7 @@ export class GameHud {
         <span class="queue-copy">
           <strong>${escapeHtml(building?.display_name ?? item.building_id)}</strong>
           <small>Demolition · ${item.months_remaining}m restantes</small>
-          <i style="--progress:${progress}%"><b></b></i>
+          <i data-progress-fill="demolition" data-progress-index="${index}" data-progress-building-id="${escapeHtml(item.building_id)}" style="--progress:${progress}%"><b></b></i>
         </span>
       </span>
     `;
@@ -378,11 +446,8 @@ export class GameHud {
     const isAll = this.activeBuildCategory === ALL_BUILD_CATEGORY;
     return `
       <div class="build-accordion ${isAll ? "is-all" : "is-single"}">
-        <div class="build-toolbar">
-          <div class="build-category-tabs" role="tablist" aria-label="Categories batiments">
-            ${[ALL_BUILD_CATEGORY, ...categories].map((category) => this.buildCategoryTab(category, buildings, availability)).join("")}
-          </div>
-          ${this.filterToggle("locked-buildings", "Afficher verrouilles", this.showLockedBuildings)}
+        <div class="build-category-tabs" role="tablist" aria-label="Categories batiments">
+          ${[ALL_BUILD_CATEGORY, ...categories].map((category) => this.buildCategoryTab(category, buildings, availability)).join("")}
         </div>
         <div class="build-category-content">
           ${isAll
@@ -490,6 +555,13 @@ export class GameHud {
     return `<span class="build-badges">${badges.slice(0, 2).map((badge) => `<span>${escapeHtml(badge)}</span>`).join("")}</span>`;
   }
 
+  private activeDockFilterToggle(): string {
+    if (this.activeDockTab === "construction") {
+      return this.filterToggle("locked-buildings", "Afficher verrouilles", this.showLockedBuildings);
+    }
+    return this.filterToggle("unavailable-research", "Afficher indisponibles", this.showUnavailableResearch);
+  }
+
   private filterToggle(id: "locked-buildings" | "unavailable-research", label: string, checked: boolean): string {
     return `
       <button class="dock-filter-toggle ${checked ? "is-active" : ""}" type="button" data-filter-toggle="${id}" aria-pressed="${checked}">
@@ -513,10 +585,10 @@ export class GameHud {
     const activePoints = active ? this.visualResearchPoints(active, monthProgress) : 0;
     const statusMarkup = active
       ? `
-        <div class="research-status is-active" style="--research-progress:${activeProgress}%">
+        <div class="research-status is-active" data-progress-fill="research-active" data-progress-research-id="${escapeHtml(active.id)}" style="--research-progress:${activeProgress}%">
           <div>
             <strong>${escapeHtml(active.display_name)}</strong>
-            <span>${fmt(activeProgress)}% - ${fmt(activePoints)}/${fmt(active.cost)} pts - ETA ${this.researchEta(active)} - +${fmt(active.monthly_points)} pts/mois</span>
+            <span data-research-active-detail>${fmt(activeProgress)}% - ${fmt(activePoints)}/${fmt(active.cost)} pts - ETA ${this.researchEta(active)} - +${fmt(active.monthly_points)} pts/mois</span>
           </div>
         </div>
       `
@@ -524,9 +596,6 @@ export class GameHud {
     return `
       <div class="research-panel">
         ${statusMarkup}
-        <div class="research-toolbar">
-          ${this.filterToggle("unavailable-research", "Afficher indisponibles", this.showUnavailableResearch)}
-        </div>
         <div class="research-queue" aria-label="File de recherche">
           <div class="research-queue-title"><span>File</span><strong>${queued.length}</strong></div>
           ${queued.length === 0
@@ -575,7 +644,7 @@ export class GameHud {
           <strong>${escapeHtml(option.display_name)}</strong>
           <small>${escapeHtml(option.branch)} T${option.tier} · ${fmt(option.cost)} pts · ${this.researchEta(option)}</small>
         </span>
-        <span class="research-progress" style="--progress:${progress}%"><b></b></span>
+        <span class="research-progress" data-progress-fill="research-card" data-progress-research-id="${escapeHtml(option.id)}" style="--progress:${progress}%"><b></b></span>
         <span class="research-copy">${escapeHtml(option.reason || option.notes || effect)}</span>
         <span class="research-tags">
           ${unlocks.map((unlock) => `<span>Debloque ${escapeHtml(unlock)}</span>`).join("")}

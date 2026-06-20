@@ -105,6 +105,10 @@ export class SimulationCore {
     }
   }
 
+  isRunning(): boolean {
+    return !this.state.paused && !this.state.game_result && this.state.simulation_speed > 0;
+  }
+
   advanceMonth(): void {
     if (this.state.game_result) {
       return;
