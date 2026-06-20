@@ -14,7 +14,7 @@ on:
 permissions:
   contents: read
   issues: write
-  pull-requests: write
+  pull-requests: read
 
 concurrency:
   group: label-pr-version-bump-${{ github.event.pull_request.number }}
@@ -26,28 +26,10 @@ jobs:
     if: ${{ github.event.pull_request.state == 'open' }}
     runs-on: ubuntu-24.04
     steps:
-      - name: Checkout classifier from base branch
+      - name: Checkout trusted classifier from base branch
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.base.sha }}
-          sparse-checkout: .github/scripts/classify-semver-bump.py
-          sparse-checkout-cone-mode: false
-          persist-credentials: false
-
-      - name: Check base classifier availability
-        id: base_classifier
-        run: |
-          if [[ -f .github/scripts/classify-semver-bump.py ]]; then
-            echo "available=true" >> "${GITHUB_OUTPUT}"
-          else
-            echo "available=false" >> "${GITHUB_OUTPUT}"
-          fi
-
-      - name: Bootstrap classifier from this PR
-        if: ${{ steps.base_classifier.outputs.available != 'true' && github.event.pull_request.head.repo.full_name == github.repository }}
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
           sparse-checkout: .github/scripts/classify-semver-bump.py
           sparse-checkout-cone-mode: false
           persist-credentials: false
@@ -59,62 +41,12 @@ jobs:
             echo "available=true" >> "${GITHUB_OUTPUT}"
           else
             echo "available=false" >> "${GITHUB_OUTPUT}"
-            echo "::notice::Classifier script is not available yet; skipping label sync for this bootstrap PR."
+            echo "::notice::Classifier script is not present on the base branch yet. Skipping automatic label sync for this bootstrap PR."
           fi
-
-      - name: Classify semver bump
-        id: classify
-        if: ${{ steps.classifier.outputs.available == 'true' }}
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
-          SEMVER_OUTPUT_FILE: semver-label.env
-          SYNC_LABELS: "false"
-        run: python3 .github/scripts/classify-semver-bump.py
-
-      - name: Ensure semver labels exist
-        if: ${{ steps.classifier.outputs.available == 'true' }}
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          gh label create "semver:major" --color "b60205" --description "Breaking change; next release increments the major version." --force
-          gh label create "semver:minor" --color "0e8a16" --description "New feature; next release increments the minor version." --force
-          gh label create "semver:patch" --color "1d76db" --description "Fix, maintenance, docs, CI, or polish; next release increments the patch version." --force
 
       - name: Apply semver label
         if: ${{ steps.classifier.outputs.available == 'true' }}
         env:
-          GH_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
-        run: |
-          set -euo pipefail
-
-          if [[ ! -f semver-label.env ]]; then
-            echo "::error::Classifier did not write semver-label.env."
-            exit 1
-          fi
-          source semver-label.env
-
-          if [[ -z "${LABEL:-}" ]]; then
-            echo "::error::Classifier did not output a semver label."
-            exit 1
-          fi
-
-          echo "Applying ${LABEL} to PR #${PR_NUMBER}."
-          for candidate in "semver:major" "semver:minor" "semver:patch"; do
-            if [[ "${candidate}" != "${LABEL}" ]]; then
-              encoded_label="$(python3 -c 'import sys, urllib.parse; print(urllib.parse.quote(sys.argv[1], safe=""))' "${candidate}")"
-              gh api \
-                --method DELETE \
-                -H "Accept: application/vnd.github+json" \
-                "repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/labels/${encoded_label}" \
-                --silent >/dev/null 2>&1 || true
-            fi
-          done
-
-          gh api \
-            --method POST \
-            -H "Accept: application/vnd.github+json" \
-            "repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/labels" \
-            -f labels[]="${LABEL}" \
-            --silent
+        run: python3 .github/scripts/classify-semver-bump.py
