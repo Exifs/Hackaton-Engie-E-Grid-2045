@@ -1041,8 +1041,10 @@ export class EGridMapScene extends Phaser.Scene {
     });
     const cols = Math.max(layout.slot_grid_cols ?? 4, 1);
     const rows = Math.max(layout.slot_grid_rows ?? 4, 1);
-    const slotSize = Math.max(6, Math.min(rect.width, rect.height) * 0.0085);
-    const gap = Math.max(2, slotSize * 0.38);
+    const hasVisibleStructures = region.buildings.length + region.construction_queue.length > 0;
+    const baseSlotSize = Math.max(6, Math.min(rect.width, rect.height) * 0.0085);
+    const slotSize = hasVisibleStructures ? baseSlotSize * 0.72 : baseSlotSize;
+    const gap = Math.max(hasVisibleStructures ? 1.5 : 2, slotSize * (hasVisibleStructures ? 0.32 : 0.38));
     const total = cols * rows;
     const width = cols * slotSize + (cols - 1) * gap;
     const height = rows * slotSize + (rows - 1) * gap;
@@ -1059,17 +1061,17 @@ export class EGridMapScene extends Phaser.Scene {
       const x = startX + (index % cols) * (slotSize + gap);
       const y = startY + Math.floor(index / cols) * (slotSize + gap);
       let color = 0x183848;
-      let alpha = 0.42;
+      let alpha = hasVisibleStructures ? 0.12 : 0.42;
       if (index < occupied - constructingSlots) {
         color = 0x5df4c5;
-        alpha = 0.72;
+        alpha = hasVisibleStructures ? 0.38 : 0.72;
       } else if (index < occupied) {
         color = 0xffc15f;
-        alpha = 0.78;
+        alpha = hasVisibleStructures ? 0.48 : 0.78;
       }
       graphics.fillStyle(color, alpha);
       graphics.fillRoundedRect(x, y, slotSize, slotSize, Math.max(2, slotSize * 0.25));
-      graphics.lineStyle(1, 0xd8f8ff, 0.15);
+      graphics.lineStyle(1, 0xd8f8ff, hasVisibleStructures ? 0.07 : 0.15);
       graphics.strokeRoundedRect(x, y, slotSize, slotSize, Math.max(2, slotSize * 0.25));
     }
   }

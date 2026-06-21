@@ -1,6 +1,6 @@
 # Component diagnostics - E-Grid 2045 v2.0 convergence
 
-Current audit screenshot: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-26b-concept-state-balanced-map-modules.png`
+Current audit screenshot: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-27-concept-state-soft-selected-slots.png`
 
 Reference: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\reference-v2-0.png`
 
@@ -54,6 +54,7 @@ Current state:
 - Desktop rendering now renders country and sea labels, while suppressing most low-value internal gameplay region labels.
 - Desktop real game now uses the same curved route hierarchy, geographic label layer, enhanced sprite glow/size and strategic structure cap.
 - Built structures now draw a terrain integration layer: contact shadow, subtle accent pad, connector to the regional node and small anchor points before the final sprite.
+- Selected-region slots now become smaller and dimmer when the selected region already has buildings or queued construction, while empty regions keep a clear planning grid.
 - Map structures now reflect gameplay state: absent at empty start, grey cube during construction, real building icon only once built.
 - Structure placement is deterministic and type-aware, with offshore/sea assets pushed toward water and land assets kept near regional anchors.
 - A global visible-structure cap prevents overloading the map.
@@ -64,12 +65,12 @@ Visible differences:
 - Concept modules are still more hand-painted and less icon-like than the generated atlas sprites.
 - The map backdrop relief and generated route topology do not match the exact concept map.
 - Label positions are approximate; in the concept-state capture, live region/problem labels can still add visual density beyond the static art.
-- Selected-region slot markers can visually crowd nearby built structures in gameplay views.
+- Selected-region slot markers are still a gameplay affordance absent from the concept, but they no longer dominate built module clusters.
 
 Future actions:
 - Generate a dedicated tiny in-map module atlas if the existing icon atlas remains too detailed or too icon-like, preserving the empty-start, grey-construction, built-only-final-icon state rule.
 - Tune terrain integration and module sprites so country/sea text sits on a more concept-like painted base.
-- Consider reducing selected slot marker prominence near built modules if it continues to compete with infrastructure readability.
+- Consider hover/build-mode-only slot rendering only if the remaining slot grid still feels too game-like after further map asset work.
 
 Priority: High, but asset-heavy.
 

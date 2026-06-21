@@ -717,3 +717,32 @@ What should be tried next:
 Regressions introduced:
 - None observed after balancing. Major HUD panels report no overflow.
 - Targeted Playwright map tests passed: empty/construction/built states, P0 completed buildings, and far-region safe-area focus.
+
+## Iteration 27 - Softer selected-region slot markers
+
+Screenshots:
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-27-real-game-empty-region-slots-visible.png`
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-27-real-game-p0-soft-selected-slots.png`
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-27-concept-state-soft-selected-slots.png`
+
+What is closer to the concept art and the playable game:
+- Selected-region slot markers no longer form a bright block over built infrastructure.
+- Empty regions still show a clear capacity grid, preserving the building-planning affordance.
+- Regions that already contain buildings or construction queues use smaller, dimmer slot cells so map modules and terrain remain the visual priority.
+
+What still differs visibly:
+- The static concept does not expose a gameplay slot grid at all; the real game keeps it for planning.
+- Slot markers remain visible in selected built regions, just less dominant.
+- Building sprites are still generated atlas art rather than fully painted terrain clusters.
+
+What was changed:
+- Updated `EGridMapScene.drawSelectedSlots()` to detect whether the selected region already has buildings or queued construction.
+- Reduced slot size, empty-slot alpha, occupied-slot alpha and stroke alpha only in regions with visible structures.
+
+What should be tried next:
+- Continue central-map fidelity with a dedicated in-map module atlas or additional terrain color grading.
+- If slot markers still feel too game-like later, consider a hover/build-mode-only treatment rather than permanent suppression.
+
+Regressions introduced:
+- None observed. HUD panels report no overflow in captured concept-state metrics.
+- Targeted Playwright tests passed for construction palette, empty/construction/built map states and P0 completed buildings.
