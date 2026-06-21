@@ -3,8 +3,6 @@ name: Godot CI
 on:
   pull_request:
   push:
-    branches:
-      - "codex/**"
   workflow_dispatch:
 
 permissions:
