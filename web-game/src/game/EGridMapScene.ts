@@ -254,19 +254,21 @@ export class EGridMapScene extends Phaser.Scene {
     const strength = desktopConceptGrade ? 1 : 0.5;
     graphics.setBlendMode(Phaser.BlendModes.ADD);
 
-    graphics.fillStyle(0x9edce2, 0.035 * strength);
+    graphics.fillStyle(0x9edce2, 0.06 * strength);
     graphics.fillEllipse(rect.x + rect.width * 0.5, rect.y + rect.height * 0.54, rect.width * 0.64, rect.height * 0.5);
-    graphics.fillStyle(0x53e7ff, 0.026 * strength);
+    graphics.fillStyle(0x53e7ff, 0.046 * strength);
     graphics.fillEllipse(rect.x + rect.width * 0.44, rect.y + rect.height * 0.46, rect.width * 0.5, rect.height * 0.34);
-    graphics.fillStyle(0xd8f8ff, 0.018 * strength);
+    graphics.fillStyle(0xd8f8ff, 0.034 * strength);
     graphics.fillEllipse(rect.x + rect.width * 0.55, rect.y + rect.height * 0.34, rect.width * 0.42, rect.height * 0.26);
-    graphics.fillStyle(0x4eb2c7, 0.022 * strength);
+    graphics.fillStyle(0x4eb2c7, 0.03 * strength);
     graphics.fillEllipse(rect.x + rect.width * 0.36, rect.y + rect.height * 0.75, rect.width * 0.34, rect.height * 0.2);
+    graphics.fillStyle(0xe6fbff, 0.018 * strength);
+    graphics.fillEllipse(rect.x + rect.width * 0.5, rect.y + rect.height * 0.58, rect.width * 0.42, rect.height * 0.2);
 
-    graphics.lineStyle(1, 0x9edce2, 0.075 * strength);
+    graphics.lineStyle(1, 0x9edce2, 0.1 * strength);
     this.drawNormalizedQuadratic(graphics, rect, { x: -0.04, y: 0.78 }, { x: 0.32, y: 0.54 }, { x: 1.02, y: 0.36 }, 18);
     this.drawNormalizedQuadratic(graphics, rect, { x: 0.08, y: 0.86 }, { x: 0.46, y: 0.56 }, { x: 0.98, y: 0.72 }, 18);
-    graphics.lineStyle(1, 0x53e7ff, 0.055 * strength);
+    graphics.lineStyle(1, 0x53e7ff, 0.074 * strength);
     this.drawNormalizedQuadratic(graphics, rect, { x: 0.16, y: 0.24 }, { x: 0.5, y: 0.12 }, { x: 0.82, y: 0.24 }, 16);
     this.drawNormalizedQuadratic(graphics, rect, { x: 0.28, y: 0.94 }, { x: 0.54, y: 0.8 }, { x: 0.86, y: 0.9 }, 14);
 
@@ -337,15 +339,15 @@ export class EGridMapScene extends Phaser.Scene {
             targetPoint,
             hash,
             color,
-            isActiveConceptEdge ? 0.92 : 0.52,
-            isActiveConceptEdge ? 0.14 : 0.055
+            isActiveConceptEdge ? 1.05 : 0.58,
+            isActiveConceptEdge ? 0.18 : 0.075
           );
           if (isActiveConceptEdge || hash % 10 === 0) {
             const nodeRatio = 0.32 + (hash % 30) / 90;
             const control = this.conceptRouteControl(sourcePoint, targetPoint, hash);
             const node = quadraticPoint(sourcePoint, control, targetPoint, nodeRatio);
-            graphics.fillStyle(color, isActiveConceptEdge ? 0.42 : 0.18);
-            graphics.fillCircle(node.x, node.y, isActiveConceptEdge ? 1.9 : 1.2);
+            graphics.fillStyle(color, isActiveConceptEdge ? 0.5 : 0.22);
+            graphics.fillCircle(node.x, node.y, isActiveConceptEdge ? 2.1 : 1.35);
           }
           continue;
         }
@@ -383,15 +385,15 @@ export class EGridMapScene extends Phaser.Scene {
         const strategicWidth = flow.is_congested ? Math.max(0.95, width * 0.58) : Math.max(1.05, width * 0.66);
         graphics.lineStyle(strategicWidth + 3.2, 0x03131b, 0.46);
         this.drawQuadraticRoute(graphics, sourcePoint, control, targetPoint);
-        graphics.lineStyle(strategicWidth, color, flow.is_congested ? 0.5 : 0.56);
+        graphics.lineStyle(strategicWidth, color, flow.is_congested ? 0.54 : 0.64);
         this.drawQuadraticRoute(graphics, sourcePoint, control, targetPoint);
-        graphics.lineStyle(0.55, 0xd8fbff, flow.is_congested ? 0.1 : 0.095);
+        graphics.lineStyle(0.62, 0xd8fbff, flow.is_congested ? 0.12 : 0.13);
         this.drawQuadraticRoute(graphics, sourcePoint, control, targetPoint);
 
         const pulse = this.testMode ? 0.58 : (this.animationTime * 0.22 + flow.intensity_normalized) % 1;
         const point = quadraticPoint(sourcePoint, control, targetPoint, pulse);
-        graphics.fillStyle(color, flow.is_congested ? 0.58 : 0.7);
-        graphics.fillCircle(point.x, point.y, (flow.is_congested ? 1.5 : 1.7) + flow.intensity_normalized * 1.55);
+        graphics.fillStyle(color, flow.is_congested ? 0.62 : 0.78);
+        graphics.fillCircle(point.x, point.y, (flow.is_congested ? 1.65 : 1.9) + flow.intensity_normalized * 1.65);
         continue;
       }
       graphics.lineStyle(width + 4, 0x062431, 0.55);
@@ -579,7 +581,7 @@ export class EGridMapScene extends Phaser.Scene {
     ranked
       .filter((entry) => entry.hasSelectedEndpoint && !entry.flow.is_congested)
       .sort(byScore)
-      .slice(0, 8)
+      .slice(0, 9)
       .forEach(addFlow);
 
     ranked
@@ -598,12 +600,12 @@ export class EGridMapScene extends Phaser.Scene {
       .filter((entry) => !entry.flow.is_congested)
       .sort(byScore)
       .forEach((entry) => {
-        if (result.length < 10) {
+        if (result.length < 12) {
           addFlow(entry);
         }
       });
 
-    return result.slice(0, 10);
+    return result.slice(0, 12);
   }
 
   private strokeConceptRoute(
@@ -756,7 +758,7 @@ export class EGridMapScene extends Phaser.Scene {
       const { region, point, hash, buildingId, state, index } = candidate;
       const accent = hash % 5 === 0 ? HEATMAP_COLORS.compute : hash % 4 === 0 ? HEATMAP_COLORS.cooling : HEATMAP_COLORS.energy;
       const isPrimarySelected = candidate === selectedPrimary;
-      const renderScale = isPrimarySelected ? scale * 1.12 : region.id === selectedRegionId && useStrategicStructureCap ? scale * 0.84 : scale;
+      const renderScale = isPrimarySelected ? scale * 1.18 : region.id === selectedRegionId && useStrategicStructureCap ? scale * 0.72 : scale;
       const offset = isPrimarySelected && !this.isOffshoreMapBuilding(buildingId)
         ? { x: 0, y: -13 * scale }
         : this.structureOffset(region, buildingId, index, renderScale);
@@ -784,7 +786,7 @@ export class EGridMapScene extends Phaser.Scene {
     for (const candidate of candidates) {
       const regionId = candidate.region.id;
       const currentCount = visibleByRegion.get(regionId) ?? 0;
-      const perRegionLimit = regionId === selectedRegionId ? 4 : 2;
+      const perRegionLimit = regionId === selectedRegionId ? 3 : 2;
       if (currentCount >= perRegionLimit) {
         continue;
       }
@@ -963,7 +965,7 @@ export class EGridMapScene extends Phaser.Scene {
     const cropX = (clampedIndex % columns) * cellWidth;
     const cropY = Math.floor(clampedIndex / columns) * cellHeight;
     const useEnhancedMapSprites = window.innerWidth >= 1180 || document.documentElement.dataset.conceptScenario === "1";
-    const displaySize = (useEnhancedMapSprites ? (primary ? 60 : 50) : 50) * scale;
+    const displaySize = (useEnhancedMapSprites ? (primary ? 62 : 47) : 50) * scale;
     const spriteScale = displaySize / cellWidth;
     const spriteY = y - (useEnhancedMapSprites ? (primary ? 6 : 5) : 7) * scale;
     if (useEnhancedMapSprites) {
@@ -982,7 +984,7 @@ export class EGridMapScene extends Phaser.Scene {
         .setCrop(cropX, cropY, cellWidth, cellHeight)
         .setScale(spriteScale * (primary ? 1.1 : 1.04))
         .setTint(accent)
-        .setAlpha(primary ? 0.14 : 0.075)
+        .setAlpha(primary ? 0.17 : 0.095)
         .setBlendMode(Phaser.BlendModes.ADD);
       container.add(glow);
     }
@@ -1001,7 +1003,7 @@ export class EGridMapScene extends Phaser.Scene {
         .setCrop(cropX, cropY, cellWidth, cellHeight)
         .setScale(spriteScale * 0.98)
         .setTint(0xd8fbff)
-        .setAlpha(primary ? 0.09 : 0.04)
+        .setAlpha(primary ? 0.12 : 0.055)
         .setBlendMode(Phaser.BlendModes.ADD);
       container.add(detailLift);
       this.drawModuleTerrainSkirt(container, x, spriteY + displaySize * 0.24, displaySize, scale, accent, primary);

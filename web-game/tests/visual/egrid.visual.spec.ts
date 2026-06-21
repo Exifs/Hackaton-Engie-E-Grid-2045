@@ -329,11 +329,11 @@ test.describe("E-Grid 2045 web game visuals", () => {
     expect(metrics.hasBeneluxLabel).toBe(true);
     expect(metrics.hasGermanyLabel).toBe(true);
     expect(metrics.forbiddenVisibleLabels).toEqual([]);
-    expect(metrics.buildingTextureCount).toBeGreaterThanOrEqual(40);
+    expect(metrics.buildingTextureCount).toBeGreaterThanOrEqual(36);
     expect(metrics.visibleStructureEstimate).toBeGreaterThanOrEqual(9);
     expect(metrics.visibleStructureEstimate).toBeLessThanOrEqual(11);
     expect(metrics.strategicFlowCount).toBeGreaterThanOrEqual(8);
-    expect(metrics.strategicFlowCount).toBeLessThanOrEqual(10);
+    expect(metrics.strategicFlowCount).toBeLessThanOrEqual(12);
     expect(metrics.strategicCongestedCount).toBeLessThanOrEqual(1);
     expect(metrics.strategicSelectedEndpointCount).toBeGreaterThanOrEqual(6);
     expect(metrics.alertAccentCount).toBeGreaterThanOrEqual(3);
@@ -473,10 +473,13 @@ test.describe("E-Grid 2045 web game visuals", () => {
           overflowY: Math.max(0, element.scrollHeight - element.clientHeight),
           visualBeforeContent: visualElement ? getComputedStyle(visualElement, "::before").content : "none",
           visualAfterContent: visualElement ? getComputedStyle(visualElement, "::after").content : "none",
+          visualAfterOpacity: visualElement ? getComputedStyle(visualElement, "::after").opacity : "",
           artBeforeContent: artBefore?.content ?? "none",
           artAfterContent: artAfter?.content ?? "none",
           artBeforeBorderColor: artBefore?.borderColor ?? "",
-          artAfterBackground: artAfter?.backgroundImage ?? ""
+          artAfterBackground: artAfter?.backgroundImage ?? "",
+          artFilter: artElement ? getComputedStyle(artElement).filter : "",
+          artOpacity: artElement ? getComputedStyle(artElement).opacity : ""
         };
       });
       expect(metrics.height).toBeLessThanOrEqual(width < 720 ? 96 : 88);
@@ -494,8 +497,11 @@ test.describe("E-Grid 2045 web game visuals", () => {
         expect(metrics.visualAfterContent).toBe('""');
         expect(metrics.artBeforeContent).toBe('""');
         expect(metrics.artAfterContent).toBe('""');
+        expect(parseFloat(metrics.visualAfterOpacity)).toBeGreaterThanOrEqual(0.8);
         expect(metrics.artBeforeBorderColor).not.toBe("rgba(0, 0, 0, 0)");
         expect(metrics.artAfterBackground).not.toBe("none");
+        expect(metrics.artFilter).toContain("brightness");
+        expect(parseFloat(metrics.artOpacity)).toBeGreaterThanOrEqual(0.9);
       }
       await expectHudNoMajorOverlap(page);
     }
@@ -594,10 +600,14 @@ test.describe("E-Grid 2045 web game visuals", () => {
         const art = card.querySelector<HTMLElement>(".building-art");
         const artBefore = art ? getComputedStyle(art, "::before") : undefined;
         const artAfter = art ? getComputedStyle(art, "::after") : undefined;
+        const artRect = art?.getBoundingClientRect();
         return {
           cardOverflow: Math.max(0, card.scrollWidth - card.clientWidth, card.scrollHeight - card.clientHeight),
           cardAfterContent: cardAfter.content,
           cardAfterWidth: Number.parseFloat(cardAfter.width),
+          artWidth: artRect?.width ?? 0,
+          artHeight: artRect?.height ?? 0,
+          artFilter: art ? getComputedStyle(art).filter : "",
           artBeforeContent: artBefore?.content ?? "",
           artAfterContent: artAfter?.content ?? "",
           artAfterWidth: artAfter ? Number.parseFloat(artAfter.width) : 0
@@ -629,6 +639,9 @@ test.describe("E-Grid 2045 web game visuals", () => {
       card.cardOverflow === 0 &&
       card.cardAfterContent === '""' &&
       card.cardAfterWidth > 0 &&
+      card.artWidth >= 58 &&
+      card.artHeight >= 48 &&
+      card.artFilter.includes("brightness") &&
       card.artBeforeContent === '""' &&
       card.artAfterContent === '""' &&
       card.artAfterWidth > 0

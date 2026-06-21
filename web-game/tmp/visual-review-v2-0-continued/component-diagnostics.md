@@ -1,16 +1,17 @@
 # Component diagnostics - E-Grid 2045 v2.0 convergence
 
-Current audit screenshot: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-74-priority-audit-concept-state-global.png`
+Current audit screenshot: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-78-central-map-light-routes-concept-state-global.png`
 
 Current targeted component captures:
-- Top bar: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-74-priority-audit-concept-state-topbar.png`
-- Left rail: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-74-priority-audit-concept-state-left-rail.png`
-- Right panel: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-74-priority-audit-concept-state-right-panel.png`
-- Alerts: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-74-priority-audit-concept-state-alerts.png`
-- Mini overview: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-74-priority-audit-concept-state-grid-overview.png`
-- Real start: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-74-priority-audit-real-start-global.png`
-- Construction state: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-74-priority-audit-construction-canvas.png`
-- Recherche state: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-74-priority-audit-research-left-rail.png`
+- Top bar: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-78-central-map-light-routes-concept-state-topbar.png`
+- Left rail: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-78-central-map-light-routes-concept-state-left-rail.png`
+- Right panel: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-78-central-map-light-routes-concept-state-right-panel.png`
+- Alerts: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-78-central-map-light-routes-concept-state-alerts.png`
+- Mini overview: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-78-central-map-light-routes-concept-state-grid-overview.png`
+- Central map: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-78-central-map-light-routes-concept-state-central-map-crop.png`
+- Real start: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-78-central-map-light-routes-real-start-global.png`
+- Construction state: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-78-central-map-light-routes-construction-canvas.png`
+- Recherche state: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-78-central-map-light-routes-research-left-rail.png`
 
 Reference: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\reference-v2-0.png`
 
@@ -18,32 +19,37 @@ Component reference crop: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-ga
 
 Central map reference crop: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\reference-v2-0-central-map-crop.png`
 
-## Current priority audit - Iteration 74
+Capture workflow: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\visual-capture-workflow.md`
+
+## Current priority audit - Iteration 78
 
 Fresh evidence:
-- Concept-state global: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-74-priority-audit-concept-state-global.png`
-- Concept-state metrics: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-74-priority-audit-concept-state-metrics.json`
-- Real-start global: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-74-priority-audit-real-start-global.png`
-- Real-start metrics: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-74-priority-audit-real-start-metrics.json`
-- Construction canvas: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-74-priority-audit-construction-canvas.png`
-- Construction metrics: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-74-priority-audit-construction-metrics.json`
-- Recherche crop: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-74-priority-audit-research-left-rail.png`
-- Recherche metrics: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-74-priority-audit-research-metrics.json`
+- Concept-state global: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-78-central-map-light-routes-concept-state-global.png`
+- Concept-state central map: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-78-central-map-light-routes-concept-state-central-map-crop.png`
+- Concept-state metrics: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-78-central-map-light-routes-concept-state-metrics.json`
+- Real-start global: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-78-central-map-light-routes-real-start-global.png`
+- Real-start metrics: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-78-central-map-light-routes-real-start-metrics.json`
+- Construction canvas: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-78-central-map-light-routes-construction-canvas.png`
+- Construction metrics: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-78-central-map-light-routes-construction-metrics.json`
+- Recherche crop: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-78-central-map-light-routes-research-left-rail.png`
+- Recherche metrics: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-78-central-map-light-routes-research-metrics.json`
 
 Stable / accepted:
-- Main screen composition is stable. The top bar, BUILD rail, right panel, alert dock and GRID OVERVIEW all report zero measured overflow in the iteration-74 concept-state and real-start metrics.
+- Main screen composition is stable. The top bar, BUILD rail, right panel, alert dock and GRID OVERVIEW all report zero measured overflow in the iteration-78 concept-state and real-start metrics.
 - The mini GRID OVERVIEW background is accepted by user feedback. Keep `grid-overview-europe-map-only-v1.png`; do not iterate on that background asset unless a regression appears.
 - AGI rings are ticks-only and should stay that way.
 - Construction state is protected: real start reports `buildingTextureCount: 0`; queued construction reports one construction item, zero built items and `buildingTextureCount: 0`.
+- BUILD rail glyph contrast/readability improved in iteration 77 without changing panel size: left-rail crop luma 32.18 to 35.76, bright pixels 11240 to 16487, cyan pixels 6686 to 11034.
+- Central-map lighting and route density improved in iteration 78: strategic routes 10 to 12, central-map crop luma 42.24 to 44.00, cyan pixels 19315 to 22229, bright pixels 58443 to 70350.
 - Recherche default real-start view has no body/card/title overflow and keeps the mini GRID OVERVIEW visible.
 - Targeted scroll validation passes for construction accordion, construction all-mode card-surface scroll and recherche card-surface scroll.
 - Iteration 73's central-map sprite grounding remains the current code-side state: lower/smaller/desaturated built sprites with a foreground terrain skirt.
 
 Updated priority list:
-1. Central map module and terrain fidelity - High. The map still carries the most visible remaining gap: generated isometric module props, darker relief texture, and state-shaped route/alert composition. Further generic glow/scale tuning is lower return; the next map pass should be a true tiny map-marker atlas or a selected-region composition pass. Any next map pass must preserve the no-start-sprite / grey-construction-cube / final-built-sprite invariant.
-2. Right region panel slot treatment - Medium to high. The panel is stable and useful, but building slots still read as blue UI thumbnails rather than concept-like technical building tiles.
-3. BUILD rail icon/card fidelity - Medium. The layout now fits and the mini overview remains visible, but card art and glyphs are darker and more abstract than the concept's stronger pictogram grid.
-4. Bottom alerts polish - Medium. Alert text now fits and occupies the cards, but live copy rhythm and CSS glyphs remain less bespoke than the concept.
+1. Central map module and terrain fidelity - High. Iteration 78 improves light and route density, but the map still carries the most visible remaining gap: generated isometric module props, darker/grittier relief texture than the reference, and state-shaped route/alert composition. Further tiny alpha tuning is lower return; the next central-map pass should be a true tiny map-marker atlas or a stronger terrain grade. Any next map pass must preserve the no-start-sprite / grey-construction-cube / final-built-sprite invariant.
+2. Bottom alerts polish - Medium. Alert text now fits and occupies the cards, but live copy rhythm and CSS glyphs remain less bespoke than the concept.
+3. BUILD rail icon/card fidelity - Medium/guard. Iteration 77 improves sub-card glyph contrast and keeps the mini overview visible. Further rail work should be a dedicated glyph atlas, not another small CSS brightness pass.
+4. Right region panel slot treatment - Medium/guard. Iteration 76 improves active-slot readability and technical framing, but slot art still comes from the shared generated card atlas rather than bespoke concept-like tiles.
 5. Scroll hotspot regression coverage - Medium / guard. Construction and recherche card-surface scroll are validated; add right-panel and alert-dock hotspot tests before major panel layout work, especially if those panels become scrollable again.
 6. Top bar chrome micro-detail - Low. Structure is close enough that further work should wait until higher-impact map/panel issues are handled.
 
@@ -52,11 +58,11 @@ Deprecated priority notes:
 - Any note treating the old `grid-overview-europe-neon-v1.png` as current is obsolete.
 - Any note that assumes map buildings exist at real game start is incorrect; current real-start metrics verify zero building textures.
 
-## Component-by-component status snapshot - Iteration 74
+## Component-by-component status snapshot - Iteration 78
 
 Global frame:
 - Status: stable / regression guard.
-- Evidence: iteration-74 metrics show zero measured overflow on top bar, BUILD rail, right panel, alert dock and GRID OVERVIEW in concept-state and real-start.
+- Evidence: iteration-78 metrics show zero measured overflow on top bar, BUILD rail, right panel, alert dock and GRID OVERVIEW in concept-state and real-start.
 - Next action: do not resize global panels unless a future screenshot shows clipping, incomplete fill or content cut-off.
 
 Top bar:
@@ -66,13 +72,13 @@ Top bar:
 
 Central map:
 - Status: active high priority.
-- Evidence: playable state rules hold, but the concept-state crop still differs strongly in asset style and terrain mood.
-- Next action: choose between a tiny painted map-marker atlas and selected-region composition, not more generic glow/scale tweaking.
+- Evidence: playable state rules hold, iteration 78 keeps 36 building texture draws / about 9 visible structures, increases strategic routes to 12, and lifts central-map crop luma from 42.24 to 44.00. The concept-state crop still differs strongly in asset style and terrain brightness.
+- Next action: choose a true tiny painted map-marker atlas or a stronger terrain grade. Avoid another small alpha-only route/atmosphere pass unless a new screenshot shows regression.
 
 BUILD rail:
-- Status: medium priority.
-- Evidence: layout fits, tabs work, mini overview remains visible, but the construction card art is dark and more abstract than the concept's clear pictogram grid.
-- Next action: refine BUILD card/glyph readability if not working on the map or right panel.
+- Status: medium / regression guard after iteration 77.
+- Evidence: layout fits, tabs work, mini overview remains visible, and construction-card glyphs are brighter/clearer than iteration 76. The rail still uses CSS line-art over the shared generated atlas rather than the concept's bespoke painted glyph set.
+- Next action: do not keep tuning brightness. If BUILD rail becomes a focus again, generate or author a dedicated small glyph atlas for the construction buttons.
 
 Recherche tab:
 - Status: functional guard, not a concept-copy target.
@@ -85,9 +91,9 @@ Mini GRID OVERVIEW:
 - Next action: preserve the accepted map-only raster and dynamic topology separation.
 
 Right region panel:
-- Status: medium-high priority.
-- Evidence: no overflow and readable status blocks, but building slots still read as dark blue UI thumbnails rather than painted technical tiles.
-- Next action: run a slot tile/glyph treatment pass before spending more time on top-bar chrome.
+- Status: medium priority after iteration 76.
+- Evidence: no overflow and readable status blocks; active building slots now have larger/brighter technical tiles and subdued lock slots. They still use shared atlas art rather than bespoke painted tiles.
+- Next action: keep as regression guard unless bespoke slot artwork is generated later.
 
 Bottom alerts:
 - Status: medium priority.

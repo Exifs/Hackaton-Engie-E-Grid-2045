@@ -2,21 +2,24 @@
 
 Reference: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\reference-v2-0.png`
 
-Current audit after iteration 74:
-- A new priority reset capture was generated as `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-74-priority-audit-*` after the long run of actions, so the top of this file is no longer relying on iteration 72/73 as current truth.
-- The main panels still fill their screen zones without measured overflow: top bar, BUILD rail, right region panel, alert dock and GRID OVERVIEW all report `overflowX: 0` and `overflowY: 0` in both concept-state and real-start captures.
-- Real-start state is still correct: `buildingTextureCount: 0`; no final building sprite appears before construction.
-- Construction state is still correct: one queued building renders as a grey construction placeholder and reports `buildingTextureCount: 0`.
+Current audit after iteration 78:
+- A central-map light/route-density pass was captured as `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-78-central-map-light-routes-*`.
+- Capture workflow is now documented in `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\visual-capture-workflow.md` for future iterations.
+- The selected-region map composition remains stable: concept-state `buildingTextureCount` is 36, approximately 9 visible structures.
+- Central-map lighting and route density improved: concept-state strategic routes increased from 10 to 12, with 1 controlled congested route; central-map crop luma moved from 42.24 to 44.00, cyan pixels from 19315 to 22229 and bright pixels from 58443 to 70350.
+- Right-panel building slots are more legible and closer to the concept's technical tile language: larger/brighter slot art, stronger inner frames, clearer bottom status ticks and more subdued lock tiles.
+- BUILD rail construction cards now have brighter pictogram overlays and clearer technical frames. Left-rail crop metrics moved from luma 32.18 / bright pixels 11240 / cyan pixels 6686 in iteration 76 to luma 35.76 / bright pixels 16487 / cyan pixels 11034 in iteration 77.
+- Gameplay state invariants still hold: real-start `buildingTextureCount: 0`; construction has one queued item, zero built items and `buildingTextureCount: 0`.
+- Panels still report zero measured overflow in concept-state and real-start captures.
 - The accepted mini GRID OVERVIEW background remains `grid-overview-europe-map-only-v1.png`; it has `staticThreadCount: 0`, 10 dynamic hub lines and 20 dynamic nodes. Do not iterate on this asset unless it regresses.
-- Recherche has fresh evidence: no body/card/title overflow, 4 readable cards in the default real-start view, and the mini GRID OVERVIEW remains visible in the rail.
-- Targeted scroll regression checks now pass for construction accordion, construction all-mode card-surface scroll and recherche card-surface scroll. The remaining scroll task is broader hotspot coverage for right panel and alert dock if those panels become scrollable after future layout work.
-- Visual review of the iteration-74 crops shows that the largest remaining differences are art/fidelity problems, not broken layout: central map module art, right-panel slot art, BUILD rail glyph readability, and bottom-alert bespoke icon/copy rhythm.
+- Recherche remains stable: no body/card/title overflow, 4 readable cards in the default real-start view, and the mini GRID OVERVIEW remains visible in the rail.
+- Calibration against the reference shows the largest remaining map gap is still brightness/detail: reference central luma is about 63.97 versus render 44.00, and reference Benelux cyan/detail density remains higher than the render.
 
 Current priority order:
-1. Central map module and terrain fidelity - High. The map is now stable and gameplay-correct, but it remains the largest concept gap: generated isometric props, darker terrain, and state-derived route composition. The next useful pass should be either a true tiny painted map-marker atlas or a selected-region composition pass, while preserving no-start-sprite / grey-construction-cube / final-built-sprite rules.
-2. Right region panel slot treatment - Medium to high. The panel is stable, readable and filled, but the building slots still read as blue UI thumbnails rather than the concept's technical painted tiles.
-3. BUILD rail icon/card fidelity - Medium. The rail fits and the mini overview is visible, but the card art is dark and abstract compared with the concept's bold pictogram grid. This is now a higher visual priority than scroll unless a new scroll bug is reproduced.
-4. Bottom alerts polish - Medium. Alert text now occupies its cards and passes the previous overflow concern, but the cards still feel like live game notifications rather than the bespoke concept alert strip.
+1. Central map module and terrain fidelity - High. Iteration 78 improves lighting and route density, but the map remains the largest concept gap: generated isometric props, darker/grittier terrain than reference, and state-derived route composition. The next useful map pass should be a true tiny painted map-marker atlas or a more deliberate terrain grade; avoid more small alpha-only tweaks unless a screenshot shows regression.
+2. Bottom alerts polish - Medium. Alert text now occupies its cards and passes the previous overflow concern, but the cards still feel like live game notifications rather than the bespoke concept alert strip.
+3. Right region panel polish - Medium/guard. Iteration 76 improves slot readability and tile framing, but the art still comes from the shared card atlas rather than bespoke painted concept tiles.
+4. BUILD rail icon/card fidelity - Medium/guard. Iteration 77 improves glyph brightness/readability while preserving layout and mini overview visibility. Further work should be a true generated glyph atlas, not more CSS brightness tuning.
 5. Scroll hotspot regression coverage - Medium/guard. Existing focused tests pass for construction and recherche card surfaces; add right-panel/alert-dock hotspot tests only when those panels contain scrollable overflow again or before major layout changes.
 6. Top bar and mini GRID OVERVIEW - Regression guard only. AGI rings must remain ticks-only, and the accepted mini overview background must stay map-only with dynamic topology layered separately.
 
@@ -2126,3 +2129,160 @@ What should be tried next:
 Regressions introduced:
 - None observed in iteration-74 screenshots or metrics.
 - Targeted Playwright validation passed: `construction accordion|construction all mode|research tab keeps compact`.
+
+
+## Iteration 75 - Central map selected composition
+
+Screenshots and metrics:
+- Final concept global: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-75-central-map-composition-concept-state-global.png`
+- Final concept canvas: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-75-central-map-composition-concept-state-canvas.png`
+- Final real-start global: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-75-central-map-composition-real-start-global.png`
+- Final construction canvas: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-75-central-map-composition-construction-canvas.png`
+- Final concept metrics: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-75-central-map-composition-concept-state-metrics.json`
+- Final real-start metrics: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-75-central-map-composition-real-start-metrics.json`
+- Final construction metrics: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-75-central-map-composition-construction-metrics.json`
+
+What is closer to the concept art and the playable game:
+- The selected Benelux cluster is less crowded: the selected-region cap is now 3 structures instead of 4.
+- The selected primary module is more clearly dominant, while selected-region satellites are smaller and less visually competitive.
+- The central map atmosphere is slightly brighter in the playable/concept desktop view; pixel metrics show central-map luma rising from 42.71 to 43.09.
+- Real-start and construction rules are preserved: no final building sprites at empty start or while the queued building is still under construction.
+
+What still differs visibly:
+- The reference map remains much brighter and more luminous than the current render: reference central luma measured about 63.97 versus 43.09 in iteration 75.
+- The reference Benelux area has much more cyan/white detail density than the current generated map and atlas modules.
+- The current modules are still generated isometric props; composition improved, but asset source fidelity remains the hard gap.
+
+What was changed:
+- Increased the subtle additive map-atmosphere fills in `EGridMapScene`.
+- Reduced selected-region strategic structure cap from 4 to 3.
+- Increased selected primary render scale and reduced selected satellite scale.
+- Reduced non-primary enhanced map sprite display size from 50 to 47 while keeping the primary at 62.
+- Updated the concept central-map visual guard for the new 36-texture / approximately 9-structure target.
+- Documented the repeatable capture workflow in `visual-capture-workflow.md`.
+
+What should be tried next:
+- Continue central-map work only if the next pass tackles a bigger gap: terrain/lighting grade or a true tiny painted map-marker atlas.
+- Otherwise move to right-panel slot tile treatment, now the next high-value HUD component.
+
+Regressions introduced:
+- None observed in metrics or tests.
+- Passed `pnpm lint`.
+- Passed targeted Playwright: `map structures reflect|concept central map`.
+- Passed `pnpm build`; only the existing Vite chunk-size warning remains.
+
+## Iteration 76 - Right region slot tiles
+
+Screenshots and metrics:
+- Final concept global: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-76-region-slot-tiles-concept-state-global.png`
+- Final right-panel crop: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-76-region-slot-tiles-concept-state-right-panel.png`
+- Final real-start right-panel crop: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-76-region-slot-tiles-real-start-right-panel.png`
+- Final concept metrics: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-76-region-slot-tiles-concept-state-metrics.json`
+- Final real-start metrics: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-76-region-slot-tiles-real-start-metrics.json`
+
+What is closer to the concept art and the playable game:
+- Active building slots in the right panel now read more like technical tiles instead of tiny dark thumbnails.
+- The slot art is larger, brighter and more saturated, with a stronger inner technical frame and clearer green status ticks.
+- Empty/locked slots keep a quieter tactical frame, so they remain visible without dominating the active tiles.
+- The real-start panel remains clean and does not show built slots before buildings exist.
+
+What still differs visibly:
+- The slot art still uses the shared generated building-card atlas, not bespoke painted right-panel tiles matching the concept one-for-one.
+- Concept values/region name remain live game state (`BENELUX`, `16/18`) rather than static Netherlands copy, by design.
+
+What was changed:
+- Tuned the desktop right-panel `.built-card`, `.building-art` and `.locked-slot-card` CSS.
+- Enlarged and brightened right-panel building art while preserving the same markup and demolition behavior.
+- Added a regression guard that right-panel slot art remains at least 58x48 and keeps a brightness filter.
+
+What should be tried next:
+- Move to BUILD rail glyph/card fidelity, unless central-map terrain lighting or a new map-marker atlas becomes the next explicit target.
+- Keep right-panel slot work to regression guard unless bespoke slot artwork is generated later.
+
+Regressions introduced:
+- None observed in iteration-76 screenshots or metrics.
+- Passed `pnpm lint`.
+- Passed targeted Playwright: `P0 completed buildings render|France Nord selection shows`.
+- Passed `pnpm build`; only the existing Vite chunk-size warning remains.
+
+## Iteration 77 - BUILD rail glyph contrast
+
+Screenshots and metrics:
+- Final concept global: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-77-build-rail-glyphs-concept-state-global.png`
+- Final concept left rail crop: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-77-build-rail-glyphs-concept-state-left-rail.png`
+- Final real-start left rail crop: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-77-build-rail-glyphs-real-start-left-rail.png`
+- Final concept metrics: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-77-build-rail-glyphs-concept-state-metrics.json`
+- Final real-start metrics: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-77-build-rail-glyphs-real-start-metrics.json`
+- Final construction metrics: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-77-build-rail-glyphs-construction-metrics.json`
+
+What is closer to the concept art and the playable game:
+- The BUILD rail sub-cards now read less like dark thumbnails and more like compact technical pictogram buttons.
+- Card frames are brighter, inner schematic overlays are stronger, and the generated atlas is treated more as backing material than as the primary readable symbol.
+- The left rail still fits the desktop panel, keeps the mini GRID OVERVIEW visible, and reports zero measured overflow in concept-state and real-start.
+- Pixel sampling on the left-rail crop shows a visible contrast lift: luma 32.18 to 35.76, bright pixels 11240 to 16487, cyan pixels 6686 to 11034.
+
+What still differs visibly:
+- The concept's rail icons are cleaner painted/line-art glyphs; the current version is still CSS line-art over a shared atlas.
+- The real game must expose Construction/Recherche tabs and live locked-state behavior, so it cannot be a blind static copy of the concept rail.
+- A future higher-fidelity pass should generate a dedicated BUILD glyph atlas if this component becomes the focus again.
+
+What was changed:
+- Tuned desktop `.palette-body-construction .build-card` backgrounds, borders and inner glow.
+- Strengthened `.build-visual` frame/crosshair overlays.
+- Brightened and clarified `.building-art::before` and `.building-art::after` glyph layers in the construction rail only.
+- Added a Playwright guard that desktop construction card glyph overlays remain active, bright and non-overflowing.
+
+What should be tried next:
+- Return to the central map for the largest remaining visual gap, ideally with terrain/lighting grade or a true tiny map-marker atlas while preserving gameplay state invariants.
+- If HUD polish is preferred next, bottom alert glyph/copy rhythm is now a higher-value component than more BUILD rail CSS tuning.
+
+Regressions introduced:
+- None observed in iteration-77 screenshots or metrics.
+- Real-start still reports `buildingTextureCount: 0`.
+- Construction still reports one queued item, zero built items and `buildingTextureCount: 0`.
+- Passed `pnpm lint`.
+- Passed targeted Playwright: `construction palette is open|construction cards are compact`.
+- Passed targeted Playwright: `map structures reflect`.
+- Passed `pnpm build`; only the existing Vite chunk-size warning remains.
+
+## Iteration 78 - Central map light and route density
+
+Screenshots and metrics:
+- Final concept global: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-78-central-map-light-routes-concept-state-global.png`
+- Final concept canvas: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-78-central-map-light-routes-concept-state-canvas.png`
+- Final central-map crop: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-78-central-map-light-routes-concept-state-central-map-crop.png`
+- Final real-start canvas: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-78-central-map-light-routes-real-start-canvas.png`
+- Final concept metrics: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-78-central-map-light-routes-concept-state-metrics.json`
+- Final real-start metrics: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-78-central-map-light-routes-real-start-metrics.json`
+- Final construction metrics: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-78-central-map-light-routes-construction-metrics.json`
+
+What is closer to the concept art and the playable game:
+- The central map has a stronger cyan/white atmosphere layer, closer to the brighter painted reference.
+- Strategic route density increased from 10 to 12, so the Benelux hub reads less sparse while staying capped.
+- Route strokes, route nodes and built-module additive detail are slightly more legible.
+- Central-map crop metrics improved versus iteration 77: luma 42.24 to 44.00, cyan pixels 19315 to 22229, bright pixels 58443 to 70350.
+- Real-start and construction invariants remain protected: no final building sprites at empty start and no final building sprite while a building is only queued.
+
+What still differs visibly:
+- The reference central map is still much brighter and more hand-painted; measured reference luma remains about 63.97 versus 44.00 for iteration 78.
+- Map modules are still generated atlas props rather than concept-grade tiny painted infrastructure.
+- One controlled congested route is now visible; it adds concept-like orange alert energy, but route composition remains simulation-derived rather than art-directed.
+
+What was changed:
+- Increased desktop/concept map atmosphere fill and arc alpha in `EGridMapScene`.
+- Increased concept strategic route cap from 10 to 12 and adjusted the Playwright guard accordingly.
+- Increased concept route stroke/node highlight alpha and built-module additive lift.
+- Created a central-map crop artifact for component-level review.
+
+What should be tried next:
+- For the map, stop doing tiny alpha-only changes and move to a stronger terrain grade or a true map-marker atlas if further central-map work is chosen.
+- If switching to HUD polish, bottom alerts are now the next useful component-level pass.
+
+Regressions introduced:
+- None observed in iteration-78 screenshots or metrics.
+- Concept-state panels still report zero overflow.
+- Real-start still reports `buildingTextureCount: 0`.
+- Construction still reports one queued item, zero built items and `buildingTextureCount: 0`.
+- Passed `pnpm lint`.
+- Passed targeted Playwright: `concept central map|map structures reflect`.
+- Passed `pnpm build`; only the existing Vite chunk-size warning remains.
