@@ -150,10 +150,10 @@ export class GameHud {
       </section>
 
       <section class="alerts-panel" aria-label="Alertes" data-onboarding-target="alerts.panel">
-        ${alerts.length === 0 ? this.stableStatusCards(summary) : alerts.map((alert) => `
+        ${alerts.length === 0 ? `<span class="alert-empty">Aucune alerte active</span>` : alerts.map((alert) => `
           ${this.alertCard(alert)}
         `).join("")}
-        <button class="alerts-collapse" type="button" data-action="dismiss-all-alerts" title="Masquer les alertes">v</button>
+        ${alerts.length > 0 ? `<button class="alerts-collapse" type="button" data-action="dismiss-all-alerts" title="Masquer les alertes">v</button>` : ""}
       </section>
 
       <section class="region-panel" aria-label="Region selectionnee" data-onboarding-target="region.panel">
@@ -335,13 +335,20 @@ export class GameHud {
         ${this.conceptSpeedButton(1, summary.simulation_speed === 1, "&#9654;", "Lecture")}
         ${this.conceptSpeedButton(2, summary.simulation_speed === 2, "&#9654;&#9654;", "Avance rapide")}
         ${this.conceptSpeedButton(4, summary.simulation_speed === 4, "&#9654;&#9654;&#9654;", "Avance maximale")}
-        <button class="speed-readout" type="button" data-speed-readout="1" title="Vitesse normale">1.0x</button>
+        ${this.speedReadout(summary.simulation_speed)}
       </div>
     `;
   }
 
   private conceptSpeedButton(speed: number, active: boolean, label: string, title: string): string {
     return `<button class="speed-button ${active ? "is-active" : ""}" type="button" data-speed="${speed}" title="${escapeHtml(title)}">${label}</button>`;
+  }
+
+  private speedReadout(speed: number): string {
+    const safeSpeed = Number.isFinite(speed) ? Math.max(0, speed) : 0;
+    const speedLabel = `${fmt(safeSpeed, 1)}x`;
+    const title = safeSpeed <= 0 ? "Simulation en pause" : `Vitesse reelle: ${speedLabel}`;
+    return `<button class="speed-readout" type="button" data-speed-readout="${fmt(safeSpeed, 1)}" title="${escapeHtml(title)}">${speedLabel}</button>`;
   }
 
   private topMenuCommand(): string {
@@ -452,31 +459,11 @@ export class GameHud {
     return this.alertActionLabel(alert) === "View" ? `Voir ${alert.title}` : alert.title;
   }
 
-  private stableStatusCards(summary: ReturnType<SimulationCore["getSummary"]>): string {
-    const cards = [
-      ["GRID STABLE", "Systems nominal"],
-      ["MARKET UPDATE", `Budget ${fmt(summary.money)}M`],
-      ["RESEARCH READY", `${fmt(summary.researchers_available)} researchers`],
-      ["SIMULATION", summary.date_text]
-    ];
-    return cards.map(([title, body]) => `
-      <article class="alert-item alert-stable is-info">
-        <div class="alert-main">
-          <strong>${escapeHtml(title)}</strong>
-          <span>${escapeHtml(body)}</span>
-        </div>
-      </article>
-    `).join("");
-  }
-
   private regionPanel(region: RegionSnapshot, buildings: Record<string, BuildingDefinition>, monthProgress: number): string {
     const cached = region.cached;
     const levelXp = Math.min(2000, Math.round((region.buildings.length * 110 + region.tags.length * 40) / 10) * 10);
     const regionLevel = Math.max(1, Math.min(9, Math.floor(levelXp / 400) + 1));
     const levelPct = (levelXp / 2000) * 100;
-    const freeSlotCards = Array.from({ length: Math.min(Math.max(region.slots_max - region.slots_used, 0), 2) })
-      .map(() => `<span class="locked-slot-card" aria-label="Slot verrouille"><i></i></span>`)
-      .join("");
     const queueCards = region.construction_queue.length === 0
       ? `<span class="empty-slot-card">Aucun chantier</span>`
       : region.construction_queue
@@ -510,7 +497,7 @@ export class GameHud {
       <div class="region-section region-buildings">
         <div class="panel-subtitle"><span>Building slots</span><strong>${region.slots_used}/${region.slots_max}</strong></div>
         <div class="built-grid">
-          ${builtCards}${freeSlotCards}
+          ${builtCards}
         </div>
       </div>
       <div class="region-status-stack">
@@ -536,7 +523,7 @@ export class GameHud {
       <div class="region-section region-buildings">
         <div class="panel-subtitle"><span>Building slots</span><strong>${region.slots_used}/${region.slots_max}</strong></div>
         <div class="built-grid">
-          ${builtCards}${freeSlotCards}
+          ${builtCards}
         </div>
       </div>
       <div class="region-section region-queue">
@@ -733,7 +720,7 @@ export class GameHud {
   private builtCard(buildingId: string, building: BuildingDefinition | undefined, index: number): string {
     const demolishCost = building ? Math.ceil(building.cost * 0.2) : 0;
     return `
-      <button class="built-card" type="button" data-demolish="${index}" title="Demonter ${escapeHtml(building?.display_name ?? buildingId)} (${demolishCost}M)" ${this.tooltipAttrs(building?.display_name ?? buildingId, this.buildingTooltipBody(building), `Demontage ${demolishCost}M`)}>
+      <button class="built-card" type="button" data-demolish="${index}" title="Demonter ${escapeHtml(building?.display_name ?? buildingId)} (${demolishCost}M)" ${this.buildingTooltipAttrs(building, `Demontage ${demolishCost}M`)}>
         ${this.buildingArt(building)}
         <span class="built-copy">
           <strong>${escapeHtml(building?.display_name ?? buildingId)}</strong>
@@ -1114,7 +1101,7 @@ export class GameHud {
     const reason = availability?.reason ?? "";
     const cause = availability?.cause ? `data-availability-cause="${availability.cause}"` : "";
     return `
-      <button class="build-card ${enabled ? "" : "is-disabled"}" type="button" data-build="${building.id}" data-onboarding-target="build.${building.id}" ${cause} ${enabled ? "" : "disabled"} title="${escapeHtml(reason || building.description)}" ${this.tooltipAttrs(building.display_name, this.buildingTooltipBody(building), enabled ? "Disponible" : reason || "Verrouille")}>
+      <button class="build-card ${enabled ? "" : "is-disabled"}" type="button" data-build="${building.id}" data-onboarding-target="build.${building.id}" ${cause} ${enabled ? "" : "disabled"} title="${escapeHtml(reason || building.description)}" ${this.buildingTooltipAttrs(building, enabled ? "Disponible" : reason || "Verrouille")}>
         <span class="build-visual" aria-hidden="true">
           ${this.buildingArt(building)}
           ${this.buildingBadges(building, availability)}
@@ -1142,6 +1129,13 @@ export class GameHud {
 
   private tooltipAttrs(title: string, body: string, meta = ""): string {
     return `data-rich-tooltip="1" data-tooltip-title="${escapeHtml(title)}" data-tooltip-body="${escapeHtml(body)}" data-tooltip-meta="${escapeHtml(meta)}"`;
+  }
+
+  private buildingTooltipAttrs(building: BuildingDefinition | undefined, meta = ""): string {
+    return [
+      this.tooltipAttrs(building?.display_name ?? "Infrastructure", building?.description ?? "Infrastructure regionale.", meta),
+      building ? `data-tooltip-building-id="${escapeHtml(building.id)}"` : ""
+    ].filter(Boolean).join(" ");
   }
 
   private buildingTooltipBody(building: BuildingDefinition | undefined): string {
@@ -1521,17 +1515,137 @@ export class GameHud {
     const tooltip = this.ensureTooltipElement();
     const titleElement = document.createElement("strong");
     titleElement.textContent = title;
-    const bodyElement = document.createElement("span");
-    bodyElement.textContent = body;
+    const bodyElement = this.tooltipBodyElement(trigger, body);
     tooltip.replaceChildren(titleElement, bodyElement);
     if (meta) {
       const metaElement = document.createElement("small");
+      if (this.isLockedTooltipMeta(meta, trigger)) {
+        metaElement.className = "is-locked";
+      }
       metaElement.textContent = meta;
       tooltip.append(metaElement);
     }
     tooltip.classList.add("is-visible");
     this.tooltipTrigger = trigger;
     this.positionTooltip(x, y);
+  }
+
+  private tooltipBodyElement(trigger: HTMLElement, body: string): HTMLElement {
+    const buildingId = trigger.dataset.tooltipBuildingId;
+    const building = buildingId ? this.simulation.getBuildingDefinitions()[buildingId] : undefined;
+    if (building) {
+      return this.buildingTooltipElement(building);
+    }
+    const bodyElement = document.createElement("span");
+    bodyElement.textContent = body;
+    return bodyElement;
+  }
+
+  private buildingTooltipElement(building: BuildingDefinition): HTMLElement {
+    const wrapper = document.createElement("div");
+    wrapper.className = "tooltip-building";
+
+    const description = document.createElement("p");
+    description.textContent = building.description;
+    wrapper.append(description);
+
+    wrapper.append(this.tooltipChipRow([
+      { label: `${fmt(building.cost)}M`, tone: "price", title: "Prix" },
+      { label: `${fmt(building.construction_months)}m`, tone: "time", title: "Construction" },
+      { label: `${fmt(building.slots_required)} slots`, tone: "slot", title: "Emprise" }
+    ]));
+
+    const production = this.buildingResourceChips(building, "production");
+    const consumption = this.buildingResourceChips(building, "consumption");
+    const constraints = this.buildingConstraintChips(building);
+    if (production.length > 0) {
+      wrapper.append(this.tooltipChipSection("Produit", production));
+    }
+    if (consumption.length > 0) {
+      wrapper.append(this.tooltipChipSection("Consomme", consumption));
+    }
+    if (constraints.length > 0) {
+      wrapper.append(this.tooltipChipSection("Contraintes", constraints));
+    }
+
+    return wrapper;
+  }
+
+  private buildingResourceChips(
+    building: BuildingDefinition,
+    mode: "production" | "consumption"
+  ): Array<{ label: string; tone: string; title: string }> {
+    const prefix = mode === "production" ? "+" : "-";
+    const chips: Array<{ label: string; tone: string; title: string }> = [];
+    const add = (value: number, label: string, tone: string, title: string) => {
+      if (value > 0) {
+        chips.push({ label: `${prefix}${fmt(value)} ${label}`, tone, title });
+      }
+    };
+    if (mode === "production") {
+      add(building.produces_energy, "Energie", "energy", "Production energie");
+      add(building.produces_cooling, "Froid", "cooling", "Production froid");
+      add(building.produces_compute, "Compute", "compute", "Capacite compute");
+      add(building.produces_storage, "Stockage", "storage", "Stockage reseau");
+      add(building.produces_researchers, "R&D", "research", "Chercheurs");
+      return chips;
+    }
+    add(building.consumes_energy, "Energie", "demand", "Besoin energie");
+    add(building.consumes_cooling, "Froid", "demand", "Besoin froid");
+    add(building.consumes_compute, "Compute", "demand", "Besoin compute");
+    add(building.researchers_required, "R&D", "demand", "Chercheurs requis");
+    add(building.co2_monthly, "CO2/mois", "co2", "Pression carbone");
+    return chips;
+  }
+
+  private buildingConstraintChips(building: BuildingDefinition): Array<{ label: string; tone: string; title: string }> {
+    const chips: Array<{ label: string; tone: string; title: string }> = [];
+    if (building.unlock_technology) {
+      chips.push({ label: `Tech ${building.unlock_technology}`, tone: "locked", title: "Recherche requise" });
+    }
+    if (building.required_potential && building.required_potential_min > 0) {
+      chips.push({ label: `${building.required_potential} ${fmt(building.required_potential_min)}+`, tone: "info", title: "Potentiel requis" });
+    }
+    if (building.required_tags.length > 0) {
+      chips.push({ label: building.required_tags.slice(0, 2).join(" / "), tone: "info", title: "Tags region" });
+    }
+    if (building.variable_output) {
+      chips.push({ label: "Variable", tone: "warning", title: "Production variable" });
+    }
+    return chips;
+  }
+
+  private tooltipChipSection(title: string, chips: Array<{ label: string; tone: string; title: string }>): HTMLElement {
+    const section = document.createElement("div");
+    section.className = "tooltip-chip-section";
+    const label = document.createElement("span");
+    label.className = "tooltip-chip-section-label";
+    label.textContent = title;
+    section.append(label, this.tooltipChipRow(chips));
+    return section;
+  }
+
+  private tooltipChipRow(chips: Array<{ label: string; tone: string; title: string }>): HTMLElement {
+    const row = document.createElement("div");
+    row.className = "tooltip-chip-row";
+    for (const chip of chips) {
+      const element = document.createElement("span");
+      element.className = `tooltip-chip tooltip-chip-${chip.tone}`;
+      element.title = chip.title;
+      element.textContent = chip.label;
+      row.append(element);
+    }
+    return row;
+  }
+
+  private isLockedTooltipMeta(meta: string, trigger: HTMLElement): boolean {
+    const availabilityCause = trigger.dataset.availabilityCause as BuildAvailability["cause"] | undefined;
+    const researchLockCause = trigger.dataset.lockCause as ResearchOption["lock_cause"] | undefined;
+    return (
+      /locked|verrouill|debloquer/i.test(meta) ||
+      (availabilityCause !== undefined && BUILD_ACCESS_LOCK_CAUSES.includes(availabilityCause)) ||
+      (researchLockCause !== undefined && RESEARCH_UNAVAILABLE_CAUSES.includes(researchLockCause))
+    );
   }
 
   private ensureTooltipElement(): HTMLElement {

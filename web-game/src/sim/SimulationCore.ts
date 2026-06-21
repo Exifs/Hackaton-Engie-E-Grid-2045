@@ -44,6 +44,7 @@ export class SimulationCore {
   private co2Tiers: Co2Tier[] = [];
   private tickAccumulator = 0;
   private seed = "default";
+  private previousSimulationSpeed = 1;
 
   private readonly regionSystem = new RegionSystem();
   private readonly buildingSystem = new BuildingSystem();
@@ -60,6 +61,7 @@ export class SimulationCore {
   newGame(seed = "default"): void {
     this.seed = seed;
     this.tickAccumulator = 0;
+    this.previousSimulationSpeed = 1;
     this.constants = cloneRecord(this.gameData.constants);
     this.regions = this.regionSystem.cloneRegions(this.gameData.regions, this.gameData.region_layout);
     this.buildingDefinitions = cloneRecord(this.gameData.buildings);
@@ -92,17 +94,28 @@ export class SimulationCore {
   }
 
   setSimulationSpeed(speedMultiplier: number): void {
-    this.state.simulation_speed = clamp(speedMultiplier, 0, 4);
+    const speed = clamp(speedMultiplier, 0, 4);
+    if (speed > 0) {
+      this.previousSimulationSpeed = speed;
+    }
+    this.state.simulation_speed = speed;
     this.state.paused = this.state.simulation_speed <= 0;
   }
 
   setPaused(paused: boolean): void {
     this.state.paused = paused;
     if (paused) {
+      if (this.state.simulation_speed > 0) {
+        this.previousSimulationSpeed = this.state.simulation_speed;
+      }
       this.state.simulation_speed = 0;
     } else if (this.state.simulation_speed <= 0) {
-      this.state.simulation_speed = 1;
+      this.state.simulation_speed = this.previousSimulationSpeed;
     }
+  }
+
+  togglePaused(): void {
+    this.setPaused(!this.state.paused);
   }
 
   isRunning(): boolean {

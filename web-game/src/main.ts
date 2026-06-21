@@ -132,9 +132,13 @@ const hud = new GameHud(hudRoot, simulation, {
     onboarding?.recordGameEvent({ type: "game_changed" });
   },
   onSpeed: (speed) => {
-    simulation.setSimulationSpeed(speed);
-    redraw();
-    onboarding?.recordGameEvent({ type: "game_changed" });
+    if (speed === 0) {
+      toggleSimulationPause();
+    } else {
+      simulation.setSimulationSpeed(speed);
+      redraw();
+      onboarding?.recordGameEvent({ type: "game_changed" });
+    }
   },
   onSelectRegion: (regionId) => {
     simulation.selectRegion(regionId);
@@ -178,6 +182,7 @@ new Phaser.Game({
 });
 
 hud.render();
+window.addEventListener("keydown", handleGlobalKeyDown);
 
 onboarding = new OnboardingController({
   getSnapshot: onboardingSnapshot,
@@ -243,6 +248,30 @@ function redraw(renderHud = true): void {
     hud.render();
   }
   onboarding?.refreshTarget();
+}
+
+function toggleSimulationPause(): void {
+  simulation.togglePaused();
+  redraw();
+  onboarding?.recordGameEvent({ type: "game_changed" });
+}
+
+function handleGlobalKeyDown(event: KeyboardEvent): void {
+  if (event.defaultPrevented || event.repeat || event.code !== "Space") {
+    return;
+  }
+  if (isInteractiveKeyTarget(event.target)) {
+    return;
+  }
+  event.preventDefault();
+  toggleSimulationPause();
+}
+
+function isInteractiveKeyTarget(target: EventTarget | null): boolean {
+  if (!(target instanceof HTMLElement)) {
+    return false;
+  }
+  return Boolean(target.closest("button, input, select, textarea, [contenteditable='true']"));
 }
 
 function onboardingSnapshot(): OnboardingGameStateSnapshot {

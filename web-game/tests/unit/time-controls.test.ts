@@ -28,4 +28,19 @@ describe("SimulationCore time controls", () => {
     expect(core.stepSimulationTime(core.secondsPerMonth + 0.01)).toBe(1);
     expect(core.getSummary().month_index).toBe(1);
   });
+
+  it("togglePaused resumes at the previous non-zero simulation speed", async () => {
+    const core = await createCore("time-toggle-previous-speed");
+    core.setSimulationSpeed(4);
+
+    core.togglePaused();
+
+    expect(core.getSummary().paused).toBe(true);
+    expect(core.getSummary().simulation_speed).toBe(0);
+
+    core.togglePaused();
+
+    expect(core.getSummary().paused).toBe(false);
+    expect(core.getSummary().simulation_speed).toBe(4);
+  });
 });

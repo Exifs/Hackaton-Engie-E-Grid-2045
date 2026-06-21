@@ -615,18 +615,7 @@ test.describe("E-Grid 2045 web game visuals", () => {
           artAfterWidth: artAfter ? Number.parseFloat(artAfter.width) : 0
         };
       });
-      const lockCards = [...panel.querySelectorAll<HTMLElement>(".locked-slot-card")].map((lock) => {
-        const before = getComputedStyle(lock, "::before");
-        const lockBody = lock.querySelector<HTMLElement>("i");
-        const keyhole = lockBody ? getComputedStyle(lockBody, "::after") : undefined;
-        return {
-          beforeContent: before.content,
-          beforeWidth: Number.parseFloat(before.width),
-          keyholeContent: keyhole?.content ?? "",
-          keyholeHeight: keyhole ? Number.parseFloat(keyhole.height) : 0
-        };
-      });
-      return { statusIcons, builtCards, lockCards };
+      return { statusIcons, builtCards };
     });
     expect(regionSlotMetrics.statusIcons).toHaveLength(3);
     expect(regionSlotMetrics.statusIcons.every((icon) =>
