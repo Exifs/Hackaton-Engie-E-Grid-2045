@@ -85,6 +85,7 @@ export class EGridMapScene extends Phaser.Scene {
 
   private heatmapMode: HeatmapMode = "energy";
   private mapImage?: Phaser.GameObjects.Image;
+  private mapAtmosphereLayer?: Phaser.GameObjects.Graphics;
   private flowLayer?: Phaser.GameObjects.Graphics;
   private structureLayer?: Phaser.GameObjects.Graphics;
   private structureSpriteLayer?: Phaser.GameObjects.Container;
@@ -115,10 +116,15 @@ export class EGridMapScene extends Phaser.Scene {
       "building-icon-atlas",
       `${import.meta.env.BASE_URL}assets/generated/building-icon-atlas.png`
     );
+    this.load.image(
+      "building-map-atlas",
+      `${import.meta.env.BASE_URL}assets/generated/building-map-atlas-v2.png`
+    );
   }
 
   create(): void {
     this.mapImage = this.add.image(0, 0, "map-backdrop").setOrigin(0, 0).setAlpha(0.94);
+    this.mapAtmosphereLayer = this.add.graphics();
     this.flowLayer = this.add.graphics();
     this.structureLayer = this.add.graphics();
     this.structureSpriteLayer = this.add.container(0, 0);
@@ -188,6 +194,7 @@ export class EGridMapScene extends Phaser.Scene {
   renderState(): void {
     if (
       !this.flowLayer ||
+      !this.mapAtmosphereLayer ||
       !this.structureLayer ||
       !this.structureSpriteLayer ||
       !this.regionLayer ||
@@ -199,8 +206,10 @@ export class EGridMapScene extends Phaser.Scene {
     }
 
     const rect = this.mapRect();
-    this.mapImage.setPosition(rect.x, rect.y).setDisplaySize(rect.width, rect.height);
+    const conceptMapGrade = window.innerWidth >= 1180 || document.documentElement.dataset.conceptScenario === "1";
+    this.mapImage.setPosition(rect.x, rect.y).setDisplaySize(rect.width, rect.height).setAlpha(conceptMapGrade ? 1 : 0.94);
     this.drawBackdropVignette(rect);
+    this.drawMapAtmosphere(rect);
     this.drawFlows(rect);
     this.drawStructures(rect);
     this.drawRegions(rect);
@@ -217,6 +226,7 @@ export class EGridMapScene extends Phaser.Scene {
       .setOrigin(0, 0)
       .setDepth(0);
     this.mapImage?.setDepth(1);
+    this.mapAtmosphereLayer?.setDepth(1.55);
     this.flowLayer?.setDepth(2);
     this.regionLayer?.setDepth(3);
     this.structureLayer?.setDepth(4);
@@ -226,6 +236,41 @@ export class EGridMapScene extends Phaser.Scene {
   }
 
   private addedVignette?: Phaser.GameObjects.Rectangle;
+
+  private drawMapAtmosphere(rect: MapRect): void {
+    const graphics = this.mapAtmosphereLayer;
+    if (!graphics) {
+      return;
+    }
+    graphics.clear();
+    const desktopConceptGrade = window.innerWidth >= 1180 || document.documentElement.dataset.conceptScenario === "1";
+    const strength = desktopConceptGrade ? 1 : 0.5;
+    graphics.setBlendMode(Phaser.BlendModes.ADD);
+
+    graphics.fillStyle(0x9edce2, 0.035 * strength);
+    graphics.fillEllipse(rect.x + rect.width * 0.5, rect.y + rect.height * 0.54, rect.width * 0.64, rect.height * 0.5);
+    graphics.fillStyle(0x53e7ff, 0.026 * strength);
+    graphics.fillEllipse(rect.x + rect.width * 0.44, rect.y + rect.height * 0.46, rect.width * 0.5, rect.height * 0.34);
+    graphics.fillStyle(0xd8f8ff, 0.018 * strength);
+    graphics.fillEllipse(rect.x + rect.width * 0.55, rect.y + rect.height * 0.34, rect.width * 0.42, rect.height * 0.26);
+    graphics.fillStyle(0x4eb2c7, 0.022 * strength);
+    graphics.fillEllipse(rect.x + rect.width * 0.36, rect.y + rect.height * 0.75, rect.width * 0.34, rect.height * 0.2);
+
+    graphics.lineStyle(1, 0x9edce2, 0.075 * strength);
+    this.drawNormalizedQuadratic(graphics, rect, { x: -0.04, y: 0.78 }, { x: 0.32, y: 0.54 }, { x: 1.02, y: 0.36 }, 18);
+    this.drawNormalizedQuadratic(graphics, rect, { x: 0.08, y: 0.86 }, { x: 0.46, y: 0.56 }, { x: 0.98, y: 0.72 }, 18);
+    graphics.lineStyle(1, 0x53e7ff, 0.055 * strength);
+    this.drawNormalizedQuadratic(graphics, rect, { x: 0.16, y: 0.24 }, { x: 0.5, y: 0.12 }, { x: 0.82, y: 0.24 }, 16);
+    this.drawNormalizedQuadratic(graphics, rect, { x: 0.28, y: 0.94 }, { x: 0.54, y: 0.8 }, { x: 0.86, y: 0.9 }, 14);
+
+    graphics.setBlendMode(Phaser.BlendModes.NORMAL);
+    graphics.fillStyle(0x02070b, 0.11 * strength);
+    graphics.fillRect(rect.x, rect.y, rect.width, rect.height * 0.08);
+    graphics.fillRect(rect.x, rect.y + rect.height * 0.9, rect.width, rect.height * 0.1);
+    graphics.fillStyle(0x02070b, 0.08 * strength);
+    graphics.fillRect(rect.x, rect.y, rect.width * 0.04, rect.height);
+    graphics.fillRect(rect.x + rect.width * 0.965, rect.y, rect.width * 0.035, rect.height);
+  }
 
   private drawFlows(rect: MapRect): void {
     const graphics = this.flowLayer;
@@ -397,6 +442,23 @@ export class EGridMapScene extends Phaser.Scene {
     graphics.strokePath();
   }
 
+  private drawNormalizedQuadratic(
+    graphics: Phaser.GameObjects.Graphics,
+    rect: MapRect,
+    source: { x: number; y: number },
+    control: { x: number; y: number },
+    target: { x: number; y: number },
+    steps: number
+  ): void {
+    this.drawQuadraticRoute(
+      graphics,
+      { x: rect.x + source.x * rect.width, y: rect.y + source.y * rect.height },
+      { x: rect.x + control.x * rect.width, y: rect.y + control.y * rect.height },
+      { x: rect.x + target.x * rect.width, y: rect.y + target.y * rect.height },
+      steps
+    );
+  }
+
   private drawStructures(rect: MapRect): void {
     const graphics = this.structureLayer;
     if (!graphics) {
@@ -481,7 +543,7 @@ export class EGridMapScene extends Phaser.Scene {
   private structureOffset(region: RegionSnapshot, buildingId: string, index: number, scale: number): { x: number; y: number } {
     const landColumn = index % 3;
     const landRow = Math.floor(index / 3);
-    const landOffset = {
+    const baseLandOffset = {
       x: (landColumn - 1) * 18 * scale + (landRow % 2 === 0 ? 0 : 8 * scale),
       y: -10 * scale + landRow * 10 * scale
     };
@@ -494,6 +556,8 @@ export class EGridMapScene extends Phaser.Scene {
         y: coast.y * distance * scale - 6 * scale
       };
     }
+
+    const landOffset = this.landStructureInset(region, baseLandOffset, scale);
 
     if (buildingId.includes("river") || buildingId.includes("hydro")) {
       return {
@@ -513,6 +577,17 @@ export class EGridMapScene extends Phaser.Scene {
     return landOffset;
   }
 
+  private landStructureInset(region: RegionSnapshot, offset: { x: number; y: number }, scale: number): { x: number; y: number } {
+    if (!region.tags.includes("littoral") && !region.tags.includes("iles")) {
+      return offset;
+    }
+    const coast = this.regionCoastDirection(region);
+    return {
+      x: offset.x - coast.x * 16 * scale,
+      y: offset.y - coast.y * 14 * scale
+    };
+  }
+
   private isOffshoreMapBuilding(buildingId: string): boolean {
     return buildingId.includes("wind_offshore") || buildingId.includes("sea_cooling");
   }
@@ -529,6 +604,9 @@ export class EGridMapScene extends Phaser.Scene {
     if (tags.has("iles")) {
       return { x: 0.2, y: 1 };
     }
+    if (tags.has("littoral") && (layout.y ?? 0.5) < 0.48 && (layout.x ?? 0.5) > 0.36 && (layout.x ?? 0.5) < 0.55) {
+      return { x: -0.35, y: -1 };
+    }
     if ((layout.x ?? 0.5) < 0.38) {
       return { x: -1, y: 0.15 };
     }
@@ -543,10 +621,11 @@ export class EGridMapScene extends Phaser.Scene {
 
   private drawModuleSprite(x: number, y: number, scale: number, iconIndex: number, accent: number): boolean {
     const container = this.structureSpriteLayer;
-    if (!container || !this.textures.exists("building-icon-atlas")) {
+    const textureKey = this.textures.exists("building-map-atlas") ? "building-map-atlas" : "building-icon-atlas";
+    if (!container || !this.textures.exists(textureKey)) {
       return false;
     }
-    const texture = this.textures.get("building-icon-atlas");
+    const texture = this.textures.get(textureKey);
     const source = texture.getSourceImage() as HTMLImageElement | HTMLCanvasElement | undefined;
     if (!source?.width || !source?.height) {
       return false;
@@ -560,26 +639,26 @@ export class EGridMapScene extends Phaser.Scene {
     const cropX = (clampedIndex % columns) * cellWidth;
     const cropY = Math.floor(clampedIndex / columns) * cellHeight;
     const useEnhancedMapSprites = window.innerWidth >= 1180 || document.documentElement.dataset.conceptScenario === "1";
-    const displaySize = (useEnhancedMapSprites ? 56 : 48) * scale;
+    const displaySize = (useEnhancedMapSprites ? 58 : 50) * scale;
     const spriteScale = displaySize / cellWidth;
-    const spriteY = y - (useEnhancedMapSprites ? 8 : 6) * scale;
+    const spriteY = y - (useEnhancedMapSprites ? 9 : 7) * scale;
     if (useEnhancedMapSprites) {
       const glow = this.add
-        .image(x, spriteY + 2 * scale, "building-icon-atlas")
+        .image(x, spriteY + 2 * scale, textureKey)
         .setOrigin(0.5, 0.74)
         .setCrop(cropX, cropY, cellWidth, cellHeight)
-        .setScale(spriteScale * 1.18)
+        .setScale(spriteScale * 1.14)
         .setTint(accent)
-        .setAlpha(0.28)
+        .setAlpha(0.16)
         .setBlendMode(Phaser.BlendModes.ADD);
       container.add(glow);
     }
     const image = this.add
-      .image(x, spriteY, "building-icon-atlas")
+      .image(x, spriteY, textureKey)
       .setOrigin(0.5, 0.74)
       .setCrop(cropX, cropY, cellWidth, cellHeight)
       .setScale(spriteScale)
-      .setAlpha(useEnhancedMapSprites ? 1 : 0.95);
+      .setAlpha(useEnhancedMapSprites ? 1 : 0.94);
     container.add(image);
     return true;
   }

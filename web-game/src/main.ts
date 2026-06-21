@@ -46,6 +46,14 @@ document.documentElement.style.setProperty(
   "--building-art-atlas",
   cssUrlForPageAsset("assets/generated/building-card-art-atlas.png")
 );
+document.documentElement.style.setProperty(
+  "--grid-overview-map",
+  cssUrlForPageAsset("assets/generated/grid-overview-europe-neon-v1.png")
+);
+document.documentElement.style.setProperty(
+  "--panel-chrome-texture",
+  cssUrlForPageAsset("assets/generated/panel-chrome-texture-v1.png")
+);
 for (const [name, file] of Object.entries({
   energy: "00_energy.png",
   datacenter: "01_datacenter.png",

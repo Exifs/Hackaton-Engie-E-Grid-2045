@@ -1,0 +1,102 @@
+{
+  "concept": {
+    ".top-kpi": {
+      "visible": true,
+      "width": 1584,
+      "height": 101,
+      "hasPanelTexture": true,
+      "overflowX": "visible",
+      "overflowY": "visible"
+    },
+    ".build-palette": {
+      "visible": true,
+      "width": 304,
+      "height": 684,
+      "hasPanelTexture": true,
+      "overflowX": "hidden",
+      "overflowY": "hidden"
+    },
+    ".region-panel": {
+      "visible": true,
+      "width": 368,
+      "height": 684,
+      "hasPanelTexture": true,
+      "overflowX": "hidden",
+      "overflowY": "auto"
+    },
+    ".alerts-panel": {
+      "visible": true,
+      "width": 1584,
+      "height": 84,
+      "hasPanelTexture": true,
+      "overflowX": "hidden",
+      "overflowY": "hidden"
+    },
+    ".grid-overview-card": {
+      "visible": true,
+      "width": 282,
+      "height": 160,
+      "hasPanelTexture": true,
+      "overflowX": "hidden",
+      "overflowY": "hidden"
+    },
+    ".top-brand": {
+      "visible": true,
+      "width": 304,
+      "height": 83,
+      "hasPanelTexture": false,
+      "overflowX": "hidden",
+      "overflowY": "hidden"
+    }
+  },
+  "alert": {
+    ".top-kpi": {
+      "visible": true,
+      "width": 1584,
+      "height": 101,
+      "hasPanelTexture": true,
+      "overflowX": "visible",
+      "overflowY": "visible"
+    },
+    ".build-palette": {
+      "visible": true,
+      "width": 304,
+      "height": 684,
+      "hasPanelTexture": true,
+      "overflowX": "hidden",
+      "overflowY": "hidden"
+    },
+    ".region-panel": {
+      "visible": true,
+      "width": 368,
+      "height": 684,
+      "hasPanelTexture": true,
+      "overflowX": "hidden",
+      "overflowY": "auto"
+    },
+    ".alerts-panel": {
+      "visible": true,
+      "width": 1584,
+      "height": 84,
+      "hasPanelTexture": true,
+      "overflowX": "hidden",
+      "overflowY": "hidden"
+    },
+    ".grid-overview-card": {
+      "visible": true,
+      "width": 282,
+      "height": 160,
+      "hasPanelTexture": true,
+      "overflowX": "hidden",
+      "overflowY": "hidden"
+    },
+    ".top-brand": {
+      "visible": true,
+      "width": 304,
+      "height": 83,
+      "hasPanelTexture": false,
+      "overflowX": "hidden",
+      "overflowY": "hidden"
+    }
+  }
+}

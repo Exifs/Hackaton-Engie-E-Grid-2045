@@ -1,0 +1,113 @@
+{
+  "startMetrics": {
+    "card": {
+      "x": 19,
+      "y": 623,
+      "width": 282,
+      "height": 160,
+      "clientHeight": 158,
+      "scrollHeight": 158,
+      "clientWidth": 280,
+      "scrollWidth": 280
+    },
+    "map": {
+      "x": 132,
+      "y": 661,
+      "width": 157,
+      "height": 111,
+      "clientHeight": 109,
+      "scrollHeight": 109,
+      "clientWidth": 155,
+      "scrollWidth": 155
+    },
+    "legend": {
+      "x": 31,
+      "y": 661,
+      "width": 92,
+      "height": 111,
+      "clientHeight": 111,
+      "scrollHeight": 111,
+      "clientWidth": 92,
+      "scrollWidth": 92
+    },
+    "paths": 43,
+    "circles": 7,
+    "nodes": 8,
+    "visible": true,
+    "cardOverflows": false
+  },
+  "p0Metrics": {
+    "card": {
+      "x": 19,
+      "y": 623,
+      "width": 282,
+      "height": 160,
+      "clientHeight": 158,
+      "scrollHeight": 158,
+      "clientWidth": 280,
+      "scrollWidth": 280
+    },
+    "map": {
+      "x": 132,
+      "y": 661,
+      "width": 157,
+      "height": 111,
+      "clientHeight": 109,
+      "scrollHeight": 109,
+      "clientWidth": 155,
+      "scrollWidth": 155
+    },
+    "legend": {
+      "x": 31,
+      "y": 661,
+      "width": 92,
+      "height": 111,
+      "clientHeight": 111,
+      "scrollHeight": 111,
+      "clientWidth": 92,
+      "scrollWidth": 92
+    },
+    "paths": 43,
+    "circles": 7,
+    "nodes": 8,
+    "visible": true,
+    "cardOverflows": false
+  },
+  "conceptMetrics": {
+    "card": {
+      "x": 19,
+      "y": 623,
+      "width": 282,
+      "height": 160,
+      "clientHeight": 158,
+      "scrollHeight": 158,
+      "clientWidth": 280,
+      "scrollWidth": 280
+    },
+    "map": {
+      "x": 132,
+      "y": 661,
+      "width": 157,
+      "height": 111,
+      "clientHeight": 109,
+      "scrollHeight": 109,
+      "clientWidth": 155,
+      "scrollWidth": 155
+    },
+    "legend": {
+      "x": 31,
+      "y": 661,
+      "width": 92,
+      "height": 111,
+      "clientHeight": 111,
+      "scrollHeight": 111,
+      "clientWidth": 92,
+      "scrollWidth": 92
+    },
+    "paths": 63,
+    "circles": 7,
+    "nodes": 18,
+    "visible": true,
+    "cardOverflows": false
+  }
+}

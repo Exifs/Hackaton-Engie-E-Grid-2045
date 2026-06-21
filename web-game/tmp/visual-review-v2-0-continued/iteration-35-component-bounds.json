@@ -1,0 +1,71 @@
+{
+  "viewport": {
+    "width": 1600,
+    "height": 900
+  },
+  "components": {
+    "topbar": {
+      "selector": ".top-kpi",
+      "box": {
+        "x": 8,
+        "y": 8,
+        "width": 1584,
+        "height": 101
+      }
+    },
+    "left-rail": {
+      "selector": ".build-palette",
+      "box": {
+        "x": 8,
+        "y": 112,
+        "width": 304,
+        "height": 684
+      }
+    },
+    "mini-grid-overview": {
+      "selector": ".grid-overview-card",
+      "box": {
+        "x": 19,
+        "y": 623,
+        "width": 282,
+        "height": 160
+      }
+    },
+    "right-panel": {
+      "selector": ".region-panel",
+      "box": {
+        "x": 1224,
+        "y": 112,
+        "width": 368,
+        "height": 684
+      }
+    },
+    "alert-dock": {
+      "selector": ".alerts-panel",
+      "box": {
+        "x": 8,
+        "y": 808,
+        "width": 1584,
+        "height": 84
+      }
+    },
+    "central-map": {
+      "selector": "computed canvas central area",
+      "box": {
+        "x": 312,
+        "y": 117,
+        "width": 912,
+        "height": 691
+      }
+    },
+    "rich-tooltip": {
+      "selector": ".rich-tooltip.is-visible after .build-card:hover",
+      "box": {
+        "x": 134.109375,
+        "y": 331,
+        "width": 340,
+        "height": 110.921875
+      }
+    }
+  }
+}

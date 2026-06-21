@@ -1,0 +1,14 @@
+{
+  "titleTooltipAttrs": {
+    "title": "Energy",
+    "body": "Afficher seulement Energy.",
+    "meta": "4 options"
+  },
+  "tooltipBox": {
+    "x": 118.84375,
+    "y": 235,
+    "width": 340,
+    "height": 81.234375
+  },
+  "tooltipText": "EnergyAfficher seulement Energy.4 options"
+}

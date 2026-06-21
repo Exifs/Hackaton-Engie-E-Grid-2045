@@ -1,0 +1,26 @@
+{
+  "startMetrics": {
+    "mapAtlasSprites": 0,
+    "iconAtlasSprites": 0,
+    "regionsWithStructures": 0,
+    "selectedRegion": "fr_nord"
+  },
+  "constructionMetrics": {
+    "mapAtlasSprites": 0,
+    "iconAtlasSprites": 0,
+    "regionsWithStructures": 1,
+    "selectedRegion": "fr_nord"
+  },
+  "builtMetrics": {
+    "mapAtlasSprites": 2,
+    "iconAtlasSprites": 0,
+    "regionsWithStructures": 1,
+    "selectedRegion": "fr_nord"
+  },
+  "conceptMetrics": {
+    "mapAtlasSprites": 30,
+    "iconAtlasSprites": 0,
+    "regionsWithStructures": 5,
+    "selectedRegion": "benelux"
+  }
+}

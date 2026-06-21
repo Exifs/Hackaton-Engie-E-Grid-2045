@@ -103,6 +103,7 @@ export class GameHud {
     this.root.addEventListener("focusin", (event) => this.handleTooltipFocus(event));
     this.root.addEventListener("focusout", () => this.hideTooltip());
     this.root.addEventListener("dblclick", (event) => this.handleDoubleClick(event));
+    this.root.addEventListener("wheel", (event) => this.handleWheel(event), { passive: false });
     window.addEventListener("resize", () => this.handleViewportResize());
   }
 
@@ -734,17 +735,8 @@ export class GameHud {
 
   private gridOverviewEuropePaths(): string {
     return `
-      <path class="mini-europe-glow" d="M15 52 C22 29 43 16 65 20 C82 23 93 43 88 63 C83 83 58 88 37 80 C17 73 9 66 15 52 Z" />
-      <path class="mini-europe-land mini-europe-ireland" d="M11 40 C8 46 10 54 15 58 C21 55 22 47 17 41 C15 39 13 39 11 40 Z" />
-      <path class="mini-europe-land mini-europe-uk" d="M19 31 C13 35 12 44 16 51 C20 58 30 54 32 46 C34 38 27 29 19 31 Z" />
-      <path class="mini-europe-land mini-europe-scandinavia" d="M51 9 C62 3 75 9 80 20 C74 23 68 31 68 41 C60 39 54 32 47 30 C43 23 44 14 51 9 Z" />
-      <path class="mini-europe-land mini-europe-baltic" d="M70 35 C78 35 85 41 87 49 C81 52 73 49 68 43 Z" />
-      <path class="mini-europe-land mini-europe-main" d="M29 38 C39 27 55 29 65 35 C77 41 84 49 82 62 C74 65 69 74 60 72 C53 78 42 74 37 67 C30 68 22 62 21 54 C18 48 22 42 29 38 Z" />
-      <path class="mini-europe-land mini-europe-iberia" d="M18 62 C25 55 38 57 43 65 C41 77 30 83 19 78 C12 74 11 67 18 62 Z" />
-      <path class="mini-europe-land mini-europe-italy" d="M55 65 C63 69 67 77 65 87 C58 85 54 77 51 69 Z" />
-      <path class="mini-europe-land mini-europe-balkans" d="M68 66 C77 65 85 70 88 78 C80 81 72 77 66 72 Z" />
-      <path class="mini-europe-land mini-europe-north-africa" d="M25 91 C43 86 67 87 83 93 L25 96 Z" />
-      <path class="mini-europe-coastline" d="M18 63 C28 54 39 57 46 64 M42 31 C53 27 68 31 76 44 M37 69 C45 76 54 79 63 72 M65 66 C73 66 82 70 88 78" />
+      <path class="mini-overview-thread mini-overview-thread-main" d="M22 46 L34 50 L49 55 L62 49 L79 53 M49 55 L42 68 L57 74 M49 55 L52 36" />
+      <path class="mini-overview-thread mini-overview-thread-secondary" d="M18 70 L34 50 M34 50 L28 35 M57 74 L70 67 L85 78 M62 49 L72 36" />
       <path class="mini-overview-orbit mini-overview-orbit-a" d="M8 72 C29 38 58 26 94 30" />
       <path class="mini-overview-orbit mini-overview-orbit-b" d="M3 56 C28 49 54 51 92 67" />
     `;
@@ -826,7 +818,7 @@ export class GameHud {
         const size = Math.min(8.5, 3.2 + weight * 2.1);
         return (
           `<span class="grid-overview-node${selected}" ` +
-          `style="--node-x:${miniCoord(point.x)}%; --node-y:${miniCoord(point.y)}%; --node-size:${fmt(size, 2)}px"></span>`
+          `style="--node-x:${miniCoordX(point.x)}%; --node-y:${miniCoordY(point.y)}%; --node-size:${fmt(size, 2)}px"></span>`
         );
       })
       .join("");
@@ -870,23 +862,47 @@ export class GameHud {
     buildings: Record<string, BuildingDefinition>,
     availability: Record<string, BuildAvailability>
   ): string {
-    const items = Object.values(buildings).filter((building) =>
-      building.category === category && this.shouldShowBuilding(building, availability[building.id])
-    );
-    if (items.length === 0) {
+    const categoryItems = Object.values(buildings).filter((building) => building.category === category);
+    const items = categoryItems.filter((building) => this.shouldShowBuilding(building, availability[building.id]));
+    if (items.length === 0 && categoryItems.length === 0) {
       return "";
     }
+    const previewClass = items.length === 0 ? " is-locked-preview" : "";
+    const label = this.buildCategoryLabel(category);
+    const optionCount = items.length > 0 ? items.length : Math.max(1, Math.min(4, categoryItems.length));
     return `
-      <div class="build-category">
+      <div class="build-category${previewClass}">
         <div class="build-category-heading">
           <span class="build-category-icon utility-category-icon utility-category-icon-${this.categoryIconKey(category)}" aria-hidden="true"></span>
-          <h2>${escapeHtml(this.buildCategoryLabel(category))}</h2>
+          <h2>
+            <button class="build-category-title" type="button" data-build-category-title="${escapeHtml(category)}" ${this.tooltipAttrs(label, `Afficher seulement ${label}.`, `${optionCount} options`)}>
+              ${escapeHtml(label)}
+            </button>
+          </h2>
         </div>
         <div class="build-grid">
-          ${items.map((building) => this.buildButton(building, availability[building.id])).join("")}
+          ${items.length > 0
+            ? items.map((building) => this.buildButton(building, availability[building.id])).join("")
+            : this.lockedCategoryPreview(category, categoryItems)}
         </div>
       </div>
     `;
+  }
+
+  private lockedCategoryPreview(category: string, items: BuildingDefinition[]): string {
+    const label = this.buildCategoryLabel(category);
+    const previewCount = Math.max(1, Math.min(4, items.length));
+    return Array.from({ length: previewCount }, (_, index) => `
+      <button class="build-card is-disabled build-locked-preview-card" type="button" disabled ${this.tooltipAttrs(label, "Options verrouillees par la recherche ou le potentiel regional.", "A debloquer")}>
+        <span class="build-visual locked-preview-art utility-category-icon utility-category-icon-${this.categoryIconKey(category)}" aria-hidden="true">
+          <span>${index === 0 ? "Rech." : ""}</span>
+        </span>
+        <span class="build-copy">
+          <strong>${escapeHtml(label)}</strong>
+          <small>A debloquer</small>
+        </span>
+      </button>
+    `).join("");
   }
 
   private categoryIconKey(category: string): string {
@@ -1312,6 +1328,85 @@ export class GameHud {
     this.tooltipTrigger = undefined;
   }
 
+  private handleWheel(event: WheelEvent): void {
+    const target = event.target instanceof HTMLElement ? event.target : null;
+    if (!target || !this.root.contains(target)) {
+      return;
+    }
+
+    const nativeScroller = this.closestScrollable(target);
+    if (nativeScroller && this.canConsumeWheel(nativeScroller, event)) {
+      return;
+    }
+
+    const fallbackScroller = this.fallbackWheelScroller(target);
+    if (fallbackScroller) {
+      const didScrollY = this.scrollElement(fallbackScroller, event.deltaY, "y");
+      const didScrollX = this.scrollElement(fallbackScroller, event.deltaX, "x");
+      if (didScrollY || didScrollX) {
+        event.preventDefault();
+        event.stopPropagation();
+        return;
+      }
+    }
+
+    const horizontalScroller = target.closest<HTMLElement>(".build-category-tabs, .build-grid");
+    const horizontalDelta = event.deltaX || (event.shiftKey ? event.deltaY : 0);
+    if (horizontalScroller && this.scrollElement(horizontalScroller, horizontalDelta, "x")) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+  }
+
+  private closestScrollable(target: HTMLElement): HTMLElement | undefined {
+    let node: HTMLElement | null = target;
+    while (node && node !== this.root) {
+      const style = getComputedStyle(node);
+      const canScrollY = /(auto|scroll)/.test(style.overflowY) && node.scrollHeight > node.clientHeight + 1;
+      const canScrollX = /(auto|scroll)/.test(style.overflowX) && node.scrollWidth > node.clientWidth + 1;
+      if (canScrollY || canScrollX) {
+        return node;
+      }
+      node = node.parentElement;
+    }
+    return undefined;
+  }
+
+  private fallbackWheelScroller(target: HTMLElement): HTMLElement | undefined {
+    const palette = target.closest<HTMLElement>(".build-palette");
+    if (palette) {
+      return palette.querySelector<HTMLElement>(".palette-body[data-scroll-key]") ?? palette;
+    }
+    return target.closest<HTMLElement>(".region-panel, .alerts-panel") ?? undefined;
+  }
+
+  private canConsumeWheel(scroller: HTMLElement, event: WheelEvent): boolean {
+    return this.canScrollAxis(scroller, event.deltaY, "y") || this.canScrollAxis(scroller, event.deltaX, "x");
+  }
+
+  private canScrollAxis(scroller: HTMLElement, delta: number, axis: "x" | "y"): boolean {
+    if (Math.abs(delta) < 0.5) {
+      return false;
+    }
+    const position = axis === "y" ? scroller.scrollTop : scroller.scrollLeft;
+    const max = axis === "y" ? scroller.scrollHeight - scroller.clientHeight : scroller.scrollWidth - scroller.clientWidth;
+    return delta > 0 ? position < max - 1 : position > 1;
+  }
+
+  private scrollElement(scroller: HTMLElement, delta: number, axis: "x" | "y"): boolean {
+    if (!this.canScrollAxis(scroller, delta, axis)) {
+      return false;
+    }
+    if (axis === "y") {
+      const before = scroller.scrollTop;
+      scroller.scrollTop = Math.max(0, Math.min(scroller.scrollHeight - scroller.clientHeight, before + delta));
+      return Math.abs(scroller.scrollTop - before) > 0.5;
+    }
+    const before = scroller.scrollLeft;
+    scroller.scrollLeft = Math.max(0, Math.min(scroller.scrollWidth - scroller.clientWidth, before + delta));
+    return Math.abs(scroller.scrollLeft - before) > 0.5;
+  }
+
   private handleClick(event: Event): void {
     const target = event.target as HTMLElement;
     const button = target.closest("button") as HTMLButtonElement | null;
@@ -1334,7 +1429,7 @@ export class GameHud {
       return;
     }
 
-    const buildCategory = button.dataset.buildCategory;
+    const buildCategory = button.dataset.buildCategory ?? button.dataset.buildCategoryTitle;
     if (buildCategory) {
       this.activeBuildCategory = buildCategory;
       this.capturePaletteScroll();
@@ -1602,11 +1697,19 @@ function moneyBillions(valueInMillions: number): string {
   return `EUR ${(valueInMillions / 1000).toFixed(1)}B`;
 }
 
-function miniCoord(value: number): number {
+function miniCoordX(value: number): number {
+  return miniCoordAxis(value, 12, 76);
+}
+
+function miniCoordY(value: number): number {
+  return miniCoordAxis(value, 4, 92);
+}
+
+function miniCoordAxis(value: number, offset: number, scale: number): number {
   if (!Number.isFinite(value)) {
     return 50;
   }
-  return Math.max(4, Math.min(96, Math.round(value * 1000) / 10));
+  return Math.max(4, Math.min(96, Math.round((offset + value * scale) * 10) / 10));
 }
 
 function miniRoutePath(
@@ -1615,10 +1718,10 @@ function miniRoutePath(
   key: string,
   strength: number
 ): string {
-  const sx = miniCoord(source.x);
-  const sy = miniCoord(source.y);
-  const tx = miniCoord(target.x);
-  const ty = miniCoord(target.y);
+  const sx = miniCoordX(source.x);
+  const sy = miniCoordY(source.y);
+  const tx = miniCoordX(target.x);
+  const ty = miniCoordY(target.y);
   const dx = tx - sx;
   const dy = ty - sy;
   const distance = Math.hypot(dx, dy) || 1;

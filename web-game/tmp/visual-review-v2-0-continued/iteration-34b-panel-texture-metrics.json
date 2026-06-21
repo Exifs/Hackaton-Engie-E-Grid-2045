@@ -1,0 +1,82 @@
+{
+  ".top-kpi": {
+    "visible": true,
+    "width": 1584,
+    "height": 101,
+    "hasPanelTexture": true,
+    "color": "rgb(234, 248, 255)",
+    "backgroundLayers": 2
+  },
+  ".top-brand": {
+    "visible": true,
+    "width": 304,
+    "height": 83,
+    "hasPanelTexture": true,
+    "color": "rgb(234, 248, 255)",
+    "backgroundLayers": 2
+  },
+  ".agi-duel": {
+    "visible": true,
+    "width": 486,
+    "height": 83,
+    "hasPanelTexture": true,
+    "color": "rgb(234, 248, 255)",
+    "backgroundLayers": 2
+  },
+  ".kpi-chip:not([style])": {
+    "visible": true,
+    "width": 156,
+    "height": 83,
+    "hasPanelTexture": true,
+    "color": "rgb(234, 248, 255)",
+    "backgroundLayers": 2
+  },
+  ".time-controls": {
+    "visible": true,
+    "width": 314,
+    "height": 83,
+    "hasPanelTexture": true,
+    "color": "rgb(234, 248, 255)",
+    "backgroundLayers": 2
+  },
+  ".top-menu-command": {
+    "visible": true,
+    "width": 88,
+    "height": 83,
+    "hasPanelTexture": true,
+    "color": "rgb(255, 255, 255)",
+    "backgroundLayers": 2
+  },
+  ".build-palette": {
+    "visible": true,
+    "width": 304,
+    "height": 684,
+    "hasPanelTexture": true,
+    "color": "rgb(234, 248, 255)",
+    "backgroundLayers": 2
+  },
+  ".region-panel": {
+    "visible": true,
+    "width": 368,
+    "height": 684,
+    "hasPanelTexture": true,
+    "color": "rgb(234, 248, 255)",
+    "backgroundLayers": 2
+  },
+  ".alerts-panel": {
+    "visible": true,
+    "width": 1584,
+    "height": 84,
+    "hasPanelTexture": true,
+    "color": "rgb(234, 248, 255)",
+    "backgroundLayers": 2
+  },
+  ".grid-overview-card": {
+    "visible": true,
+    "width": 282,
+    "height": 160,
+    "hasPanelTexture": true,
+    "color": "rgb(234, 248, 255)",
+    "backgroundLayers": 2
+  }
+}

@@ -50,6 +50,8 @@ test.describe("E-Grid 2045 web game visuals", () => {
     await expectCanvasNonBlank(page);
     await expectHudNoMajorOverlap(page);
     await expect(page.locator(".top-kpi")).toBeVisible();
+    const panelBackground = await page.locator(".top-kpi").evaluate((element) => getComputedStyle(element).backgroundImage);
+    expect(panelBackground).toContain("panel-chrome-texture-v1");
     await page.screenshot({ path: testInfo.outputPath("initial-desktop-1600x900.png"), fullPage: true });
   });
 
@@ -156,7 +158,7 @@ test.describe("E-Grid 2045 web game visuals", () => {
     await expect(page.locator(".build-category-tab.is-active")).toHaveCount(1);
     await expect(page.locator('[data-build-category="all"]')).toHaveClass(/is-active/);
 
-    await page.locator('[data-build-category="energy"]').click();
+    await page.locator('[data-build-category-title="energy"]').click();
     await expect(page.locator('[data-build-category="energy"]')).toHaveClass(/is-active/);
     await page.evaluate(() => window.__EGRID__?.hud.render());
     await expect(page.locator('[data-build-category="energy"]')).toHaveClass(/is-active/);
@@ -196,6 +198,16 @@ test.describe("E-Grid 2045 web game visuals", () => {
     expect(allMetrics.contentDisplay).toBe("flex");
     expect(["auto", "visible"]).toContain(allMetrics.contentOverflowY);
     await expectBuildPaletteNoInternalOverlap(page);
+
+    await page.locator(".palette-body-construction").evaluate((element) => {
+      element.scrollTop = 0;
+    });
+    await page.locator(".build-card").first().hover();
+    await page.mouse.wheel(0, 320);
+    await page.waitForTimeout(80);
+    const scrolledFromCardSurface = await page.locator(".palette-body-construction").evaluate((element) => element.scrollTop);
+    expect(scrolledFromCardSurface).toBeGreaterThan(0);
+
     await page.screenshot({ path: testInfo.outputPath("construction-all-mode-stacked.png"), fullPage: true });
   });
 
@@ -303,6 +315,10 @@ test.describe("E-Grid 2045 web game visuals", () => {
     } else {
       expect(dockBefore?.height ?? 0).toBeGreaterThan(650);
       await expect(page.locator(".grid-overview-card")).toBeVisible();
+      const overviewBackground = await page
+        .locator(".grid-overview-map")
+        .evaluate((element) => getComputedStyle(element).backgroundImage);
+      expect(overviewBackground).toContain("grid-overview-europe-neon-v1");
       await expect(page.locator(".dock-resize-handle")).toBeHidden();
     }
 
@@ -915,7 +931,8 @@ async function countMapBuildingSprites(page: Page): Promise<number> {
           texture?: { key?: string };
           list?: unknown[];
         };
-        const ownTexture = child.texture?.key === "building-icon-atlas" ? 1 : 0;
+        const ownTexture =
+          child.texture?.key === "building-icon-atlas" || child.texture?.key === "building-map-atlas" ? 1 : 0;
         const nestedTextures = Array.isArray(child.list) ? countTextures(child.list) : 0;
         return total + ownTexture + nestedTextures;
       }, 0);

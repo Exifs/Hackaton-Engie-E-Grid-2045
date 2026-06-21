@@ -1,0 +1,132 @@
+{
+  "palette": {
+    "x": 8,
+    "y": 112,
+    "width": 304,
+    "height": 684,
+    "top": 112,
+    "bottom": 796,
+    "left": 8,
+    "right": 312
+  },
+  "body": {
+    "x": 9,
+    "y": 209,
+    "width": 302,
+    "height": 414,
+    "top": 209,
+    "bottom": 623,
+    "left": 9,
+    "right": 311
+  },
+  "overview": {
+    "x": 19,
+    "y": 623,
+    "width": 282,
+    "height": 160,
+    "top": 623,
+    "bottom": 783,
+    "left": 19,
+    "right": 301
+  },
+  "bodyScrollTop": 0,
+  "bodyClientHeight": 414,
+  "bodyScrollHeight": 449,
+  "bodyNeedsScroll": true,
+  "bodyOverviewGap": 0,
+  "categories": [
+    {
+      "heading": "Energy",
+      "className": "build-category",
+      "cardCount": 4,
+      "disabledCards": 0,
+      "rect": {
+        "x": 19,
+        "y": 246,
+        "width": 282,
+        "height": 77,
+        "top": 246,
+        "bottom": 323,
+        "left": 19,
+        "right": 301
+      },
+      "visibleInsideBody": true
+    },
+    {
+      "heading": "Datacenters",
+      "className": "build-category",
+      "cardCount": 1,
+      "disabledCards": 0,
+      "rect": {
+        "x": 19,
+        "y": 328,
+        "width": 282,
+        "height": 77,
+        "top": 328,
+        "bottom": 405,
+        "left": 19,
+        "right": 301
+      },
+      "visibleInsideBody": true
+    },
+    {
+      "heading": "Cooling",
+      "className": "build-category",
+      "cardCount": 3,
+      "disabledCards": 0,
+      "rect": {
+        "x": 19,
+        "y": 410,
+        "width": 282,
+        "height": 77,
+        "top": 410,
+        "bottom": 487,
+        "left": 19,
+        "right": 301
+      },
+      "visibleInsideBody": true
+    },
+    {
+      "heading": "Research",
+      "className": "build-category",
+      "cardCount": 3,
+      "disabledCards": 0,
+      "rect": {
+        "x": 19,
+        "y": 492,
+        "width": 282,
+        "height": 77,
+        "top": 492,
+        "bottom": 569,
+        "left": 19,
+        "right": 301
+      },
+      "visibleInsideBody": true
+    },
+    {
+      "heading": "Grid & Network",
+      "className": "build-category is-locked-preview",
+      "cardCount": 1,
+      "disabledCards": 1,
+      "rect": {
+        "x": 19,
+        "y": 574,
+        "width": 282,
+        "height": 76,
+        "top": 574,
+        "bottom": 650,
+        "left": 19,
+        "right": 301
+      },
+      "visibleInsideBody": false
+    }
+  ],
+  "gridNetworkVisible": false,
+  "categoryHeadings": [
+    "Energy",
+    "Datacenters",
+    "Cooling",
+    "Research",
+    "Grid & Network"
+  ]
+}

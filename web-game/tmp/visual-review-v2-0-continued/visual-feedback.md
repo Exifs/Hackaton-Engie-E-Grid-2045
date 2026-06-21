@@ -746,3 +746,244 @@ What should be tried next:
 Regressions introduced:
 - None observed. HUD panels report no overflow in captured concept-state metrics.
 - Targeted Playwright tests passed for construction palette, empty/construction/built map states and P0 completed buildings.
+
+## Iteration 28 - Mini GRID OVERVIEW silhouette and network density
+
+Screenshots:
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\reference-v2-0-grid-overview-crop.png`
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-28d-real-game-start-mini-overview.png`
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-28d-real-game-start-mini-overview-crop.png`
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-28d-real-game-p0-mini-overview.png`
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-28d-real-game-p0-mini-overview-crop.png`
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-28d-concept-state-mini-overview.png`
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-28d-concept-state-mini-overview-crop.png`
+
+What is closer to the concept art and the playable game:
+- The mini GRID OVERVIEW now reads less like a broad translucent blob and more like a compact luminous Europe/network inset.
+- The SVG geography has additional shoreline/ridge strokes, static backbone routes and small hubs behind the live flow lines.
+- Live mini-map routes and DOM nodes now use a compressed horizontal coordinate transform, so the inset is closer to the vertical Europe silhouette in the reference crop.
+- The change is active in the real game start, the real P0 state and the concept-state capture.
+
+What still differs visibly:
+- The reference crop still has a much more recognizable painted Europe coastline; the current version is improved but remains a stylized SVG approximation.
+- The current map still lacks the exact mechanical expand icon and small painted texture inside the panel.
+- Live data values and flow density differ from the static concept state, especially outside the concept scenario.
+
+What was changed:
+- Reworked `GameHud.gridOverviewEuropePaths()` with more detailed Europe fragments, shoreline/ridge paths, static route threads and hub circles.
+- Added `miniCoordX()` / `miniCoordY()` so mini overview flows and nodes share the same compacted map projection as the static inset.
+- Tuned `.grid-overview-map`, `.mini-europe-*` and `.mini-overview-*` CSS to reduce diffuse fill and emphasize crisp cyan lines/hubs.
+- Created a reference crop for the component-level comparison.
+
+What should be tried next:
+- Replace or augment the SVG with a small painted/raster Europe inset if exact mini-map geography becomes the next priority.
+- Add a concept-like expand glyph if panel chrome/glyph exactness rises above central-map asset fidelity.
+- Continue central-map asset work: main map building sprites are still more icon-like than the painted clusters in the concept.
+
+Regressions introduced:
+- None observed in capture metrics. The mini overview is visible in real start, real P0 and concept-state captures.
+- `iteration-28d-mini-overview-metrics.json` reports no card overflow; map/legend/card bounds remain stable.
+
+## Iteration 29 - ImageGen raster mini-map asset
+
+Screenshots and assets:
+- Generated source: `C:\Users\cleme\.codex\generated_images\019ee6ab-f27a-78b2-904c-b7a46fb678d8\ig_051688e3d5aaa1f5016a37435e2b188191bede86e71a260aed.png`
+- Project asset: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\public\assets\generated\grid-overview-europe-neon-v1.png`
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-29b-real-game-start-raster-overview.png`
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-29b-real-game-start-raster-overview-grid-overview-crop.png`
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-29b-real-game-p0-raster-overview.png`
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-29b-real-game-p0-raster-overview-grid-overview-crop.png`
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-29b-concept-state-raster-overview.png`
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-29b-concept-state-raster-overview-grid-overview-crop.png`
+
+What is closer to the concept art and the playable game:
+- The mini GRID OVERVIEW now uses a raster Europe asset generated with ImageGen, inspired by the main map backdrop and simplified into a ghostly neon inset.
+- The Europe silhouette is much more recognizable at panel size than the previous SVG approximation.
+- The live data-driven mini flow lines and nodes still render above the raster, so the component remains a real gameplay overview rather than a static screenshot.
+- The asset is installed in the project under `public/assets/generated` and loaded through a CSS variable in the real game, real P0 state and concept-state capture.
+- A subtle central-map atmosphere layer was also added underneath routes/modules, nudging the main map closer to the concept's cool painted glow without changing building-state rules.
+
+What still differs visibly:
+- The reference mini overview remains more hand-painted and has a tighter node topology; the generated asset is more detailed terrain-like and slightly darker.
+- The expand glyph remains the current compact control mark rather than the exact four-corner concept icon.
+- The main map still uses the existing generated building icon atlas, so building clusters remain more icon-like than the painted concept modules.
+
+What was changed:
+- Generated `grid-overview-europe-neon-v1.png` using the built-in ImageGen workflow.
+- Exposed the raster as `--grid-overview-map` in `main.ts`.
+- Reworked `.grid-overview-map` so the raster is the primary inset layer, with scan/vignette overlays and live SVG routes above it.
+- Simplified `GameHud.gridOverviewEuropePaths()` to remove the old SVG landmass and keep only subtle route/orbit threads under live flows.
+- Added `EGridMapScene.drawMapAtmosphere()` as a low-opacity map grading layer below flows and structures.
+
+What should be tried next:
+- If mini-map exactness remains a priority, generate one more asset variant with less terrain detail and more concentrated cyan network hubs.
+- Continue central map asset fidelity: dedicated in-map module sprites are still the biggest remaining visual gap.
+- Consider replacing the mini expand mark with a four-corner icon matching the concept.
+
+Regressions introduced:
+- None observed in captures. `iteration-29b-raster-overview-metrics.json` verifies raster background loading, no mini-card overflow, and stable real/concept bounds.
+
+## Iteration 30 - Dedicated main-map building atlas
+
+Screenshots and assets:
+- Project asset draft: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\public\assets\generated\building-map-atlas-v1.png`
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-30b-real-game-start-empty-map-atlas.png`
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-30b-real-game-construction-cube-map-atlas.png`
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-30b-real-game-built-map-atlas.png`
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-30b-concept-state-map-atlas.png`
+
+What is closer to the concept art and the playable game:
+- The central map no longer reuses the brighter UI card/icon atlas directly; built map modules now load a separate map-only texture.
+- The gameplay state invariant is preserved: empty start has no final building sprites, construction shows the grey cube, and completed construction swaps to the final building sprite.
+- Metrics confirmed `mapAtlasSprites: 0` at start, `0` during construction, `2` after one built structure, and `30` in the dense concept scenario; `iconAtlasSprites` stayed `0` on the map.
+
+What still differs visibly:
+- The first map-only atlas pass was too ghostly on the terrain and still felt like scaled icon art rather than painted map structures.
+- Some coastal clusters, especially Benelux in the concept scenario, needed better land/offshore separation.
+
+What was changed:
+- Added `public/assets/generated/building-map-atlas-v1.png`.
+- Loaded it as `building-map-atlas` in `EGridMapScene`.
+- Updated map sprite counting tests to recognize the map atlas separately from the UI atlas.
+
+What should be tried next:
+- Brighten and rebalance the map atlas while keeping it colder and less UI-like than the card art.
+- Add a placement pass so offshore assets go to water and land assets do not drift into sea areas.
+
+Regressions introduced:
+- None observed in gameplay state metrics. The v1 asset was visually too subdued, so it should not be treated as the final map-asset evidence.
+
+## Iteration 31 - Brighter map-only module atlas
+
+Screenshots and assets:
+- Project asset: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\public\assets\generated\building-map-atlas-v2.png`
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-31-real-game-start-empty-map-atlas.png`
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-31-real-game-construction-cube-map-atlas.png`
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-31-real-game-built-map-atlas.png`
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-31-concept-state-map-atlas.png`
+
+What is closer to the concept art and the playable game:
+- Map modules are more readable against the dark Europe terrain.
+- The v2 atlas keeps a colder painted-map grade and a diffuse cyan bloom, but avoids the harder cyan sticker outline from the v1 draft.
+- Phaser display size and additive halo were increased slightly, bringing completed buildings closer to the visual weight of the concept modules.
+
+What still differs visibly:
+- The modules are still derived from the existing generated building atlas, not hand-painted specifically into the map projection.
+- The Benelux cluster showed that type-aware placement needed another pass: land assets were improved but not yet sufficiently constrained away from the North Sea.
+
+What was changed:
+- Generated `building-map-atlas-v2.png` from `building-icon-atlas.png` with reduced saturation, cool grading, diffuse bloom and a small shadow pass.
+- Pointed the Phaser `building-map-atlas` texture to v2.
+- Increased map sprite display size from the previous v1 pass and restored full alpha for enhanced desktop/concept rendering.
+
+What should be tried next:
+- Add coast-aware land/offshore offsets so the same built-state system remains credible in real play.
+- Keep the right-panel/build-card art on the UI atlases; only the central map should consume `building-map-atlas-v2.png`.
+
+Regressions introduced:
+- None in state metrics: `iteration-31-map-atlas-metrics.json` still reports no final sprites at start or during construction.
+
+## Iteration 32 - Coast-aware map structure placement
+
+Screenshots and metrics:
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-32-real-game-start-empty-map-atlas.png`
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-32-real-game-construction-cube-map-atlas.png`
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-32-real-game-built-map-atlas.png`
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-32-concept-state-map-atlas.png`
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-32-map-atlas-metrics.json`
+
+What is closer to the concept art and the playable game:
+- Coastal land buildings now receive a small inland inset, while `sea_cooling` and other offshore assets still use the regional coast vector.
+- The Benelux concept cluster reads more credibly: land modules sit closer to the continent and the sea-cooling pair remains in the North Sea.
+- The real game still starts with no map building sprites, shows only the grey cube during construction, and shows final sprites only after construction completes.
+- The mini GRID OVERVIEW remains visible in the real start, real built state and concept-state captures after the central-map changes.
+
+What still differs visibly:
+- The concept modules are still more integrated into the painted terrain than the current atlas-derived sprites.
+- Exact route topology, module positions and country label placements still differ from the static concept.
+- The mini GRID OVERVIEW asset is now much closer, but its network topology remains a live simplified overlay rather than the exact painted reference crop.
+
+What was changed:
+- Added `landStructureInset()` so littoral/island land buildings move inward from the local coast vector.
+- Added a North Sea coast direction for Benelux-like littoral regions, so offshore assets place toward water and land structures place away from it.
+- Kept the strategic visible-structure cap and built-state rendering rules intact.
+
+What should be tried next:
+- If central-map fidelity stays highest priority, create a map-specific painted module cluster set rather than deriving from the UI atlas.
+- Continue component-level convergence on AGI ring micro-detailing, top-bar hardware and alert/right-panel glyph exactness after map assets.
+
+Regressions introduced:
+- None observed. `iteration-32-map-atlas-metrics.json` reports start `0/0`, construction `0/0`, built `2/0`, and concept `30/0` for map/icon atlas sprites.
+
+## Iteration 33 - Alert dock text occupancy and panel wheel routing
+
+Screenshots and metrics:
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-33-real-alert-dock-text-layout.png`
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-33-concept-alert-dock-text-layout.png`
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-33-alert-dock-metrics.json`
+
+What is closer to the concept art and the playable game:
+- Alert card text now occupies the card more naturally instead of being squeezed into a narrow center strip.
+- The dismiss control is absolutely positioned, so it no longer steals a full grid column from the title/body copy.
+- Icon and action columns are slightly narrower, giving the main text about 59% of each alert card width in both real alert and concept-state captures.
+- The bottom dock still keeps five alerts plus the collapse control without overflow.
+
+What still differs visibly:
+- Alert glyphs are still CSS symbols rather than exact painted assets.
+- Long live alert titles still ellipsize, while the concept uses shorter hand-authored copy.
+
+What was changed:
+- Reworked desktop `.alert-item` columns from icon/text/action/dismiss to icon/text/action, with dismiss positioned in the corner.
+- Aligned alert text vertically inside the card and shrank icon/action controls slightly.
+- Made HUD panels receive pointer events directly and added `GameHud.handleWheel()` to forward wheel input from non-scrollable child areas to the active panel scroller.
+- Restored desktop right-panel vertical scrolling and added a Playwright regression check for scrolling the construction dock while hovering a build card.
+
+What should be tried next:
+- If the dock remains visually underfilled, tune live alert copy length and consider a denser icon atlas.
+- Expand wheel-position regression tests to the region panel and research tab if manual testing finds another cursor dead zone.
+
+Regressions introduced:
+- None observed. `pnpm lint` and the targeted construction-scroll Playwright test passed after the wheel handler and CSS changes.
+
+## Cross-component note - Panel textures and borders
+
+User feedback:
+- All panels still do not have background textures and border treatments close enough to the concept art.
+- The current panel styling is mostly CSS-generated; it lacks the painted dark glass texture, beveled metal edges, mechanical corner cuts and subtle worn/noise details visible in the reference.
+
+Future action:
+- Generate a reusable ImageGen asset set for panel backgrounds, borders and corners, then apply it consistently to the top bar, left build rail, right region panel, bottom alert dock, mini GRID OVERVIEW and modal/card surfaces where appropriate.
+
+## Iteration 34 - Shared ImageGen panel chrome texture
+
+Screenshots and assets:
+- Generated source: `C:\Users\cleme\.codex\generated_images\019ee6ab-f27a-78b2-904c-b7a46fb678d8\ig_07ae84ef8f8336f6016a3751a608ac8191a6837a916cd69d81.png`
+- Project asset: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\public\assets\generated\panel-chrome-texture-v1.png`
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-34-concept-panel-texture.png`
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-34-real-alert-panel-texture.png`
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-34b-concept-panel-texture-topbar.png`
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-34b-panel-texture-metrics.json`
+
+What is closer to the concept art and the playable game:
+- Major HUD panels now have a shared raster material layer: dark glass, graphite metal, subtle scan/noise, cyan edge accents and mechanical corner detail.
+- The texture is active in the real game and concept-state views on the top bar, left rail, right panel, bottom alert dock and mini GRID OVERVIEW.
+- The second pass also applies it to top-bar submodules: brand, AGI duel, KPI chips, speed controls and hamburger command.
+- Text remains readable because the texture is kept under a dark overlay and blended softly rather than replacing the existing panel backgrounds.
+
+What still differs visibly:
+- The concept uses bespoke panel hardware per component; the current implementation stretches one reusable texture across differently shaped panels.
+- Bolts, deep cut lines and heavy corner brackets are still less pronounced than the reference.
+- The texture pass does not address central-map module art or exact route topology.
+
+What was changed:
+- Generated `panel-chrome-texture-v1.png` with the built-in ImageGen workflow.
+- Exposed the project asset as `--panel-chrome-texture` in `main.ts`.
+- Added the texture as a blended CSS background layer on main HUD panels and top-bar submodules.
+- Added a Playwright assertion that `.top-kpi` includes `panel-chrome-texture-v1` in its computed background.
+
+What should be tried next:
+- If panel exactness remains a focus, split panel chrome into separate corner/border assets so the mechanical cuts align to each panel instead of stretching one texture.
+- Continue high-priority central-map work with map-painted building clusters.
+
+Regressions introduced:
+- None observed in screenshots. `iteration-34b-panel-texture-metrics.json` verifies the texture is loaded on all major desktop panels and top-bar submodules.
