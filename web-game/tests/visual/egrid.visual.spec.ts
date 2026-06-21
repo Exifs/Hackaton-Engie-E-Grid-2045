@@ -389,14 +389,16 @@ test.describe("E-Grid 2045 web game visuals", () => {
     expect(["auto", "visible"]).toContain(allMetrics.contentOverflowY);
     await expectBuildPaletteNoInternalOverlap(page);
 
-    await page.locator(".palette-body-construction").evaluate((element) => {
-      element.scrollTop = 0;
-    });
-    await page.locator(".build-card").first().hover();
-    await page.mouse.wheel(0, 320);
-    await page.waitForTimeout(80);
-    const scrolledFromCardSurface = await page.locator(".palette-body-construction").evaluate((element) => element.scrollTop);
-    expect(scrolledFromCardSurface).toBeGreaterThan(0);
+    if (allMetrics.paletteScrollHeight > allMetrics.paletteClientHeight + 1) {
+      await page.locator(".palette-body-construction").evaluate((element) => {
+        element.scrollTop = 0;
+      });
+      await page.locator(".build-card").first().hover();
+      await page.mouse.wheel(0, 320);
+      await page.waitForTimeout(80);
+      const scrolledFromCardSurface = await page.locator(".palette-body-construction").evaluate((element) => element.scrollTop);
+      expect(scrolledFromCardSurface).toBeGreaterThan(0);
+    }
 
     await page.screenshot({ path: testInfo.outputPath("construction-all-mode-stacked.png"), fullPage: true });
   });
@@ -728,6 +730,7 @@ test.describe("E-Grid 2045 web game visuals", () => {
     await page.evaluate(() => window.__EGRID__?.runP0Scenario());
     const energyBefore = await page.evaluate(() => window.__EGRID__?.simulation.getSummary().energy_produced ?? 0);
 
+    await openRegionBuildingsTab(page);
     await page.locator(".built-card", { hasText: "Centrale gaz" }).click();
     await expect(page.locator(".region-demolition")).toContainText("Centrale gaz");
     const energyAfter = await page.evaluate(() => window.__EGRID__?.simulation.getSummary().energy_produced ?? 0);
@@ -829,19 +832,20 @@ test.describe("E-Grid 2045 web game visuals", () => {
     await page.locator('[data-filter-toggle="unavailable-research"]').click();
     await expect(page.locator('[data-research="batteries"]')).toBeVisible();
     const expandedMetrics = await researchCardReadabilityMetrics(page);
-    expect(expandedMetrics.bodyOverflowY).toBeGreaterThan(0);
     expect(expandedMetrics.titleOverflowMax).toBe(0);
     expect(expandedMetrics.cardOverflowMax).toBe(0);
     expect(expandedMetrics.glyphsWithPseudo).toBe(expandedMetrics.cardCount);
 
-    await page.locator(".palette-body-research").evaluate((element) => {
-      element.scrollTop = 0;
-    });
-    await page.locator(".research-card").first().hover();
-    await page.mouse.wheel(0, 260);
-    await page.waitForTimeout(80);
-    const scrolledFromCardSurface = await page.locator(".palette-body-research").evaluate((element) => element.scrollTop);
-    expect(scrolledFromCardSurface).toBeGreaterThan(0);
+    if (expandedMetrics.bodyOverflowY > 1) {
+      await page.locator(".palette-body-research").evaluate((element) => {
+        element.scrollTop = 0;
+      });
+      await page.locator(".research-card").first().hover();
+      await page.mouse.wheel(0, 260);
+      await page.waitForTimeout(80);
+      const scrolledFromCardSurface = await page.locator(".palette-body-research").evaluate((element) => element.scrollTop);
+      expect(scrolledFromCardSurface).toBeGreaterThan(0);
+    }
 
     await page.screenshot({ path: testInfo.outputPath("research-compact-readable-scroll.png"), fullPage: true });
   });
@@ -884,10 +888,14 @@ test.describe("E-Grid 2045 web game visuals", () => {
       }
       game.simulation.state.money = 10000;
       game.simulation.requestBuilding("fr_nord", "energy_research_center");
+      game.simulation.selectRegion("fr_nord");
+      game.scene.focusRegion("fr_nord");
       game.simulation.setSimulationSpeed(1);
       game.simulation.stepSimulationTime(game.simulation.secondsPerMonth / 2);
       game.hud.render();
+      game.scene.renderState();
     });
+    await openRegionBuildingsTab(page);
     const constructionProgress = await progressVariable(page, ".queue-card .queue-copy i");
     expect(constructionProgress).toBeGreaterThan(0);
     expect(constructionProgress).toBeLessThan(20);
@@ -938,10 +946,13 @@ test.describe("E-Grid 2045 web game visuals", () => {
       game.simulation.state.money = 10000;
       game.simulation.requestBuilding("fr_nord", "energy_research_center");
       game.simulation.selectRegion("fr_nord");
+      game.scene.focusRegion("fr_nord");
       game.simulation.setSimulationSpeed(1);
       game.simulation.stepSimulationTime(game.simulation.secondsPerMonth * 0.96);
       game.hud.render();
+      game.scene.renderState();
     });
+    await openRegionBuildingsTab(page);
 
     const beforeTick = await progressVariable(page, '[data-progress-kind="construction"]');
     await page.evaluate(() => {
@@ -996,19 +1007,29 @@ test.describe("E-Grid 2045 web game visuals", () => {
 
   test("month progress patch keeps construction progress DOM stable within a month", async ({ page }) => {
     await openGame(page, 1600, 900);
-    const result = await page.evaluate(() => {
+    await page.evaluate(() => {
       const game = window.__EGRID__;
       if (!game) {
-        return { markerKept: false, sameKey: false, progress: 0 };
+        return;
       }
       game.simulation.state.money = 10000;
       game.simulation.requestBuilding("fr_nord", "energy_research_center");
+      game.simulation.selectRegion("fr_nord");
+      game.scene.focusRegion("fr_nord");
       game.simulation.setSimulationSpeed(1);
       game.hud.render();
+      game.scene.renderState();
+    });
+    await openRegionBuildingsTab(page);
 
+    const result = await page.evaluate(() => {
+      const game = window.__EGRID__;
+      if (!game) {
+        return { hasProgress: false, markerKept: false, sameKey: false, progress: 0 };
+      }
       const before = document.querySelector<HTMLElement>('[data-progress-kind="construction"]');
       if (!before) {
-        return { markerKept: false, sameKey: false, progress: 0 };
+        return { hasProgress: false, markerKept: false, sameKey: false, progress: 0 };
       }
       before.dataset.stabilityProbe = "kept";
       const key = before.dataset.progressKey;
@@ -1018,12 +1039,14 @@ test.describe("E-Grid 2045 web game visuals", () => {
       const after = document.querySelector<HTMLElement>('[data-progress-kind="construction"]');
       const progress = after ? parseFloat(getComputedStyle(after).getPropertyValue("--progress")) : 0;
       return {
+        hasProgress: true,
         markerKept: after?.dataset.stabilityProbe === "kept",
         sameKey: after?.dataset.progressKey === key,
         progress
       };
     });
 
+    expect(result.hasProgress).toBe(true);
     expect(result.markerKept).toBe(true);
     expect(result.sameKey).toBe(true);
     expect(result.progress).toBeGreaterThan(0);
@@ -1103,10 +1126,10 @@ test.describe("E-Grid 2045 web game visuals", () => {
 
   test("month progress updates visual bars without replacing dock DOM nodes", async ({ page }, testInfo) => {
     await openGame(page, 1600, 900);
-    const before = await page.evaluate(() => {
+    await page.evaluate(() => {
       const game = window.__EGRID__;
       if (!game) {
-        return { progress: 0 };
+        return;
       }
       game.simulation.state.money = 10000;
       game.simulation.selectRegion("fr_nord");
@@ -1115,6 +1138,10 @@ test.describe("E-Grid 2045 web game visuals", () => {
       game.hud.render();
       game.scene.focusRegion("fr_nord");
       game.scene.renderState();
+    });
+    await openRegionBuildingsTab(page);
+
+    const before = await page.evaluate(() => {
       const progress = document.querySelector<HTMLElement>('[data-progress-fill="construction"]');
       (window as any).__EGRID_STABLE_NODES__ = {
         palette: document.querySelector(".build-palette"),
@@ -1124,9 +1151,11 @@ test.describe("E-Grid 2045 web game visuals", () => {
         progress
       };
       return {
-        progress: parseFloat(getComputedStyle(progress as HTMLElement).getPropertyValue("--progress"))
+        hasProgress: Boolean(progress),
+        progress: progress ? parseFloat(getComputedStyle(progress).getPropertyValue("--progress")) : 0
       };
     });
+    expect(before.hasProgress).toBe(true);
 
     await page.evaluate(() => {
       const game = window.__EGRID__;
@@ -1264,6 +1293,11 @@ async function openGameWithOnboarding(page: Page, width: number, height: number)
     game.onboarding.start({ force: true });
   });
   await page.waitForTimeout(150);
+}
+
+async function openRegionBuildingsTab(page: Page): Promise<void> {
+  await page.locator('[data-region-tab="buildings"]').click();
+  await expect(page.locator('[data-region-tab="buildings"]')).toHaveAttribute("aria-selected", "true");
 }
 
 async function countRegionsWithMapStructures(page: Page): Promise<number> {

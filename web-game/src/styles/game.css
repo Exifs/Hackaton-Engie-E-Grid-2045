@@ -2656,6 +2656,16 @@ html[data-egrid-scene-ready="0"] #game-canvas canvas {
 }
 
 @media (min-width: 1180px) {
+  .onboarding-layer[data-onboarding-step="university"] .onboarding-coach,
+  .onboarding-layer[data-onboarding-step="starter-energy"] .onboarding-coach,
+  .onboarding-layer[data-onboarding-step="cooling-build"] .onboarding-coach,
+  .onboarding-layer[data-onboarding-step="datacenter"] .onboarding-coach,
+  .onboarding-layer[data-onboarding-step="research"] .onboarding-coach {
+    left: clamp(330px, 22vw, 380px);
+  }
+}
+
+@media (min-width: 1180px) {
   body {
     background:
       radial-gradient(circle at 50% 48%, rgba(52, 172, 190, 0.16), transparent 38%),
