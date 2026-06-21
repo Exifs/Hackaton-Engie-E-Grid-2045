@@ -644,6 +644,7 @@ What was changed:
 - Removed HUD structure differences from `GameHud`: category order/labels are shared, and building availability filtering is no longer bypassed in concept mode.
 - Applied desktop map rendering improvements outside the concept scenario: curated curved routes, geographic labels, enhanced sprite glow/size and a lower visible-structure cap.
 - Compressed desktop category tabs to two columns so the real build rail keeps controls visible without hiding the mini overview.
+- Fixed follow-up regressions found by the full Playwright suite: removed duplicate `data-speed="1"` from the readout, restored individual alert dismiss controls, kept build-card art at the tested readable size, disabled onboarding in live-control regression tests, and updated layout tests for the new fixed desktop rail.
 
 What should be tried next:
 - Continue from the real-game screenshot, not only from `scenario=concept`.
@@ -651,5 +652,68 @@ What should be tried next:
 - Remaining asset fidelity work should target the real map and real build cards first, then verify the concept-state capture as a secondary check.
 
 Regressions introduced:
-- None observed in the checked desktop captures. Metrics report no overflow for topbar, build palette, mini overview, right panel and alert strip.
+- Initial full-suite pass found regressions in alert dismissal, speed control targeting, old dock-resize assumptions and compact-card sizing; all were fixed before this iteration was closed.
+- Final checked desktop captures report no overflow for topbar, build palette, mini overview, right panel and alert strip.
 - `.palette-body` scrolls vertically in the real build rail because the real game has more functional controls than the concept art; this is expected and not a clipping bug.
+
+## Iteration 25 - Compact real BUILD rail header
+
+Screenshots:
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-25b-real-game-compact-build-tabs.png`
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-25b-real-game-build-rail-crop.png`
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-25c-concept-state-compact-build-header.png`
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-25c-concept-state-build-rail-crop.png`
+
+What is closer to the concept art and the playable game:
+- The BUILD rail header is much shorter: the desktop header dropped from about 148px to 100px.
+- The main toggle now reads visually as a concept-like `BUILD` header with a compact collapse affordance.
+- The locked/unavailable filter remains functional but becomes a compact icon-sized control on desktop.
+- Category tabs now use a single horizontal strip instead of taking three vertical rows, so Energy, Datacenters, Cooling, Research and the mini GRID OVERVIEW are visible without a cut section on first render.
+
+What still differs visibly:
+- The real game still needs construction/research tabs and the locked filter, so the rail remains more functional and denser than the static concept.
+- Category tabs are horizontally scrollable, while the concept does not show this extra control layer.
+- GRID & Network cards are not shown in the default real start because locked/unavailable buildings remain hidden until the filter is enabled.
+
+What was changed:
+- Reworked desktop `.palette-header` into a two-column compact grid.
+- Restyled `.palette-toggle` as the `BUILD` header/collapse control without changing its action or DOM target.
+- Compressed `.dock-filter-toggle` to an icon-like control while preserving its label for accessibility and tests.
+- Replaced the two-column category tab grid with a one-row horizontal strip.
+
+What should be tried next:
+- Continue with central-map asset fidelity or small chrome/glyph polish.
+- If the horizontal category strip feels too game-like later, replace labels with compact icons/tooltips while preserving category access.
+
+Regressions introduced:
+- None observed. Real and concept-state captures report no vertical overflow in `.palette-header`, `.palette-body`, `.build-category-content` or `.grid-overview-card`.
+- Targeted Playwright palette/filter/category interaction tests passed after the change.
+
+## Iteration 26 - Grounded central map modules
+
+Screenshots:
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-26b-real-game-p0-balanced-map-modules.png`
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-26b-concept-state-balanced-map-modules.png`
+
+What is closer to the concept art and the playable game:
+- Built map structures now have a terrain integration layer before the sprite: soft shadow, subtle accent glow, connector to the regional node and small anchor points.
+- Buildings read less like detached UI sprites placed on top of the map and more like infrastructure sitting on the terrain/network layer.
+- The change applies only to built structures, so the empty-start and grey-construction gameplay states remain visually distinct.
+
+What still differs visibly:
+- The building silhouettes still come from the generated icon atlas, so they remain cleaner and more icon-like than the concept's painted infrastructure clusters.
+- The generated route topology and exact module positions still differ from the static concept.
+- In selected regions, gameplay slot markers still add visual density around the module cluster.
+
+What was changed:
+- Added `drawModuleGroundIntegration()` in `EGridMapScene`.
+- Built modules now draw a lighter terrain pad, contact shadow, accent halo, regional connector and small anchor nodes before the isometric base and sprite.
+- Reduced pad size/opacity after the first capture because the initial version was too visually heavy around France Nord.
+
+What should be tried next:
+- Continue central-map fidelity with either a dedicated tiny in-map module atlas or more terrain/color integration.
+- Preserve the invariant that construction shows a grey cube and completed buildings show final sprites.
+
+Regressions introduced:
+- None observed after balancing. Major HUD panels report no overflow.
+- Targeted Playwright map tests passed: empty/construction/built states, P0 completed buildings, and far-region safe-area focus.

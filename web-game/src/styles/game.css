@@ -3131,21 +3131,54 @@ html[data-egrid-scene-ready="0"] #game-canvas canvas {
 
   .palette-header {
     display: grid;
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr) auto;
     gap: 7px;
-    padding: 12px 10px 8px;
+    padding: 10px 10px 7px;
   }
 
   .palette-toggle {
-    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 38px;
     justify-self: stretch;
+    grid-column: 1;
     margin: 0;
+    padding: 7px 9px;
+    border-color: rgba(137, 234, 255, 0.22);
+    border-radius: 4px;
+    background:
+      linear-gradient(90deg, rgba(14, 55, 68, 0.78), rgba(4, 13, 20, 0.46)),
+      rgba(4, 13, 20, 0.72);
+    color: #f2fbff;
+    font-size: 0;
+    font-weight: 900;
     text-align: left;
     text-transform: uppercase;
   }
 
+  .palette-toggle span::before {
+    content: "BUILD";
+    font-size: 20px;
+    line-height: 1;
+  }
+
+  .palette-toggle::after {
+    display: grid;
+    place-items: center;
+    width: 24px;
+    height: 24px;
+    border: 1px solid rgba(137, 234, 255, 0.24);
+    border-radius: 4px;
+    color: #cfeaf2;
+    content: "<<";
+    font-size: 13px;
+    line-height: 1;
+  }
+
   .palette-tabs {
     display: grid;
+    grid-column: 1 / -1;
     grid-template-columns: 1fr 1fr;
     gap: 6px;
     overflow: visible;
@@ -3158,7 +3191,21 @@ html[data-egrid-scene-ready="0"] #game-canvas canvas {
   }
 
   .palette-header .dock-filter-toggle {
+    grid-column: 2;
+    grid-row: 1;
+    min-width: 40px;
+    min-height: 38px;
     margin-left: 0;
+    padding: 6px;
+  }
+
+  .palette-header .dock-filter-toggle strong {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
   }
 
   .build-palette.is-open .palette-body {
@@ -3178,18 +3225,26 @@ html[data-egrid-scene-ready="0"] #game-canvas canvas {
   }
 
   .build-category-tabs {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    display: flex;
     gap: 5px;
-    overflow: visible;
+    overflow-x: auto;
+    overflow-y: hidden;
     padding-bottom: 6px;
+    scrollbar-width: thin;
   }
 
   .build-category-tab {
+    flex: 0 0 88px;
     min-width: 0;
     min-height: 30px;
     padding: 5px 7px;
     border-radius: 4px;
+  }
+
+  .build-category-tab span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .build-accordion,
@@ -3306,8 +3361,8 @@ html[data-egrid-scene-ready="0"] #game-canvas canvas {
 
   .palette-body-construction .build-card .build-visual,
   .palette-body-construction .build-card .build-visual .building-art {
-    width: 38px;
-    height: 38px;
+    width: 52px;
+    height: 48px;
   }
 
   .build-accordion.is-all .build-category-content {
@@ -3509,7 +3564,7 @@ html[data-egrid-scene-ready="0"] #game-canvas canvas {
   }
 
   .alert-item {
-    grid-template-columns: 40px minmax(0, 1fr) 58px;
+    grid-template-columns: 40px minmax(0, 1fr) 58px 20px;
     gap: 8px;
     align-items: center;
     padding: 7px 8px;
@@ -3580,7 +3635,15 @@ html[data-egrid-scene-ready="0"] #game-canvas canvas {
   }
 
   .alert-dismiss {
-    display: none;
+    display: grid;
+    place-items: center;
+    width: 18px;
+    height: 18px;
+    margin: 0;
+    padding: 0;
+    border-radius: 4px;
+    font-size: 12px;
+    line-height: 1;
   }
 
   .alerts-collapse {

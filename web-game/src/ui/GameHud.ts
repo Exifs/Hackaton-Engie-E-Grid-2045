@@ -331,7 +331,7 @@ export class GameHud {
         ${this.conceptSpeedButton(1, summary.simulation_speed === 1, "&#9654;", "Lecture")}
         ${this.conceptSpeedButton(2, summary.simulation_speed === 2, "&#9654;&#9654;", "Avance rapide")}
         ${this.conceptSpeedButton(4, summary.simulation_speed === 4, "&#9654;&#9654;&#9654;", "Avance maximale")}
-        <button class="speed-readout" type="button" data-speed="1" title="Vitesse normale">1.0x</button>
+        <button class="speed-readout" type="button" data-speed-readout="1" title="Vitesse normale">1.0x</button>
       </div>
     `;
   }

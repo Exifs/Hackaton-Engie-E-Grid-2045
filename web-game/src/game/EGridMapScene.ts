@@ -459,7 +459,8 @@ export class EGridMapScene extends Phaser.Scene {
         this.drawConstructionPlaceholder(graphics, moduleX, moduleY, scale);
         continue;
       }
-      this.drawIsoBase(graphics, moduleX, moduleY + 12 * scale, 38 * scale, 22 * scale, accent);
+      this.drawModuleGroundIntegration(graphics, point, moduleX, moduleY, scale, accent, hash);
+      this.drawIsoBase(graphics, moduleX, moduleY + 12 * scale, 42 * scale, 25 * scale, accent);
       if (!this.drawModuleSprite(moduleX, moduleY, scale, this.moduleIconIndex(buildingId, hash), accent)) {
         this.drawModuleMarker(graphics, moduleX, moduleY, scale, accent, hash);
       }
@@ -696,6 +697,63 @@ export class EGridMapScene extends Phaser.Scene {
       const towerX = x - (towerCount === 2 ? 8 * scale : 0) + index * 15 * scale;
       const towerHeight = (28 + ((variant + index) % 3) * 6) * scale;
       this.drawIsoTower(graphics, towerX, baseY - 5 * scale, 16 * scale, towerHeight, scale, accent, variant + index);
+    }
+  }
+
+  private drawModuleGroundIntegration(
+    graphics: Phaser.GameObjects.Graphics,
+    regionPoint: { x: number; y: number },
+    x: number,
+    y: number,
+    scale: number,
+    accent: number,
+    variant: number
+  ): void {
+    const baseY = y + 14 * scale;
+    const padWidth = 48 * scale;
+    const padDepth = 26 * scale;
+    const halfW = padWidth / 2;
+    const halfD = padDepth / 2;
+    const connectorAlpha = Phaser.Math.Clamp(0.16 + (variant % 5) * 0.025, 0.16, 0.25);
+
+    graphics.lineStyle(2.4 * scale, 0x02080d, 0.34);
+    graphics.lineBetween(regionPoint.x, regionPoint.y, x, baseY);
+    graphics.lineStyle(1.1 * scale, accent, connectorAlpha);
+    graphics.lineBetween(regionPoint.x, regionPoint.y, x, baseY);
+
+    graphics.fillStyle(0x02070b, 0.5);
+    graphics.fillEllipse(x, baseY + 5 * scale, padWidth * 1.08, padDepth * 0.64);
+    graphics.fillStyle(accent, 0.065);
+    graphics.fillEllipse(x, baseY + 1 * scale, padWidth * 0.96, padDepth * 0.5);
+
+    this.fillPoly(graphics, 0x061722, 0.52, [
+      [x, baseY - halfD],
+      [x + halfW, baseY],
+      [x, baseY + halfD],
+      [x - halfW, baseY]
+    ]);
+
+    graphics.lineStyle(0.8, accent, 0.18);
+    this.strokePoly(graphics, [
+      [x, baseY - halfD],
+      [x + halfW, baseY],
+      [x, baseY + halfD],
+      [x - halfW, baseY]
+    ]);
+
+    graphics.lineStyle(0.8, 0xd8fbff, 0.09);
+    graphics.lineBetween(x - halfW * 0.62, baseY, x, baseY + halfD * 0.58);
+    graphics.lineBetween(x + halfW * 0.62, baseY, x, baseY + halfD * 0.58);
+
+    const nodeCount = 3 + (variant % 2);
+    graphics.fillStyle(accent, 0.34);
+    for (let index = 0; index < nodeCount; index += 1) {
+      const t = nodeCount === 1 ? 0.5 : index / (nodeCount - 1);
+      const nodeX = Phaser.Math.Linear(x - halfW * 0.58, x + halfW * 0.58, t);
+      const nodeY = baseY + halfD * (index % 2 === 0 ? 0.12 : -0.12);
+      graphics.fillCircle(nodeX, nodeY, 1.8 * scale);
+      graphics.lineStyle(0.8, accent, 0.18);
+      graphics.strokeCircle(nodeX, nodeY, 3.4 * scale);
     }
   }
 

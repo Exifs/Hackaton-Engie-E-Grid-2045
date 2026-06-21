@@ -1,6 +1,6 @@
 # Component diagnostics - E-Grid 2045 v2.0 convergence
 
-Current audit screenshot: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-22-region-status-icons.png`
+Current audit screenshot: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-26b-concept-state-balanced-map-modules.png`
 
 Reference: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\reference-v2-0.png`
 
@@ -9,7 +9,8 @@ Reference: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-r
 Current state:
 - Major frame positions are stable: top bar, left build rail, right region panel, bottom alerts and central map all fill their intended zones.
 - DOM measurements show no overflow or collisions between major HUD panels.
-- Concept-only panel chrome now adds bevels, corner highlights, scan texture and stronger inner shadows.
+- Desktop panel chrome now adds bevels, corner highlights, scan texture and stronger inner shadows in the real game and the concept-state capture.
+- The real desktop game now uses the same primary component styling as the concept-state capture; `scenario=concept` is no longer a separate HUD variant.
 
 Visible differences:
 - The concept still has heavier custom mechanical brackets and more layered corner hardware.
@@ -27,8 +28,8 @@ Current state:
 - Brand, AGI duel rings, budget, date and speed controls are now structurally close to the concept.
 - `E-GRID 2045` is a real DOM brand panel with large title type and a rich tooltip.
 - AGI rings are now rendered as individual segmented ticks only, without a continuous progress circle underneath.
-- Simulation speed is a dedicated concept-like module with pause/play/fast buttons and a `1.0x` readout.
-- A separate hamburger command block now occupies the far-right top-bar slot.
+- Simulation speed is a dedicated concept-like module with pause/play/fast buttons and a `1.0x` readout in the real game, not only in the concept scenario.
+- A separate hamburger command block now occupies the far-right top-bar slot in both real and concept-state views.
 - Tooltips are available on brand/AGI/budget/date.
 
 Visible differences:
@@ -47,10 +48,12 @@ Priority: Medium.
 Current state:
 - The map fills the central region and uses network lines, labels, region halos, selected slots and atlas-backed building markers.
 - ImageGen-generated atlas assets now make modules more concrete than vector-only markers.
-- Concept mode limits visible module markers to the most important regions, reducing clutter versus the previous pass.
-- Concept mode now brightens module sprites with a small additive glow and slightly larger display size.
-- Concept mode now filters secondary route lines and draws active flows as curved highlighted routes with pulse points.
-- Concept mode now renders country and sea labels, while suppressing most internal gameplay region labels.
+- Desktop rendering limits visible module markers to the most important regions, reducing clutter versus the previous pass.
+- Desktop rendering now brightens module sprites with a small additive glow and slightly larger display size.
+- Desktop rendering now filters secondary route lines and draws active flows as curved highlighted routes with pulse points.
+- Desktop rendering now renders country and sea labels, while suppressing most low-value internal gameplay region labels.
+- Desktop real game now uses the same curved route hierarchy, geographic label layer, enhanced sprite glow/size and strategic structure cap.
+- Built structures now draw a terrain integration layer: contact shadow, subtle accent pad, connector to the regional node and small anchor points before the final sprite.
 - Map structures now reflect gameplay state: absent at empty start, grey cube during construction, real building icon only once built.
 - Structure placement is deterministic and type-aware, with offshore/sea assets pushed toward water and land assets kept near regional anchors.
 - A global visible-structure cap prevents overloading the map.
@@ -58,13 +61,15 @@ Current state:
 
 Visible differences:
 - Current map is still darker than the concept.
-- Concept modules are still more integrated into the painted terrain and less icon-like.
+- Concept modules are still more hand-painted and less icon-like than the generated atlas sprites.
 - The map backdrop relief and generated route topology do not match the exact concept map.
-- Label positions are approximate and some eastern labels sit behind the right HUD.
+- Label positions are approximate; in the concept-state capture, live region/problem labels can still add visual density beyond the static art.
+- Selected-region slot markers can visually crowd nearby built structures in gameplay views.
 
 Future actions:
 - Generate a dedicated tiny in-map module atlas if the existing icon atlas remains too detailed or too icon-like, preserving the empty-start, grey-construction, built-only-final-icon state rule.
 - Tune terrain integration and module sprites so country/sea text sits on a more concept-like painted base.
+- Consider reducing selected slot marker prominence near built modules if it continues to compete with infrastructure readability.
 
 Priority: High, but asset-heavy.
 
@@ -73,15 +78,22 @@ Priority: High, but asset-heavy.
 Current state:
 - Rail is contained and no longer clipped.
 - It lists construction groups and a real GRID OVERVIEW module.
-- Concept mode now has a fixed `BUILD` header, category rows, large utility icon tiles, compact cards, and category order matching the concept.
+- Desktop build rail now has category rows, large utility icon tiles, compact cards, and category order closer to the concept.
+- The mini GRID OVERVIEW and compact category-card treatment are now present in the real game too.
+- The desktop header is compact: BUILD/collapse, construction/research tabs and the lock filter fit into about 100px.
+- Real-game category tabs remain visible for functionality as a one-row horizontal strip, avoiding the previous cut Research section above the mini overview.
+- The default real-game BUILD body now fits the visible card groups and mini GRID OVERVIEW without vertical clipping.
 
 Visible differences:
 - Category glyphs use current project utility PNGs, not the exact concept-painted white symbols.
 - Locked/research-gated cells still use current game disabled card treatment.
+- The real rail is denser than the concept because it keeps construction/research tabs, locked filtering and category tabs available.
+- Category access uses a horizontal tab strip, which is a real-game affordance absent from the static concept.
 
 Future actions:
 - If rail fidelity remains a priority, create a tighter monochrome utility icon set or tune the existing symbols.
 - Keep the existing construction functionality and rich tooltips.
+- Consider icon-only category tabs with rich tooltips if the horizontal strip still feels too game-like, but do not hide real gameplay controls only to match the static concept.
 
 Priority: Medium.
 
@@ -110,6 +122,7 @@ Priority: Low to medium.
 Current state:
 - Five alerts fit without overflow and match concept placement more closely.
 - Alert cards now include a left icon, compact title/body, a right action button, and a final collapse control.
+- The enriched alert strip is now used by the real desktop game, not only `scenario=concept`.
 
 Visible differences:
 - Alert icons are CSS/text symbols rather than exact concept glyph assets.
@@ -126,6 +139,8 @@ Priority: Low to medium.
 Current state:
 - It is a real data-driven component with nodes, flows, legend and a simplified Europe silhouette.
 - Its concept layout now matches the reference more closely: legend left, map inset right.
+- It is visible in the real desktop game and in the concept-state capture.
+- The inset now uses a denser glowing Europe silhouette, coastline hints, scan/vignette overlays and curved flow paths.
 
 Visible differences:
 - The geography remains simplified SVG blobs rather than the concept's painted glowing Europe inset.
@@ -134,6 +149,7 @@ Visible differences:
 Future actions:
 - Generate a small static raster inset or refine the SVG coastline if this component remains a priority.
 - Keep legend and data-driven flow dots.
+- Verify future mini-map changes in the real game first, then in `scenario=concept` second.
 
 Priority: Medium.
 

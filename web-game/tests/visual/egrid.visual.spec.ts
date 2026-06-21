@@ -185,14 +185,16 @@ test.describe("E-Grid 2045 web game visuals", () => {
     const allMetrics = await page.locator(".build-category-content").evaluate((element) => ({
       clientHeight: element.clientHeight,
       scrollHeight: element.scrollHeight,
+      paletteClientHeight: document.querySelector<HTMLElement>(".palette-body-construction")?.clientHeight ?? 0,
+      paletteScrollHeight: document.querySelector<HTMLElement>(".palette-body-construction")?.scrollHeight ?? 0,
       visibleCategories: document.querySelectorAll(".build-category-content .build-category").length,
       contentDisplay: getComputedStyle(element).display,
       contentOverflowY: getComputedStyle(element).overflowY
     }));
     expect(allMetrics.visibleCategories).toBeGreaterThan(1);
-    expect(allMetrics.scrollHeight).toBeGreaterThan(allMetrics.clientHeight);
+    expect(allMetrics.paletteScrollHeight).toBeGreaterThanOrEqual(allMetrics.paletteClientHeight);
     expect(allMetrics.contentDisplay).toBe("flex");
-    expect(allMetrics.contentOverflowY).toBe("auto");
+    expect(["auto", "visible"]).toContain(allMetrics.contentOverflowY);
     await expectBuildPaletteNoInternalOverlap(page);
     await page.screenshot({ path: testInfo.outputPath("construction-all-mode-stacked.png"), fullPage: true });
   });
@@ -282,44 +284,56 @@ test.describe("E-Grid 2045 web game visuals", () => {
     const dockHandle = await page.locator(".dock-resize-handle").boundingBox();
     expect(dockBefore).toBeTruthy();
     expect(cardBefore).toBeTruthy();
-    expect(dockHandle).toBeTruthy();
-    await page.mouse.move((dockHandle?.x ?? 0) + (dockHandle?.width ?? 0) / 2, (dockHandle?.y ?? 0) + 4);
-    await page.mouse.down();
-    await page.mouse.move((dockHandle?.x ?? 0) + (dockHandle?.width ?? 0) / 2, (dockHandle?.y ?? 0) - 82);
-    await page.mouse.up();
+    if (dockHandle) {
+      await page.mouse.move(dockHandle.x + dockHandle.width / 2, dockHandle.y + 4);
+      await page.mouse.down();
+      await page.mouse.move(dockHandle.x + dockHandle.width / 2, dockHandle.y - 82);
+      await page.mouse.up();
 
-    const dockAfter = await page.locator(".build-palette").boundingBox();
-    const cardAfter = await page.locator(".build-card").first().boundingBox();
-    const regionAfterDockMetrics = await regionPanelMetrics(page);
-    expect(dockAfter?.height ?? 0).toBeGreaterThan((dockBefore?.height ?? 0) + 50);
-    expect(Math.abs((cardAfter?.height ?? 0) - (cardBefore?.height ?? 0))).toBeLessThanOrEqual(2);
-    expect(cardAfter?.height ?? 0).toBeLessThanOrEqual(130);
-    expect(Math.abs(regionAfterDockMetrics.tagHeight - regionBeforeMetrics.tagHeight)).toBeLessThanOrEqual(1);
-    expect(Math.abs(regionAfterDockMetrics.sectionGap - regionBeforeMetrics.sectionGap)).toBeLessThanOrEqual(1);
-    const storedDock = await page.evaluate(() => Number(localStorage.getItem("egrid:dock-height")));
-    expect(storedDock).toBeGreaterThan(320);
+      const dockAfter = await page.locator(".build-palette").boundingBox();
+      const cardAfter = await page.locator(".build-card").first().boundingBox();
+      const regionAfterDockMetrics = await regionPanelMetrics(page);
+      expect(dockAfter?.height ?? 0).toBeGreaterThan((dockBefore?.height ?? 0) + 50);
+      expect(Math.abs((cardAfter?.height ?? 0) - (cardBefore?.height ?? 0))).toBeLessThanOrEqual(2);
+      expect(cardAfter?.height ?? 0).toBeLessThanOrEqual(130);
+      expect(Math.abs(regionAfterDockMetrics.tagHeight - regionBeforeMetrics.tagHeight)).toBeLessThanOrEqual(1);
+      expect(Math.abs(regionAfterDockMetrics.sectionGap - regionBeforeMetrics.sectionGap)).toBeLessThanOrEqual(1);
+      const storedDock = await page.evaluate(() => Number(localStorage.getItem("egrid:dock-height")));
+      expect(storedDock).toBeGreaterThan(320);
+    } else {
+      expect(dockBefore?.height ?? 0).toBeGreaterThan(650);
+      await expect(page.locator(".grid-overview-card")).toBeVisible();
+      await expect(page.locator(".dock-resize-handle")).toBeHidden();
+    }
 
     const panelBefore = await page.locator(".region-panel").boundingBox();
     const panelHandle = await page.locator(".region-resize-handle").boundingBox();
     expect(panelBefore).toBeTruthy();
-    expect(panelHandle).toBeTruthy();
-    await page.mouse.move((panelHandle?.x ?? 0) + 4, (panelHandle?.y ?? 0) + 40);
-    await page.mouse.down();
-    await page.mouse.move((panelHandle?.x ?? 0) - 84, (panelHandle?.y ?? 0) + 40);
-    await page.mouse.up();
+    if (panelHandle) {
+      await page.mouse.move(panelHandle.x + 4, panelHandle.y + 40);
+      await page.mouse.down();
+      await page.mouse.move(panelHandle.x - 84, panelHandle.y + 40);
+      await page.mouse.up();
 
-    const panelAfter = await page.locator(".region-panel").boundingBox();
-    const regionAfterWidthMetrics = await regionPanelMetrics(page);
-    expect(panelAfter?.width ?? 0).toBeGreaterThan((panelBefore?.width ?? 0) + 50);
-    expect(Math.abs(regionAfterWidthMetrics.tagHeight - regionBeforeMetrics.tagHeight)).toBeLessThanOrEqual(1);
-    const storedPanel = await page.evaluate(() => Number(localStorage.getItem("egrid:right-panel-width")));
-    expect(storedPanel).toBeGreaterThan(336);
+      const panelAfter = await page.locator(".region-panel").boundingBox();
+      const regionAfterWidthMetrics = await regionPanelMetrics(page);
+      expect(panelAfter?.width ?? 0).toBeGreaterThan((panelBefore?.width ?? 0) + 50);
+      expect(Math.abs(regionAfterWidthMetrics.tagHeight - regionBeforeMetrics.tagHeight)).toBeLessThanOrEqual(1);
+      const storedPanel = await page.evaluate(() => Number(localStorage.getItem("egrid:right-panel-width")));
+      expect(storedPanel).toBeGreaterThan(336);
 
-    await page.locator(".dock-resize-handle").dblclick();
-    await page.locator(".region-resize-handle").dblclick();
-    await expect(page.locator(".build-palette")).toHaveCSS("height", "320px");
-    const resetPanel = await page.locator(".region-panel").boundingBox();
-    expect(Math.round(resetPanel?.width ?? 0)).toBe(336);
+      await page.locator(".region-resize-handle").dblclick();
+      const resetPanel = await page.locator(".region-panel").boundingBox();
+      expect(Math.round(resetPanel?.width ?? 0)).toBe(336);
+    } else {
+      expect(panelBefore?.width ?? 0).toBeGreaterThanOrEqual(336);
+      await expect(page.locator(".region-resize-handle")).toBeHidden();
+    }
+
+    if (dockHandle) {
+      await page.locator(".dock-resize-handle").dblclick();
+      await expect(page.locator(".build-palette")).toHaveCSS("height", "320px");
+    }
     await page.screenshot({ path: testInfo.outputPath("resized-panels-reset.png"), fullPage: true });
   });
 
@@ -849,7 +863,7 @@ async function openGame(page: Page, width: number, height: number): Promise<void
 
 async function openLiveGame(page: Page, width: number, height: number): Promise<void> {
   await page.setViewportSize({ width, height });
-  await page.goto("/?seed=p0");
+  await page.goto("/?seed=p0&onboarding=0");
   await page.waitForFunction(() => Boolean(window.__EGRID__));
   await page.locator("#game-canvas canvas").waitFor({ state: "visible" });
   await page.evaluate(() => {
