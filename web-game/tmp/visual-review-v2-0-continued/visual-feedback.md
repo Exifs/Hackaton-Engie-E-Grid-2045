@@ -2,13 +2,14 @@
 
 Reference: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\reference-v2-0.png`
 
-Current audit after iteration 78:
-- A central-map light/route-density pass was captured as `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-78-central-map-light-routes-*`.
+Current audit after iteration 79:
+- A bottom alert-dock polish pass was captured as `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-79-alert-dock-polish-*`.
 - Capture workflow is now documented in `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\visual-capture-workflow.md` for future iterations.
 - The selected-region map composition remains stable: concept-state `buildingTextureCount` is 36, approximately 9 visible structures.
 - Central-map lighting and route density improved: concept-state strategic routes increased from 10 to 12, with 1 controlled congested route; central-map crop luma moved from 42.24 to 44.00, cyan pixels from 19315 to 22229 and bright pixels from 58443 to 70350.
 - Right-panel building slots are more legible and closer to the concept's technical tile language: larger/brighter slot art, stronger inner frames, clearer bottom status ticks and more subdued lock tiles.
 - BUILD rail construction cards now have brighter pictogram overlays and clearer technical frames. Left-rail crop metrics moved from luma 32.18 / bright pixels 11240 / cyan pixels 6686 in iteration 76 to luma 35.76 / bright pixels 16487 / cyan pixels 11034 in iteration 77.
+- Bottom alerts now have clearer type-specific card accents, larger technical glyphs, and better text/body rhythm while preserving the previous no-overflow behavior.
 - Gameplay state invariants still hold: real-start `buildingTextureCount: 0`; construction has one queued item, zero built items and `buildingTextureCount: 0`.
 - Panels still report zero measured overflow in concept-state and real-start captures.
 - The accepted mini GRID OVERVIEW background remains `grid-overview-europe-map-only-v1.png`; it has `staticThreadCount: 0`, 10 dynamic hub lines and 20 dynamic nodes. Do not iterate on this asset unless it regresses.
@@ -16,12 +17,13 @@ Current audit after iteration 78:
 - Calibration against the reference shows the largest remaining map gap is still brightness/detail: reference central luma is about 63.97 versus render 44.00, and reference Benelux cyan/detail density remains higher than the render.
 
 Current priority order:
-1. Central map module and terrain fidelity - High. Iteration 78 improves lighting and route density, but the map remains the largest concept gap: generated isometric props, darker/grittier terrain than reference, and state-derived route composition. The next useful map pass should be a true tiny painted map-marker atlas or a more deliberate terrain grade; avoid more small alpha-only tweaks unless a screenshot shows regression.
-2. Bottom alerts polish - Medium. Alert text now occupies its cards and passes the previous overflow concern, but the cards still feel like live game notifications rather than the bespoke concept alert strip.
-3. Right region panel polish - Medium/guard. Iteration 76 improves slot readability and tile framing, but the art still comes from the shared card atlas rather than bespoke painted concept tiles.
-4. BUILD rail icon/card fidelity - Medium/guard. Iteration 77 improves glyph brightness/readability while preserving layout and mini overview visibility. Further work should be a true generated glyph atlas, not more CSS brightness tuning.
-5. Scroll hotspot regression coverage - Medium/guard. Existing focused tests pass for construction and recherche card surfaces; add right-panel/alert-dock hotspot tests only when those panels contain scrollable overflow again or before major layout changes.
-6. Top bar and mini GRID OVERVIEW - Regression guard only. AGI rings must remain ticks-only, and the accepted mini overview background must stay map-only with dynamic topology layered separately.
+1. Human review gate - High. Stop autonomous iteration after iteration 79 and wait for user feedback on the latest capture set.
+2. Central map module and terrain fidelity - High after review. Iteration 78 improves lighting and route density, but the map remains the largest concept gap: generated isometric props, darker/grittier terrain than reference, and state-derived route composition. The next useful map pass should be a true tiny painted map-marker atlas or a more deliberate terrain grade; avoid more small alpha-only tweaks unless a screenshot shows regression.
+3. Bottom alerts polish - Medium/guard. Iteration 79 improves type-specific accents, icon scale and text rhythm; keep as guard unless human feedback flags the strip.
+4. Right region panel polish - Medium/guard. Iteration 76 improves slot readability and tile framing, but the art still comes from the shared card atlas rather than bespoke painted concept tiles.
+5. BUILD rail icon/card fidelity - Medium/guard. Iteration 77 improves glyph brightness/readability while preserving layout and mini overview visibility. Further work should be a true generated glyph atlas, not more CSS brightness tuning.
+6. Scroll hotspot regression coverage - Medium/guard. Existing focused tests pass for construction and recherche card surfaces; add right-panel/alert-dock hotspot tests only when those panels contain scrollable overflow again or before major layout changes.
+7. Top bar and mini GRID OVERVIEW - Regression guard only. AGI rings must remain ticks-only, and the accepted mini overview background must stay map-only with dynamic topology layered separately.
 
 Standing constraints superseding older notes:
 - The mini GRID OVERVIEW is now a real, visible component in the playable game and in `scenario=concept`.
@@ -2285,4 +2287,46 @@ Regressions introduced:
 - Construction still reports one queued item, zero built items and `buildingTextureCount: 0`.
 - Passed `pnpm lint`.
 - Passed targeted Playwright: `concept central map|map structures reflect`.
+- Passed `pnpm build`; only the existing Vite chunk-size warning remains.
+
+## Iteration 79 - Bottom alert dock polish
+
+Screenshots and metrics:
+- Final concept global: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-79-alert-dock-polish-concept-state-global.png`
+- Final alert crop: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-79-alert-dock-polish-concept-state-alerts.png`
+- Final real-start alert crop: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-79-alert-dock-polish-real-start-alerts.png`
+- Final concept metrics: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-79-alert-dock-polish-concept-state-metrics.json`
+- Final real-start metrics: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-79-alert-dock-polish-real-start-metrics.json`
+- Final construction metrics: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-79-alert-dock-polish-construction-metrics.json`
+
+What is closer to the concept art and the playable game:
+- Alert cards now have clearer type-specific color treatment: warning red/orange, research blue, network amber.
+- Alert glyphs are larger and more readable while remaining CSS-drawn technical symbols rather than punctuation.
+- Text hierarchy is slightly calmer: title/body sizing is tighter and the body color separates from the title.
+- The bottom dock still fits the same 84px height and reports zero measured overflow.
+- Real-start stable cards remain visible and unclipped.
+
+What still differs visibly:
+- The concept alert strip has more bespoke painted icon assets and more editorial copy rhythm.
+- The live game must handle variable alert titles and actions, so card text is still more compressed than the static concept art.
+- If the alert dock is revisited after human feedback, a generated icon atlas would be higher value than more CSS-only icon tuning.
+
+What was changed:
+- Tuned desktop `.alert-item` grid, padding, borders, backgrounds and inset glow.
+- Increased `.alert-icon` size and strengthened pseudo-element glyphs.
+- Added type-specific card and action-button treatment for research and network alerts.
+- Tightened desktop alert title/body typography without changing the markup or actions.
+
+What should be tried next:
+- Stop autonomous iterations here and wait for human feedback.
+- If feedback asks for continued map fidelity, prioritize a true map-marker atlas or stronger terrain grade.
+- If feedback focuses on the alert strip, use generated/painted icon assets rather than another small CSS-only pass.
+
+Regressions introduced:
+- None observed in iteration-79 screenshots or metrics.
+- Concept-state panels still report zero overflow.
+- Real-start still reports `buildingTextureCount: 0`.
+- Construction still reports one queued item, zero built items and `buildingTextureCount: 0`.
+- Passed `pnpm lint`.
+- Passed targeted Playwright: `network flows and actionable alerts`.
 - Passed `pnpm build`; only the existing Vite chunk-size warning remains.

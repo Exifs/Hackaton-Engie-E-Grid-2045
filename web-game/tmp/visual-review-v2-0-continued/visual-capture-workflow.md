@@ -1,6 +1,6 @@
 # Visual capture workflow - E-Grid 2045
 
-Use this workflow for the iterative visual-convergence loop. It is the method that produced the usable iteration 72-78 captures.
+Use this workflow for the iterative visual-convergence loop. It is the method that produced the usable iteration 72-79 captures.
 
 ## Primary capture path
 
@@ -43,7 +43,7 @@ If `view_image` or the in-app browser is blocked by sandbox ACL errors:
 
 ```powershell
 $env:EGRID_AUDIT_BASE_URL='http://127.0.0.1:4175'
-$env:EGRID_AUDIT_PREFIX='iteration-78-central-map-light-routes'
+$env:EGRID_AUDIT_PREFIX='iteration-79-alert-dock-polish'
 pnpm exec node tmp/visual-review-v2-0-continued/iteration-72-audit-capture.mjs
 ```
 
