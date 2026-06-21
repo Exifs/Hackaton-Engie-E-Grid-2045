@@ -1,6 +1,6 @@
 # Component diagnostics - E-Grid 2045 v2.0 convergence
 
-Current audit screenshot: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-21d-built-real-icon.png`
+Current audit screenshot: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-22-region-status-icons.png`
 
 Reference: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\reference-v2-0.png`
 
@@ -54,6 +54,7 @@ Current state:
 - Map structures now reflect gameplay state: absent at empty start, grey cube during construction, real building icon only once built.
 - Structure placement is deterministic and type-aware, with offshore/sea assets pushed toward water and land assets kept near regional anchors.
 - A global visible-structure cap prevents overloading the map.
+- Superseded capture note: do not use `iteration-21-construction-map-building-visible.png` as current evidence, because it predates the grey construction cube fix.
 
 Visible differences:
 - Current map is still darker than the concept.
@@ -62,7 +63,7 @@ Visible differences:
 - Label positions are approximate and some eastern labels sit behind the right HUD.
 
 Future actions:
-- Generate a dedicated tiny in-map module atlas if the existing icon atlas remains too detailed or too icon-like, preserving the construction-vs-built state rule.
+- Generate a dedicated tiny in-map module atlas if the existing icon atlas remains too detailed or too icon-like, preserving the empty-start, grey-construction, built-only-final-icon state rule.
 - Tune terrain integration and module sprites so country/sea text sits on a more concept-like painted base.
 
 Priority: High, but asset-heavy.
@@ -88,15 +89,19 @@ Priority: Medium.
 
 Current state:
 - Region level, tabs, building slots, locked slots, Energy/Cooling/Compute status and Manage Region are now close to the concept.
+- Energy, Cooling and Compute status headings now have compact pictograms aligned with the concept's icon-led status rows.
+- Status blocks now expose rich hover tooltips with their metric breakdowns.
 
 Visible differences:
 - Values are live Benelux values rather than the exact Netherlands concept values.
 - Slot art uses current game atlas tiles, not the exact concept building art.
 - Tabs are visual state only, not separate subviews yet.
+- Status pictograms are CSS-built approximations, not exact painted concept glyph assets.
 
 Future actions:
 - Add tab behavior only if the user needs functional panel subviews.
 - Consider a concept-state override for selected region name/values only if exact screenshot mimicry becomes more important than game-state fidelity.
+- Replace CSS pictograms with a tiny monochrome glyph atlas only if right-panel icon fidelity becomes more important than the central map and mini overview.
 
 Priority: Low to medium.
 
@@ -135,13 +140,13 @@ Priority: Medium.
 ## 8. Rich tooltips
 
 Current state:
-- Rich tooltips exist for build cards, built assets, alerts, top KPIs and GRID OVERVIEW.
+- Rich tooltips exist for build cards, built assets, alerts, top KPIs, GRID OVERVIEW and right-panel status blocks.
 
 Visible differences:
 - Tooltips are gameplay additions and absent from static concept.
 
 Future actions:
-- Add tooltips to right-panel status blocks and category headers if controls become more icon-only.
+- Add tooltips to category headers if controls become more icon-only.
 - Ensure pointer-events remain enabled for non-button tooltip triggers.
 
 Priority: Low.

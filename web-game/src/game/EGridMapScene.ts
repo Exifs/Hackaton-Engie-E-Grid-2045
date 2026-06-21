@@ -237,7 +237,7 @@ export class EGridMapScene extends Phaser.Scene {
     const regions = this.simulation.getRegionsSnapshot();
     const graph = this.simulation.getNetworkGraph();
     const drawnEdges = new Set<string>();
-    const isConceptScenario = document.documentElement.dataset.conceptScenario === "1";
+    const useStrategicRouteRendering = window.innerWidth >= 1180 || document.documentElement.dataset.conceptScenario === "1";
     const activeConceptEdges = new Set(
       summary.network_flows
         .slice(0, 16)
@@ -265,7 +265,7 @@ export class EGridMapScene extends Phaser.Scene {
         const hash = hashString(edgeKey);
         const color = hash % 4 === 0 ? HEATMAP_COLORS.compute : hash % 5 === 0 ? HEATMAP_COLORS.warning : HEATMAP_COLORS.energy;
         const isActiveConceptEdge = activeConceptEdges.has(edgeKey);
-        if (isConceptScenario) {
+        if (useStrategicRouteRendering) {
           if (!isActiveConceptEdge && hash % 5 !== 0) {
             continue;
           }
@@ -315,7 +315,7 @@ export class EGridMapScene extends Phaser.Scene {
       const targetPoint = this.regionPoint(rect, target.layout as RegionLayout);
       const width = 1.5 + flow.intensity_normalized * 4;
       const color = flow.is_congested ? HEATMAP_COLORS.warning : HEATMAP_COLORS.energy;
-      if (isConceptScenario) {
+      if (useStrategicRouteRendering) {
         const hash = hashString(`${flow.source_region_id}:${flow.target_region_id}`);
         const control = this.conceptRouteControl(sourcePoint, targetPoint, hash);
         graphics.lineStyle(width + 4.5, 0x03131b, 0.58);
@@ -407,7 +407,7 @@ export class EGridMapScene extends Phaser.Scene {
 
     const regions = this.simulation.getRegionsSnapshot();
     const selectedRegionId = this.simulation.getSummary().selected_region_id;
-    const isConceptScenario = document.documentElement.dataset.conceptScenario === "1";
+    const useStrategicStructureCap = window.innerWidth >= 1180 || document.documentElement.dataset.conceptScenario === "1";
     const scale = Phaser.Math.Clamp(Math.min(rect.width, rect.height) / 760, 0.82, 1.35);
     const candidates: MapStructureCandidate[] = [];
 
@@ -443,16 +443,11 @@ export class EGridMapScene extends Phaser.Scene {
       }
     }
 
-    const maxVisibleStructures = isConceptScenario ? 15 : 22;
-    const visibleCandidates = isConceptScenario
-      ? candidates
-        .sort((left, right) => right.score - left.score)
-        .slice(0, maxVisibleStructures)
-        .sort((left, right) => left.point.y - right.point.y)
-      : candidates
-        .sort((left, right) => right.score - left.score)
-        .slice(0, maxVisibleStructures)
-        .sort((left, right) => left.point.y - right.point.y);
+    const maxVisibleStructures = useStrategicStructureCap ? 15 : 22;
+    const visibleCandidates = candidates
+      .sort((left, right) => right.score - left.score)
+      .slice(0, maxVisibleStructures)
+      .sort((left, right) => left.point.y - right.point.y);
 
     for (const candidate of visibleCandidates) {
       const { region, point, hash, buildingId, state, index } = candidate;
@@ -563,11 +558,11 @@ export class EGridMapScene extends Phaser.Scene {
     const clampedIndex = Phaser.Math.Clamp(Math.trunc(iconIndex), 0, columns * rows - 1);
     const cropX = (clampedIndex % columns) * cellWidth;
     const cropY = Math.floor(clampedIndex / columns) * cellHeight;
-    const isConceptScenario = document.documentElement.dataset.conceptScenario === "1";
-    const displaySize = (isConceptScenario ? 56 : 48) * scale;
+    const useEnhancedMapSprites = window.innerWidth >= 1180 || document.documentElement.dataset.conceptScenario === "1";
+    const displaySize = (useEnhancedMapSprites ? 56 : 48) * scale;
     const spriteScale = displaySize / cellWidth;
-    const spriteY = y - (isConceptScenario ? 8 : 6) * scale;
-    if (isConceptScenario) {
+    const spriteY = y - (useEnhancedMapSprites ? 8 : 6) * scale;
+    if (useEnhancedMapSprites) {
       const glow = this.add
         .image(x, spriteY + 2 * scale, "building-icon-atlas")
         .setOrigin(0.5, 0.74)
@@ -583,7 +578,7 @@ export class EGridMapScene extends Phaser.Scene {
       .setOrigin(0.5, 0.74)
       .setCrop(cropX, cropY, cellWidth, cellHeight)
       .setScale(spriteScale)
-      .setAlpha(isConceptScenario ? 1 : 0.95);
+      .setAlpha(useEnhancedMapSprites ? 1 : 0.95);
     container.add(image);
     return true;
   }
@@ -895,10 +890,10 @@ export class EGridMapScene extends Phaser.Scene {
     const summary = this.simulation.getSummary();
     const regions = this.simulation.getRegionsSnapshot();
     const selectedId = summary.selected_region_id;
-    const isConceptScenario = document.documentElement.dataset.conceptScenario === "1";
+    const useGeographicLabelLayer = window.innerWidth >= 1180 || document.documentElement.dataset.conceptScenario === "1";
     const maxCompute = Math.max(...Object.values(regions).map((region) => region.cached.compute_produced ?? 0), 1);
 
-    if (isConceptScenario) {
+    if (useGeographicLabelLayer) {
       this.drawConceptGeoLabels(rect, labels);
     }
 
@@ -930,8 +925,8 @@ export class EGridMapScene extends Phaser.Scene {
       graphics.fillStyle(0xf7fbff, isSelected ? 0.95 : 0.55);
       graphics.fillCircle(point.x, point.y, Math.max(1.6, radius * 0.2));
 
-      const shouldDrawRegionLabel = isConceptScenario
-        ? isSelected
+      const shouldDrawRegionLabel = useGeographicLabelLayer
+        ? isSelected || (region.cached.problems?.length ?? 0) > 0
         : isSelected || (region.cached.problems?.length ?? 0) > 0 || hashString(regionId) % 2 === 0;
       if (shouldDrawRegionLabel) {
         const text = this.add

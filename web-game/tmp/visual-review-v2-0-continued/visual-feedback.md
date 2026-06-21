@@ -535,9 +535,6 @@ Regressions introduced:
 ## Iteration 21 - Map building icon visibility rule
 
 Screenshots:
-- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-21-normal-start-no-map-buildings.png`
-- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-21-construction-map-building-visible.png`
-- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-21-concept-built-map-buildings.png`
 - `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-21b-start-empty-map.png`
 - `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-21c-construction-grey-cube.png`
 - `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-21d-built-real-icon.png`
@@ -562,7 +559,97 @@ What was changed:
 - Added a Playwright regression test that verifies empty start, queued construction with zero building-atlas sprites, then completed construction with a real building sprite.
 
 What should be tried next:
-- Continue asset fidelity work only after preserving this gameplay invariant.
+- Continue asset fidelity work only after preserving this gameplay invariant. Do not use the superseded `iteration-21-construction-map-building-visible.png` capture as current evidence; it came from the first pass before the grey construction cube correction.
 
 Regressions introduced:
 - None observed. Normal start reports `regionsWithStructures = 0`; construction queue shows a grey cube; after 6 months the datacenter becomes built and exactly one atlas sprite appears.
+
+## Iteration 22 - Right panel status icons and hover diagnostics
+
+Screenshot: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-22-region-status-icons.png`
+
+What is closer to the concept art:
+- The right region panel status blocks now include compact Energy, Cooling and Compute pictograms beside their headings.
+- Status blocks expose rich hover tooltips with their metric breakdowns, keeping the more icon-heavy interface understandable in play.
+- The panel remains stable: `.region-panel`, `.region-status-stack` and the three status icons report no overflow in the captured concept viewport.
+
+What still differs visibly:
+- The status pictograms are CSS-built utility icons, not exact painted concept glyphs.
+- Values remain live scenario/game values rather than a hard-coded Netherlands mock.
+- Region tabs are still mostly visual state and do not yet open separate subviews.
+
+What was changed:
+- Updated `GameHud.regionStatusBlock` to emit a heading icon and rich tooltip metadata for each status block.
+- Added CSS icon variants for energy, cooling and compute in `game.css`.
+- Verified the result with a focused right-panel screenshot and DOM overflow metrics.
+
+What should be tried next:
+- Continue with the remaining high-visibility differences: mini GRID OVERVIEW geography, central-map asset fidelity, or small chrome/glyph polish.
+- Preserve the map construction-state invariant while improving any future building assets.
+
+Regressions introduced:
+- None observed in the right-panel capture. The status icons are fixed-size `18x18` elements and do not push metric text outside the panel.
+
+## Iteration 23 - Mini GRID OVERVIEW map density
+
+Screenshots:
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-23-mini-grid-overview.png`
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-23-mini-grid-overview-crop.png`
+
+What is closer to the concept art:
+- The mini GRID OVERVIEW no longer reads as a flat simplified SVG only; it now has a denser glowing Europe silhouette, coastline hints, scan texture and tactical halos.
+- Power/data/congestion paths are curved with a dark backing, so the inset feels closer to the concept's illuminated strategic network.
+- The legend-left/map-right composition remains intact and the component fills the lower left rail without clipping.
+
+What still differs visibly:
+- The inset geography is still code-generated, not a painted raster miniature of Europe.
+- The exact node positions and flow counts remain live game data, so they do not match the static concept one-for-one.
+- The new silhouette is more abstract/glowy than the concept's precise miniature coastline.
+
+What was changed:
+- Reworked `GameHud.gridOverviewEuropePaths()` with additional land fragments, coastline strokes and orbit arcs.
+- Changed mini overview graph/flow rendering from straight SVG lines to deterministic quadratic paths.
+- Added `miniRoutePath`, `miniClampCoord` and `miniHashString` helpers.
+- Updated `game.css` with map halos, scan/vignette overlay, glow styling and fixed node layering.
+
+What should be tried next:
+- Continue asset fidelity on the central map modules/building clusters, or add small chrome/glyph polish if the map assets are deferred.
+- If exact mini-map fidelity becomes important, replace the code-generated silhouette with a small raster inset while keeping the live nodes and flows.
+
+Regressions introduced:
+- None observed. Captured metrics report no overflow for `.build-palette`, `.grid-overview-card`, `.grid-overview-map` or `.grid-overview-legend`.
+
+## Iteration 24 - Transfer concept-view improvements to the real game
+
+Screenshots:
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-24-real-game-transferred-overview.png`
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-24b-real-game-grid-overview-visible.png`
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-24b-real-game-build-rail-crop.png`
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-24c-concept-state-aligned-components.png`
+
+What is closer to the concept art and the playable game:
+- The mini GRID OVERVIEW is now visible in the real game without `scenario=concept`, not only in the deterministic concept capture.
+- Desktop normal play now uses the same concept-inspired topbar, hamburger command block, panel chrome, curved map routes, geographic labels and brighter map sprite treatment.
+- The test/concept view now keeps the same component structure as the real game: heatmap switch, construction/research tabs, category tabs, hamburger and mini overview are all visible in both.
+- The building visibility gameplay invariant remains intact: the real normal start has zero built/queued structures and zero map building icons.
+
+What still differs visibly:
+- The real game starts in January 2025 with live values and no prebuilt buildings, so it intentionally does not match the concept's 2045 Netherlands/Benelux state.
+- The real build rail needs functional controls, so it is denser than the pure concept art; category tabs are compressed to reduce the gap but remain visible.
+- The concept-state capture now shows more real-game controls than the static art because it is no longer a separate HUD variant.
+
+What was changed:
+- Made the concept-style simulation speed module the normal `GameHud.timeControls()` output.
+- Moved panel chrome, top hamburger, mini GRID OVERVIEW, category icon rows and enriched alert strip styling out of `data-concept-scenario` desktop-only gates.
+- Removed HUD structure differences from `GameHud`: category order/labels are shared, and building availability filtering is no longer bypassed in concept mode.
+- Applied desktop map rendering improvements outside the concept scenario: curated curved routes, geographic labels, enhanced sprite glow/size and a lower visible-structure cap.
+- Compressed desktop category tabs to two columns so the real build rail keeps controls visible without hiding the mini overview.
+
+What should be tried next:
+- Continue from the real-game screenshot, not only from `scenario=concept`.
+- If the rail still feels too dense, tune the control stack height or introduce a compact icon tab row while preserving construction/research access.
+- Remaining asset fidelity work should target the real map and real build cards first, then verify the concept-state capture as a secondary check.
+
+Regressions introduced:
+- None observed in the checked desktop captures. Metrics report no overflow for topbar, build palette, mini overview, right panel and alert strip.
+- `.palette-body` scrolls vertically in the real build rail because the real game has more functional controls than the concept art; this is expected and not a clipping bug.

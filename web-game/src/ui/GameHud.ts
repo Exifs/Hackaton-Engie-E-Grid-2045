@@ -15,16 +15,16 @@ interface HudCallbacks {
   onReplayOnboarding: () => void;
 }
 
-const CATEGORY_ORDER = ["research", "energy", "storage", "cooling", "compute", "grid"];
+const CATEGORY_ORDER = ["energy", "compute", "cooling", "research", "grid", "storage"];
 const ALL_BUILD_CATEGORY = "all";
 const CATEGORY_LABELS: Record<string, string> = {
-  all: "Tous",
-  research: "Recherche",
-  energy: "Energie",
-  storage: "Stockage",
-  cooling: "Froid",
-  compute: "Compute",
-  grid: "Reseau"
+  all: "All",
+  research: "Research",
+  energy: "Energy",
+  storage: "Storage",
+  cooling: "Cooling",
+  compute: "Datacenters",
+  grid: "Grid & Network"
 };
 const BUILD_ACCESS_LOCK_CAUSES: Array<NonNullable<BuildAvailability["cause"]>> = [
   "technology",
@@ -324,27 +324,14 @@ export class GameHud {
   }
 
   private timeControls(summary: ReturnType<SimulationCore["getSummary"]>): string {
-    if (this.isConceptScenario()) {
-      return `
-        <div class="time-controls time-controls-concept" aria-label="Simulation speed" ${this.tooltipAttrs("Simulation speed", "Controle la cadence de la simulation tout en conservant un affichage proche du panneau de commande concept.", "Pause, lecture, avance rapide")}>
-          <span class="time-controls-label">Simulation speed</span>
-          ${this.conceptSpeedButton(0, summary.simulation_speed === 0, "||", "Pause")}
-          ${this.conceptSpeedButton(1, summary.simulation_speed === 1, "&#9654;", "Lecture")}
-          ${this.conceptSpeedButton(2, summary.simulation_speed === 2, "&#9654;&#9654;", "Avance rapide")}
-          ${this.conceptSpeedButton(4, summary.simulation_speed === 4, "&#9654;&#9654;&#9654;", "Avance maximale")}
-          <button class="speed-readout" type="button" data-speed="1" title="Vitesse normale">1.0x</button>
-        </div>
-      `;
-    }
     return `
-      <div class="time-controls" aria-label="Vitesse">
+      <div class="time-controls time-controls-concept" aria-label="Simulation speed" ${this.tooltipAttrs("Simulation speed", "Controle la cadence de la simulation.", "Pause, lecture, avance rapide")}>
         <span class="time-controls-label">Simulation speed</span>
-        ${this.speedButton(0, summary.simulation_speed === 0)}
-        ${this.speedButton(1, summary.simulation_speed === 1)}
-        ${this.speedButton(2, summary.simulation_speed === 2)}
-        ${this.speedButton(4, summary.simulation_speed === 4)}
-        <button class="icon-command" type="button" data-action="advance" title="Mois suivant">+1</button>
-        <button class="icon-command tutorial-replay-button" type="button" data-action="replay-onboarding" data-onboarding-target="onboarding.replay" title="Rejouer le tutoriel">?</button>
+        ${this.conceptSpeedButton(0, summary.simulation_speed === 0, "||", "Pause")}
+        ${this.conceptSpeedButton(1, summary.simulation_speed === 1, "&#9654;", "Lecture")}
+        ${this.conceptSpeedButton(2, summary.simulation_speed === 2, "&#9654;&#9654;", "Avance rapide")}
+        ${this.conceptSpeedButton(4, summary.simulation_speed === 4, "&#9654;&#9654;&#9654;", "Avance maximale")}
+        <button class="speed-readout" type="button" data-speed="1" title="Vitesse normale">1.0x</button>
       </div>
     `;
   }
@@ -359,11 +346,6 @@ export class GameHud {
         <span></span><span></span><span></span>
       </button>
     `;
-  }
-
-  private speedButton(speed: number, active: boolean): string {
-    const label = speed === 0 ? "II" : `${speed}x`;
-    return `<button class="speed-button ${active ? "is-active" : ""}" type="button" data-speed="${speed}" title="Vitesse ${label}">${label}</button>`;
   }
 
   private heatmapButton(mode: HeatmapMode, label: string): string {
@@ -695,10 +677,7 @@ export class GameHud {
     buildings: Record<string, BuildingDefinition>,
     availability: Record<string, BuildAvailability>
   ): string {
-    const categoryOrder = this.isConceptScenario()
-      ? ["energy", "compute", "cooling", "research", "grid"]
-      : CATEGORY_ORDER;
-    const categories = categoryOrder.filter((category) =>
+    const categories = CATEGORY_ORDER.filter((category) =>
       Object.values(buildings).some((building) => building.category === category)
     );
     this.ensureActiveBuildCategory(buildings);
@@ -755,12 +734,19 @@ export class GameHud {
 
   private gridOverviewEuropePaths(): string {
     return `
-      <path class="mini-europe-land mini-europe-uk" d="M18 31 C13 34 11 42 15 48 C19 55 29 52 31 45 C33 38 26 29 18 31 Z" />
-      <path class="mini-europe-land mini-europe-scandinavia" d="M50 10 C60 4 72 9 78 19 C71 21 65 29 66 40 C58 38 53 31 47 30 C43 24 43 15 50 10 Z" />
-      <path class="mini-europe-land mini-europe-main" d="M28 38 C37 28 53 29 63 35 C75 40 83 48 82 62 C74 65 69 73 61 72 C54 77 43 73 38 67 C31 67 23 62 21 54 C18 48 22 42 28 38 Z" />
-      <path class="mini-europe-land mini-europe-iberia" d="M18 62 C25 55 37 57 42 65 C40 76 30 82 19 78 C12 74 11 67 18 62 Z" />
-      <path class="mini-europe-land mini-europe-italy" d="M55 65 C61 69 65 76 64 86 C58 84 54 77 51 69 Z" />
-      <path class="mini-europe-land mini-europe-balkans" d="M68 66 C76 65 84 70 87 78 C80 80 72 77 66 72 Z" />
+      <path class="mini-europe-glow" d="M15 52 C22 29 43 16 65 20 C82 23 93 43 88 63 C83 83 58 88 37 80 C17 73 9 66 15 52 Z" />
+      <path class="mini-europe-land mini-europe-ireland" d="M11 40 C8 46 10 54 15 58 C21 55 22 47 17 41 C15 39 13 39 11 40 Z" />
+      <path class="mini-europe-land mini-europe-uk" d="M19 31 C13 35 12 44 16 51 C20 58 30 54 32 46 C34 38 27 29 19 31 Z" />
+      <path class="mini-europe-land mini-europe-scandinavia" d="M51 9 C62 3 75 9 80 20 C74 23 68 31 68 41 C60 39 54 32 47 30 C43 23 44 14 51 9 Z" />
+      <path class="mini-europe-land mini-europe-baltic" d="M70 35 C78 35 85 41 87 49 C81 52 73 49 68 43 Z" />
+      <path class="mini-europe-land mini-europe-main" d="M29 38 C39 27 55 29 65 35 C77 41 84 49 82 62 C74 65 69 74 60 72 C53 78 42 74 37 67 C30 68 22 62 21 54 C18 48 22 42 29 38 Z" />
+      <path class="mini-europe-land mini-europe-iberia" d="M18 62 C25 55 38 57 43 65 C41 77 30 83 19 78 C12 74 11 67 18 62 Z" />
+      <path class="mini-europe-land mini-europe-italy" d="M55 65 C63 69 67 77 65 87 C58 85 54 77 51 69 Z" />
+      <path class="mini-europe-land mini-europe-balkans" d="M68 66 C77 65 85 70 88 78 C80 81 72 77 66 72 Z" />
+      <path class="mini-europe-land mini-europe-north-africa" d="M25 91 C43 86 67 87 83 93 L25 96 Z" />
+      <path class="mini-europe-coastline" d="M18 63 C28 54 39 57 46 64 M42 31 C53 27 68 31 76 44 M37 69 C45 76 54 79 63 72 M65 66 C73 66 82 70 88 78" />
+      <path class="mini-overview-orbit mini-overview-orbit-a" d="M8 72 C29 38 58 26 94 30" />
+      <path class="mini-overview-orbit mini-overview-orbit-b" d="M3 56 C28 49 54 51 92 67" />
     `;
   }
 
@@ -782,9 +768,7 @@ export class GameHud {
         if (!source || !target) {
           continue;
         }
-        lines.push(
-          `<line class="mini-flow mini-flow-data" x1="${miniCoord(source.x)}" y1="${miniCoord(source.y)}" x2="${miniCoord(target.x)}" y2="${miniCoord(target.y)}" />`
-        );
+        lines.push(`<path class="mini-flow mini-flow-data" d="${miniRoutePath(source, target, key, 5)}" />`);
         if (lines.length >= 18) {
           return lines.join("");
         }
@@ -809,10 +793,11 @@ export class GameHud {
         const tone = flow.is_congested ? "congestion" : "power";
         const width = 0.7 + flow.intensity_normalized * 1.7;
         const opacity = 0.36 + flow.intensity_normalized * 0.5;
+        const key = `${flow.source_region_id}:${flow.target_region_id}:${tone}`;
+        const route = miniRoutePath(source, target, key, 9 + flow.intensity_normalized * 8);
         return (
-          `<line class="mini-flow mini-flow-${tone}" ` +
-          `x1="${miniCoord(source.x)}" y1="${miniCoord(source.y)}" ` +
-          `x2="${miniCoord(target.x)}" y2="${miniCoord(target.y)}" ` +
+          `<path class="mini-flow mini-flow-shadow" d="${route}" />` +
+          `<path class="mini-flow mini-flow-${tone}" d="${route}" ` +
           `style="--flow-width:${fmt(width, 2)}; --flow-opacity:${fmt(opacity, 2)}" />`
         );
       })
@@ -866,23 +851,7 @@ export class GameHud {
   }
 
   private buildCategoryLabel(category: string): string {
-    if (this.isConceptScenario()) {
-      const conceptLabels: Record<string, string> = {
-        all: "All",
-        research: "Research",
-        energy: "Energy",
-        storage: "Storage",
-        cooling: "Cooling",
-        compute: "Datacenters",
-        grid: "Grid & Network"
-      };
-      return conceptLabels[category] ?? category;
-    }
     return CATEGORY_LABELS[category] ?? category;
-  }
-
-  private isConceptScenario(): boolean {
-    return document.documentElement.dataset.conceptScenario === "1";
   }
 
   private ensureActiveBuildCategory(buildings: Record<string, BuildingDefinition>): void {
@@ -901,12 +870,9 @@ export class GameHud {
     buildings: Record<string, BuildingDefinition>,
     availability: Record<string, BuildAvailability>
   ): string {
-    let items = Object.values(buildings).filter((building) =>
-      building.category === category && (this.isConceptScenario() || this.shouldShowBuilding(building, availability[building.id]))
+    const items = Object.values(buildings).filter((building) =>
+      building.category === category && this.shouldShowBuilding(building, availability[building.id])
     );
-    if (this.isConceptScenario()) {
-      items = items.slice(0, 4);
-    }
     if (items.length === 0) {
       return "";
     }
@@ -1641,6 +1607,40 @@ function miniCoord(value: number): number {
     return 50;
   }
   return Math.max(4, Math.min(96, Math.round(value * 1000) / 10));
+}
+
+function miniRoutePath(
+  source: { x: number; y: number },
+  target: { x: number; y: number },
+  key: string,
+  strength: number
+): string {
+  const sx = miniCoord(source.x);
+  const sy = miniCoord(source.y);
+  const tx = miniCoord(target.x);
+  const ty = miniCoord(target.y);
+  const dx = tx - sx;
+  const dy = ty - sy;
+  const distance = Math.hypot(dx, dy) || 1;
+  const hash = miniHashString(key);
+  const sign = hash % 2 === 0 ? 1 : -1;
+  const jitter = ((hash % 9) - 4) * 0.36;
+  const curve = Math.min(20, Math.max(5, distance * 0.14 + strength + jitter));
+  const cx = miniClampCoord((sx + tx) / 2 - (dy / distance) * curve * sign);
+  const cy = miniClampCoord((sy + ty) / 2 + (dx / distance) * curve * sign);
+  return `M ${fmt(sx, 1)} ${fmt(sy, 1)} Q ${fmt(cx, 1)} ${fmt(cy, 1)} ${fmt(tx, 1)} ${fmt(ty, 1)}`;
+}
+
+function miniClampCoord(value: number): number {
+  return Math.max(2, Math.min(98, value));
+}
+
+function miniHashString(value: string): number {
+  let hash = 0;
+  for (let index = 0; index < value.length; index += 1) {
+    hash = (hash * 31 + value.charCodeAt(index)) >>> 0;
+  }
+  return hash;
 }
 
 function clampPctFloat(value: number): number {
