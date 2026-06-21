@@ -563,11 +563,81 @@ html[data-egrid-scene-ready="0"] #game-canvas canvas {
   gap: 8px;
 }
 
+.region-status-heading {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+  gap: 8px;
+}
+
 .region-status-title span {
   color: #dff8ff;
   font-size: 11px;
   font-weight: 800;
   text-transform: uppercase;
+}
+
+.region-status-icon {
+  position: relative;
+  display: inline-grid;
+  flex: 0 0 18px;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  color: var(--green);
+  filter: drop-shadow(0 0 7px rgba(93, 244, 197, 0.42));
+}
+
+.region-status-icon::before,
+.region-status-icon::after {
+  position: absolute;
+  content: "";
+}
+
+.region-status-energy .region-status-icon::before {
+  width: 9px;
+  height: 16px;
+  background: currentColor;
+  clip-path: polygon(55% 0, 18% 52%, 50% 52%, 35% 100%, 86% 38%, 56% 38%);
+}
+
+.region-status-cooling .region-status-icon {
+  color: var(--blue);
+  background: linear-gradient(currentColor 0 0) center / 16px 2px no-repeat;
+  filter: drop-shadow(0 0 7px rgba(121, 185, 255, 0.42));
+}
+
+.region-status-cooling .region-status-icon::before,
+.region-status-cooling .region-status-icon::after {
+  width: 16px;
+  height: 2px;
+  border-radius: 999px;
+  background: currentColor;
+}
+
+.region-status-cooling .region-status-icon::before {
+  box-shadow: 0 0 0 0 currentColor;
+  transform: rotate(60deg);
+}
+
+.region-status-cooling .region-status-icon::after {
+  transform: rotate(-60deg);
+}
+
+.region-status-compute .region-status-icon {
+  color: var(--violet);
+  filter: drop-shadow(0 0 7px rgba(184, 121, 255, 0.42));
+}
+
+.region-status-compute .region-status-icon::before {
+  width: 13px;
+  height: 13px;
+  border: 2px solid currentColor;
+  border-radius: 3px;
+  background:
+    linear-gradient(90deg, transparent 40%, currentColor 40% 58%, transparent 58%),
+    linear-gradient(0deg, transparent 40%, currentColor 40% 58%, transparent 58%);
+  opacity: 0.88;
 }
 
 .region-status-title strong {

@@ -105,6 +105,52 @@ test.describe("E-Grid 2045 web game visuals", () => {
     await page.screenshot({ path: testInfo.outputPath("construction-palette-open.png"), fullPage: true });
   });
 
+  test("map structures reflect empty, construction, then built states", async ({ page }, testInfo) => {
+    await openGame(page, 1600, 900);
+    const initialStructures = await countRegionsWithMapStructures(page);
+    expect(initialStructures).toBe(0);
+    expect(await countMapBuildingSprites(page)).toBe(0);
+
+    await page.evaluate(() => {
+      const game = window.__EGRID__;
+      if (!game) {
+        return;
+      }
+      game.simulation.requestBuilding("fr_nord", "datacenter_standard");
+      game.scene.renderState();
+      game.hud.render();
+    });
+    await page.waitForTimeout(150);
+
+    expect(await countRegionsWithMapStructures(page)).toBe(1);
+    expect(await countMapBuildingSprites(page)).toBe(0);
+    await page.screenshot({ path: testInfo.outputPath("map-construction-cube-after-queued-building.png"), fullPage: true });
+
+    await page.evaluate(() => {
+      const game = window.__EGRID__;
+      if (!game) {
+        return;
+      }
+      for (let index = 0; index < 6; index += 1) {
+        game.simulation.advanceMonth();
+      }
+      game.scene.renderState();
+      game.hud.render();
+    });
+    await page.waitForTimeout(150);
+
+    const franceNordState = await page.evaluate(() => {
+      const region = window.__EGRID__?.simulation.getRegionSnapshot("fr_nord");
+      return {
+        built: region?.buildings.length ?? 0,
+        constructing: region?.construction_queue.length ?? 0
+      };
+    });
+    expect(franceNordState).toEqual({ built: 1, constructing: 0 });
+    expect(await countMapBuildingSprites(page)).toBeGreaterThan(0);
+    await page.screenshot({ path: testInfo.outputPath("map-building-icon-after-built-building.png"), fullPage: true });
+  });
+
   test("construction accordion keeps one category active without vertical scroll", async ({ page }, testInfo) => {
     await openGame(page, 1600, 900);
     await expect(page.locator(".build-category-tab.is-active")).toHaveCount(1);
@@ -830,6 +876,38 @@ async function openGameWithOnboarding(page: Page, width: number, height: number)
     game.onboarding.start({ force: true });
   });
   await page.waitForTimeout(150);
+}
+
+async function countRegionsWithMapStructures(page: Page): Promise<number> {
+  return page.evaluate(() => {
+    const regions = window.__EGRID__?.simulation.getRegionsSnapshot() ?? {};
+    return Object.values(regions).filter((region) =>
+      region.buildings.length + region.construction_queue.length > 0
+    ).length;
+  });
+}
+
+async function countMapBuildingSprites(page: Page): Promise<number> {
+  return page.evaluate(() => {
+    const scene = window.__EGRID__?.scene as unknown as {
+      children?: {
+        list?: unknown[];
+      };
+    };
+
+    const countTextures = (items: unknown[]): number =>
+      items.reduce((total, item) => {
+        const child = item as {
+          texture?: { key?: string };
+          list?: unknown[];
+        };
+        const ownTexture = child.texture?.key === "building-icon-atlas" ? 1 : 0;
+        const nestedTextures = Array.isArray(child.list) ? countTextures(child.list) : 0;
+        return total + ownTexture + nestedTextures;
+      }, 0);
+
+    return countTextures(scene.children?.list ?? []);
+  });
 }
 
 async function buildCompletedResearchCenter(page: Page, buildingId: "energy_research_center" | "ai_research_center"): Promise<void> {

@@ -531,3 +531,38 @@ What should be tried next:
 
 Regressions introduced:
 - None observed in the concept screenshot. Major HUD panels still report no overflow.
+
+## Iteration 21 - Map building icon visibility rule
+
+Screenshots:
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-21-normal-start-no-map-buildings.png`
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-21-construction-map-building-visible.png`
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-21-concept-built-map-buildings.png`
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-21b-start-empty-map.png`
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-21c-construction-grey-cube.png`
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-21d-built-real-icon.png`
+
+What is closer to the intended game state:
+- Main-map building icons no longer appear at the start of a normal game when no buildings exist.
+- Regions with queued construction now show a grey construction cube on the main map, not the final building icon.
+- Real building icons appear only after the building is completed.
+- Map placement is deterministic and type-aware: offshore/sea-cooling markers are pushed toward water, hydro/river assets toward water edges, and land buildings stay near the regional land anchor.
+- A global visibility cap prevents built assets from overloading the map.
+
+What still differs visibly:
+- Concept scenario still contains pre-seeded buildings by design, so map icons remain there.
+- Built/queued icons are still atlas sprites rather than fully painted infrastructure.
+
+What was changed:
+- Changed `EGridMapScene.drawStructures` to use `region.buildings.length + region.construction_queue.length` as the only visibility rule.
+- Removed structure visibility from `starting_compute`, `starting_energy_generation`, region potential values and random fallback hashes.
+- Added separate built/construction map marker candidates.
+- Added `drawConstructionPlaceholder()` for the grey construction cube.
+- Added type-aware `structureOffset()` placement and a global visible-structure cap.
+- Added a Playwright regression test that verifies empty start, queued construction with zero building-atlas sprites, then completed construction with a real building sprite.
+
+What should be tried next:
+- Continue asset fidelity work only after preserving this gameplay invariant.
+
+Regressions introduced:
+- None observed. Normal start reports `regionsWithStructures = 0`; construction queue shows a grey cube; after 6 months the datacenter becomes built and exactly one atlas sprite appears.

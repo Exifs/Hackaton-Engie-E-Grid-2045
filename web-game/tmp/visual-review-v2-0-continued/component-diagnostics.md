@@ -1,6 +1,6 @@
 # Component diagnostics - E-Grid 2045 v2.0 convergence
 
-Current audit screenshot: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-20-map-geo-labels.png`
+Current audit screenshot: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-21d-built-real-icon.png`
 
 Reference: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\reference-v2-0.png`
 
@@ -51,6 +51,9 @@ Current state:
 - Concept mode now brightens module sprites with a small additive glow and slightly larger display size.
 - Concept mode now filters secondary route lines and draws active flows as curved highlighted routes with pulse points.
 - Concept mode now renders country and sea labels, while suppressing most internal gameplay region labels.
+- Map structures now reflect gameplay state: absent at empty start, grey cube during construction, real building icon only once built.
+- Structure placement is deterministic and type-aware, with offshore/sea assets pushed toward water and land assets kept near regional anchors.
+- A global visible-structure cap prevents overloading the map.
 
 Visible differences:
 - Current map is still darker than the concept.
@@ -59,7 +62,7 @@ Visible differences:
 - Label positions are approximate and some eastern labels sit behind the right HUD.
 
 Future actions:
-- Generate a dedicated tiny in-map module atlas if the existing icon atlas remains too detailed or too icon-like.
+- Generate a dedicated tiny in-map module atlas if the existing icon atlas remains too detailed or too icon-like, preserving the construction-vs-built state rule.
 - Tune terrain integration and module sprites so country/sea text sits on a more concept-like painted base.
 
 Priority: High, but asset-heavy.

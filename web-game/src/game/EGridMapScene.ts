@@ -27,6 +27,16 @@ interface ConceptMapLabel {
   size?: number;
 }
 
+interface MapStructureCandidate {
+  region: RegionSnapshot;
+  point: { x: number; y: number };
+  hash: number;
+  buildingId: string;
+  state: "built" | "construction";
+  index: number;
+  score: number;
+}
+
 const HEATMAP_COLORS = {
   stable: 0x49e7b8,
   energy: 0x53e7ff,
@@ -399,13 +409,7 @@ export class EGridMapScene extends Phaser.Scene {
     const selectedRegionId = this.simulation.getSummary().selected_region_id;
     const isConceptScenario = document.documentElement.dataset.conceptScenario === "1";
     const scale = Phaser.Math.Clamp(Math.min(rect.width, rect.height) / 760, 0.82, 1.35);
-    const candidates: Array<{
-      region: RegionSnapshot;
-      point: { x: number; y: number };
-      hash: number;
-      visualWeight: number;
-      score: number;
-    }> = [];
+    const candidates: MapStructureCandidate[] = [];
 
     for (const [regionId, region] of Object.entries(regions)) {
       const layout = region.layout as RegionLayout;
@@ -414,44 +418,131 @@ export class EGridMapScene extends Phaser.Scene {
       }
       const point = this.regionPoint(rect, layout);
       const hash = hashString(regionId);
-      const visualWeight =
-        region.slots_used +
-        region.construction_queue.length +
-        (region.starting_compute > 0 ? 1 : 0) +
-        (region.starting_energy_generation > 0 ? 1 : 0) +
-        (region.potential_research > 0.7 ? 1 : 0) +
-        (region.potential_grid > 0.7 ? 1 : 0);
+      const entries = [
+        ...region.buildings.map((buildingId, index) => ({ buildingId, state: "built" as const, index })),
+        ...region.construction_queue.map((item, index) => ({
+          buildingId: item.building_id,
+          state: "construction" as const,
+          index: region.buildings.length + index
+        }))
+      ];
 
-      if (visualWeight <= 0 && (isConceptScenario || hash % 3 !== 0)) {
+      if (entries.length <= 0) {
         continue;
       }
 
-      const score =
-        visualWeight +
-        region.buildings.length * 0.55 +
-        (regionId === selectedRegionId ? 8 : 0) +
-        ((region.cached.network_congested ?? false) ? 1.8 : 0);
-      candidates.push({ region, point, hash, visualWeight, score });
+      for (const entry of entries) {
+        const entryHash = hashString(`${regionId}:${entry.buildingId}:${entry.index}:${entry.state}`);
+        const score =
+          (entry.state === "built" ? 3 : 2.25) +
+          (regionId === selectedRegionId ? 8 : 0) +
+          ((region.cached.network_congested ?? false) ? 1.8 : 0) +
+          (this.isStrategicMapBuilding(entry.buildingId) ? 1.2 : 0) -
+          entry.index * 0.06;
+        candidates.push({ region, point, hash: entryHash, buildingId: entry.buildingId, state: entry.state, index: entry.index, score });
+      }
     }
 
+    const maxVisibleStructures = isConceptScenario ? 15 : 22;
     const visibleCandidates = isConceptScenario
       ? candidates
         .sort((left, right) => right.score - left.score)
-        .slice(0, 15)
+        .slice(0, maxVisibleStructures)
         .sort((left, right) => left.point.y - right.point.y)
-      : candidates;
+      : candidates
+        .sort((left, right) => right.score - left.score)
+        .slice(0, maxVisibleStructures)
+        .sort((left, right) => left.point.y - right.point.y);
 
-    for (const { region, point, hash } of visibleCandidates) {
+    for (const candidate of visibleCandidates) {
+      const { region, point, hash, buildingId, state, index } = candidate;
       const accent = hash % 5 === 0 ? HEATMAP_COLORS.compute : hash % 4 === 0 ? HEATMAP_COLORS.cooling : HEATMAP_COLORS.energy;
-      const offsetX = ((hash % 7) - 3) * scale * 1.6;
-      const offsetY = -8 * scale + (((hash >> 3) % 5) - 2) * scale;
-      const moduleX = point.x + offsetX;
-      const moduleY = point.y + offsetY;
+      const offset = this.structureOffset(region, buildingId, index, scale);
+      const moduleX = point.x + offset.x;
+      const moduleY = point.y + offset.y;
+      if (state === "construction") {
+        this.drawConstructionPlaceholder(graphics, moduleX, moduleY, scale);
+        continue;
+      }
       this.drawIsoBase(graphics, moduleX, moduleY + 12 * scale, 38 * scale, 22 * scale, accent);
-      if (!this.drawModuleSprite(moduleX, moduleY, scale, this.moduleIconIndex(region, hash), accent)) {
+      if (!this.drawModuleSprite(moduleX, moduleY, scale, this.moduleIconIndex(buildingId, hash), accent)) {
         this.drawModuleMarker(graphics, moduleX, moduleY, scale, accent, hash);
       }
     }
+  }
+
+  private isStrategicMapBuilding(buildingId: string): boolean {
+    return (
+      buildingId.includes("datacenter") ||
+      buildingId.includes("nuclear") ||
+      buildingId.includes("gas") ||
+      buildingId.includes("research") ||
+      buildingId.includes("supergrid") ||
+      buildingId.includes("wind_offshore")
+    );
+  }
+
+  private structureOffset(region: RegionSnapshot, buildingId: string, index: number, scale: number): { x: number; y: number } {
+    const landColumn = index % 3;
+    const landRow = Math.floor(index / 3);
+    const landOffset = {
+      x: (landColumn - 1) * 18 * scale + (landRow % 2 === 0 ? 0 : 8 * scale),
+      y: -10 * scale + landRow * 10 * scale
+    };
+
+    if (this.isOffshoreMapBuilding(buildingId)) {
+      const coast = this.regionCoastDirection(region);
+      const distance = buildingId.includes("wind_offshore") ? 44 : 34;
+      return {
+        x: coast.x * distance * scale + (index % 2 === 0 ? -6 : 6) * scale,
+        y: coast.y * distance * scale - 6 * scale
+      };
+    }
+
+    if (buildingId.includes("river") || buildingId.includes("hydro")) {
+      return {
+        x: landOffset.x + (index % 2 === 0 ? -14 : 14) * scale,
+        y: landOffset.y + 17 * scale
+      };
+    }
+
+    if (buildingId.includes("solar")) {
+      return { x: landOffset.x + 10 * scale, y: landOffset.y + 12 * scale };
+    }
+
+    if (buildingId.includes("wind_onshore")) {
+      return { x: landOffset.x - 10 * scale, y: landOffset.y - 8 * scale };
+    }
+
+    return landOffset;
+  }
+
+  private isOffshoreMapBuilding(buildingId: string): boolean {
+    return buildingId.includes("wind_offshore") || buildingId.includes("sea_cooling");
+  }
+
+  private regionCoastDirection(region: RegionSnapshot): { x: number; y: number } {
+    const tags = new Set(region.tags);
+    const layout = region.layout as RegionLayout;
+    if (tags.has("mer_du_nord")) {
+      return { x: 0, y: -1 };
+    }
+    if (tags.has("mer_noire")) {
+      return { x: 1, y: 0.36 };
+    }
+    if (tags.has("iles")) {
+      return { x: 0.2, y: 1 };
+    }
+    if ((layout.x ?? 0.5) < 0.38) {
+      return { x: -1, y: 0.15 };
+    }
+    if ((layout.x ?? 0.5) > 0.66) {
+      return { x: 1, y: 0.12 };
+    }
+    if ((layout.y ?? 0.5) < 0.34) {
+      return { x: 0.1, y: -1 };
+    }
+    return { x: 0, y: 1 };
   }
 
   private drawModuleSprite(x: number, y: number, scale: number, iconIndex: number, accent: number): boolean {
@@ -497,46 +588,91 @@ export class EGridMapScene extends Phaser.Scene {
     return true;
   }
 
-  private moduleIconIndex(region: RegionSnapshot, variant: number): number {
-    const ids = region.buildings.length > 0 ? region.buildings : [];
-    const selectedId = ids.length > 0 ? ids[Math.abs(variant) % ids.length] : "";
-    if (selectedId.includes("university")) {
+  private moduleIconIndex(buildingId: string, variant: number): number {
+    if (buildingId.includes("university")) {
       return 0;
     }
-    if (selectedId.includes("ai_research")) {
+    if (buildingId.includes("ai_research")) {
       return 1;
     }
-    if (selectedId.includes("research")) {
+    if (buildingId.includes("research")) {
       return 2;
     }
-    if (selectedId.includes("datacenter")) {
+    if (buildingId.includes("datacenter")) {
       return 3;
     }
-    if (selectedId.includes("gas")) {
+    if (buildingId.includes("gas")) {
       return 4;
     }
-    if (selectedId.includes("nuclear")) {
+    if (buildingId.includes("nuclear")) {
       return 5;
     }
-    if (selectedId.includes("wind")) {
+    if (buildingId.includes("wind")) {
       return 6;
     }
-    if (selectedId.includes("solar")) {
+    if (buildingId.includes("solar")) {
       return 7;
     }
-    if (selectedId.includes("hydro")) {
+    if (buildingId.includes("hydro")) {
       return 8;
     }
-    if (selectedId.includes("battery")) {
+    if (buildingId.includes("battery")) {
       return 9;
     }
-    if (selectedId.includes("cooling")) {
+    if (buildingId.includes("cooling")) {
       return 10;
     }
-    if (selectedId.includes("grid") || selectedId.includes("supergrid")) {
+    if (buildingId.includes("grid") || buildingId.includes("supergrid")) {
       return 11;
     }
     return variant % 5 === 0 ? 10 : variant % 5 === 1 ? 4 : 3;
+  }
+
+  private drawConstructionPlaceholder(
+    graphics: Phaser.GameObjects.Graphics,
+    x: number,
+    y: number,
+    scale: number
+  ): void {
+    const baseY = y + 12 * scale;
+    this.drawIsoBase(graphics, x, baseY, 36 * scale, 21 * scale, 0x9ba8ad);
+    const width = 20 * scale;
+    const depth = 14 * scale;
+    const height = 20 * scale;
+    const halfW = width / 2;
+    const halfD = depth / 2;
+    const topY = baseY - height;
+
+    this.fillPoly(graphics, 0x88939a, 0.96, [
+      [x, topY - halfD],
+      [x + halfW, topY],
+      [x, topY + halfD],
+      [x - halfW, topY]
+    ]);
+    this.fillPoly(graphics, 0x5d676d, 0.96, [
+      [x - halfW, topY],
+      [x, topY + halfD],
+      [x, baseY + halfD],
+      [x - halfW, baseY]
+    ]);
+    this.fillPoly(graphics, 0x6f7a80, 0.96, [
+      [x + halfW, topY],
+      [x, topY + halfD],
+      [x, baseY + halfD],
+      [x + halfW, baseY]
+    ]);
+    graphics.lineStyle(1.2, 0xdbe6ea, 0.5);
+    this.strokePoly(graphics, [
+      [x, topY - halfD],
+      [x + halfW, topY],
+      [x + halfW, baseY],
+      [x, baseY + halfD],
+      [x - halfW, baseY],
+      [x - halfW, topY]
+    ]);
+    graphics.lineStyle(1, 0x303a40, 0.55);
+    graphics.lineBetween(x - halfW, topY, x, topY + halfD);
+    graphics.lineBetween(x + halfW, topY, x, topY + halfD);
   }
 
   private drawModuleMarker(

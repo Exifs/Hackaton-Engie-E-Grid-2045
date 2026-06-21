@@ -546,10 +546,14 @@ export class GameHud {
     metrics: Array<[string, string]>,
     isDeficit = false
   ): string {
+    const tooltipBody = metrics.map(([label, value]) => `${label}: ${value}`).join(". ");
     return `
-      <div class="region-status region-status-${tone} ${isDeficit ? "has-deficit" : ""}">
+      <div class="region-status region-status-${tone} ${isDeficit ? "has-deficit" : ""}" ${this.tooltipAttrs(title, tooltipBody, `${fmt(clampPctFloat(pct))}%`)}>
         <div class="region-status-title">
-          <span>${escapeHtml(title)}</span>
+          <span class="region-status-heading">
+            <i class="region-status-icon" aria-hidden="true"></i>
+            <span>${escapeHtml(title)}</span>
+          </span>
           <strong>${fmt(clampPctFloat(pct))}%</strong>
         </div>
         <i style="--meter:${clampPctFloat(pct)}%"></i>
