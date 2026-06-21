@@ -15,16 +15,16 @@ interface HudCallbacks {
   onReplayOnboarding: () => void;
 }
 
-const CATEGORY_ORDER = ["research", "energy", "storage", "cooling", "compute", "grid"];
+const CATEGORY_ORDER = ["energy", "compute", "cooling", "research", "grid", "storage"];
 const ALL_BUILD_CATEGORY = "all";
 const CATEGORY_LABELS: Record<string, string> = {
-  all: "Tous",
-  research: "Recherche",
-  energy: "Energie",
-  storage: "Stockage",
-  cooling: "Froid",
-  compute: "Compute",
-  grid: "Reseau"
+  all: "All",
+  research: "Research",
+  energy: "Energy",
+  storage: "Storage",
+  cooling: "Cooling",
+  compute: "Datacenters",
+  grid: "Grid & Network"
 };
 const BUILD_ACCESS_LOCK_CAUSES: Array<NonNullable<BuildAvailability["cause"]>> = [
   "technology",
@@ -44,6 +44,7 @@ const MIN_DOCK_HEIGHT = 190;
 const MIN_RIGHT_PANEL_WIDTH = 280;
 
 type ResizeTarget = "dock" | "region";
+type RegionPanelTab = "overview" | "buildings" | "stats";
 type QueueProgressItem = { building_id: string; months_remaining: number; total_months: number };
 type ProgressCssVar = "--progress" | "--research-progress";
 
@@ -60,6 +61,7 @@ export class GameHud {
   private heatmapMode: HeatmapMode = "energy";
   private paletteOpen = !window.matchMedia("(max-width: 720px)").matches;
   private activeDockTab: "construction" | "research" = "construction";
+  private activeRegionTab: RegionPanelTab = "overview";
   private activeBuildCategory = ALL_BUILD_CATEGORY;
   private showLockedBuildings = false;
   private showUnavailableResearch = false;
@@ -84,6 +86,9 @@ export class GameHud {
   private readonly visualProgress = new Map<string, number>();
   private pendingProgressAnimations: PendingProgressAnimation[] = [];
   private progressAnimationFrame: number | null = null;
+  private tooltipElement?: HTMLElement;
+  private tooltipTrigger?: HTMLElement;
+  private tooltipSuppressedUntil = 0;
 
   constructor(root: HTMLElement, simulation: SimulationCore, callbacks: HudCallbacks) {
     this.root = root;
@@ -95,7 +100,13 @@ export class GameHud {
     );
     this.root.addEventListener("click", (event) => this.handleClick(event));
     this.root.addEventListener("pointerdown", (event) => this.handlePointerDown(event));
+    this.root.addEventListener("pointerover", (event) => this.handleTooltipOver(event));
+    this.root.addEventListener("pointermove", (event) => this.handleTooltipMove(event));
+    this.root.addEventListener("pointerout", (event) => this.handleTooltipOut(event));
+    this.root.addEventListener("focusin", (event) => this.handleTooltipFocus(event));
+    this.root.addEventListener("focusout", () => this.hideTooltip());
     this.root.addEventListener("dblclick", (event) => this.handleDoubleClick(event));
+    this.root.addEventListener("wheel", (event) => this.handleWheel(event), { passive: false });
     window.addEventListener("resize", () => this.handleViewportResize());
   }
 
@@ -115,22 +126,18 @@ export class GameHud {
 
     this.root.innerHTML = `
       <section class="top-kpi" aria-label="Indicateurs" data-onboarding-target="kpi.bar">
-        ${this.kpi("Date", summary.date_text, "kpi.date")}
-        ${this.kpi("Budget", `${fmt(summary.money)} M`, "kpi.money") }
+        ${this.topBrand()}
+        ${this.agiDuel(summary.eu_agi_progress, summary.usa_agi_progress)}
+        ${this.budgetKpi(summary)}
+        ${this.dateKpi(summary)}
         ${this.kpi("EU AGI", `${fmt(summary.eu_agi_progress)}%`, "kpi.agi") }
         ${this.kpi("USA", `${fmt(summary.usa_agi_progress)}%`, "kpi.usa") }
         ${this.kpi("Energie", `${fmt(summary.energy_produced)} / ${fmt(summary.energy_consumed)}`, "kpi.energy")}
         ${this.kpi("Froid", `${fmt(summary.cooling_available)} / ${fmt(summary.cooling_used)}`, "kpi.cooling")}
         ${this.kpi("Compute", `${fmt(summary.compute_produced)}`, "kpi.compute")}
         ${this.kpi("CO2", summary.co2_tier, "kpi.co2")}
-        <div class="time-controls" aria-label="Vitesse">
-          ${this.speedButton(0, summary.simulation_speed === 0)}
-          ${this.speedButton(1, summary.simulation_speed === 1)}
-          ${this.speedButton(2, summary.simulation_speed === 2)}
-          ${this.speedButton(4, summary.simulation_speed === 4)}
-          <button class="icon-command" type="button" data-action="advance" title="Mois suivant">+1</button>
-          <button class="icon-command tutorial-replay-button" type="button" data-action="replay-onboarding" data-onboarding-target="onboarding.replay" title="Rejouer le tutoriel">?</button>
-        </div>
+        ${this.timeControls(summary)}
+        ${this.topMenuCommand()}
       </section>
 
       <section class="heatmap-switch" aria-label="Heatmaps" data-onboarding-target="overlay.switch">
@@ -143,9 +150,10 @@ export class GameHud {
       </section>
 
       <section class="alerts-panel" aria-label="Alertes" data-onboarding-target="alerts.panel">
-        ${alerts.length === 0 ? `<div class="alert-empty">Systemes stables</div>` : alerts.map((alert) => `
+        ${alerts.length === 0 ? this.stableStatusCards(summary) : alerts.map((alert) => `
           ${this.alertCard(alert)}
         `).join("")}
+        <button class="alerts-collapse" type="button" data-action="dismiss-all-alerts" title="Masquer les alertes">v</button>
       </section>
 
       <section class="region-panel" aria-label="Region selectionnee" data-onboarding-target="region.panel">
@@ -170,6 +178,7 @@ export class GameHud {
             ? this.constructionPanel(buildings, availability)
             : this.researchPanel(researchOptions, buildings, monthProgress)}
         </div>
+        ${this.gridOverviewCard(summary)}
       </section>
     `;
     this.restorePaletteScroll();
@@ -246,13 +255,148 @@ export class GameHud {
     return `<div class="kpi-chip"${targetAttr}><span>${label}</span><strong>${escapeHtml(value)}</strong></div>`;
   }
 
-  private speedButton(speed: number, active: boolean): string {
-    const label = speed === 0 ? "II" : `${speed}x`;
-    return `<button class="speed-button ${active ? "is-active" : ""}" type="button" data-speed="${speed}" title="Vitesse ${label}">${label}</button>`;
+  private topBrand(): string {
+    return `
+      <div class="top-brand" ${this.tooltipAttrs("E-Grid 2045", "Build, optimize, and stabilize Europe's compute energy grid.", "Strategic command layer")}>
+        <strong>E-GRID 2045</strong>
+        <span>Build. Optimize. Power Europe.</span>
+      </div>
+    `;
+  }
+
+  private budgetKpi(summary: ReturnType<SimulationCore["getSummary"]>): string {
+    const trend = summary.monthly_income >= 0 ? "+" : "-";
+    const body = `Tresorerie disponible ${moneyBillions(summary.money)}. Variation mensuelle ${trend}${moneyBillions(Math.abs(summary.monthly_income))}.`;
+    return `
+      <div class="kpi-chip kpi-budget" data-onboarding-target="kpi.money" ${this.tooltipAttrs("Budget", body, "Projection economique")}>
+        <span>Budget</span>
+        <strong>${escapeHtml(moneyBillions(summary.money))}</strong>
+        <small>${trend}${escapeHtml(moneyBillions(Math.abs(summary.monthly_income)))} / mois</small>
+      </div>
+    `;
+  }
+
+  private dateKpi(summary: ReturnType<SimulationCore["getSummary"]>): string {
+    const week = Math.max(1, Math.min(52, summary.month * 4));
+    const body = `Fenetre de simulation courante: ${summary.date_text}, semaine ${week}.`;
+    return `
+      <div class="kpi-chip kpi-date" data-onboarding-target="kpi.date" ${this.tooltipAttrs("Date", body, "Calendrier de campagne")}>
+        <span>Date</span>
+        <strong>${escapeHtml(summary.date_text)}</strong>
+        <small>Semaine ${week}</small>
+      </div>
+    `;
+  }
+
+  private agiDuel(europeProgress: number, usaProgress: number): string {
+    const eu = clampPctFloat(europeProgress);
+    const usa = clampPctFloat(usaProgress);
+    const delta = eu - usa;
+    const meta = delta >= 0 ? `Europe +${fmt(delta)} pts` : `USA +${fmt(Math.abs(delta))} pts`;
+    return `
+      <section class="agi-duel" aria-label="Progression AGI Europe contre USA" data-onboarding-target="kpi.agi" ${this.tooltipAttrs("Course AGI", `Europe ${fmt(eu)}% contre USA ${fmt(usa)}%. Les ticks indiquent la progression strategique globale.`, meta)}>
+        <div class="agi-side agi-side-europe">
+          <span>AGI Progress</span>
+          <strong>Europe</strong>
+          <i></i>
+        </div>
+        <div class="agi-ring agi-ring-europe" style="--agi-progress:${eu}">
+          <span class="agi-ticks" aria-hidden="true">${this.agiRingTicks(eu)}</span>
+          <b>${fmt(eu)}%</b>
+        </div>
+        <em>VS</em>
+        <div class="agi-ring agi-ring-usa" style="--agi-progress:${usa}">
+          <span class="agi-ticks" aria-hidden="true">${this.agiRingTicks(usa)}</span>
+          <b>${fmt(usa)}%</b>
+        </div>
+        <div class="agi-side agi-side-usa">
+          <span>Rival Curve</span>
+          <strong>USA</strong>
+          <i></i>
+        </div>
+      </section>
+    `;
+  }
+
+  private agiRingTicks(progress: number): string {
+    const tickCount = 48;
+    const activeTicks = Math.round((clampPctFloat(progress) / 100) * tickCount);
+    return Array.from({ length: tickCount }, (_, index) => {
+      const active = index < activeTicks ? " is-active" : "";
+      return `<i class="${active}" style="--tick-angle:${fmt((360 / tickCount) * index, 2)}deg"></i>`;
+    }).join("");
+  }
+
+  private timeControls(summary: ReturnType<SimulationCore["getSummary"]>): string {
+    return `
+      <div class="time-controls time-controls-concept" aria-label="Simulation speed" ${this.tooltipAttrs("Simulation speed", "Controle la cadence de la simulation.", "Pause, lecture, avance rapide")}>
+        <span class="time-controls-label">Simulation speed</span>
+        ${this.conceptSpeedButton(0, summary.simulation_speed === 0, "||", "Pause")}
+        ${this.conceptSpeedButton(1, summary.simulation_speed === 1, "&#9654;", "Lecture")}
+        ${this.conceptSpeedButton(2, summary.simulation_speed === 2, "&#9654;&#9654;", "Avance rapide")}
+        ${this.conceptSpeedButton(4, summary.simulation_speed === 4, "&#9654;&#9654;&#9654;", "Avance maximale")}
+        <button class="speed-readout" type="button" data-speed-readout="1" title="Vitesse normale">1.0x</button>
+      </div>
+    `;
+  }
+
+  private conceptSpeedButton(speed: number, active: boolean, label: string, title: string): string {
+    return `<button class="speed-button ${active ? "is-active" : ""}" type="button" data-speed="${speed}" title="${escapeHtml(title)}">${label}</button>`;
+  }
+
+  private topMenuCommand(): string {
+    return `
+      <button class="top-menu-command" type="button" data-action="replay-onboarding" data-onboarding-target="onboarding.replay" ${this.tooltipAttrs("Command menu", "Ouvre les aides et commandes systeme disponibles pendant la simulation.", "Menu")}>
+        <span></span><span></span><span></span>
+      </button>
+    `;
   }
 
   private heatmapButton(mode: HeatmapMode, label: string): string {
-    return `<button class="heatmap-button ${this.heatmapMode === mode ? "is-active" : ""}" type="button" data-heatmap="${mode}" data-onboarding-target="overlay.${mode}">${label}</button>`;
+    const tooltip = this.heatmapTooltip(mode, label);
+    return `<button class="heatmap-button ${this.heatmapMode === mode ? "is-active" : ""}" type="button" data-heatmap="${mode}" data-onboarding-target="overlay.${mode}" aria-label="${escapeHtml(tooltip.title)}" title="${escapeHtml(tooltip.title)}" ${this.tooltipAttrs(tooltip.title, tooltip.body, tooltip.meta)}>${escapeHtml(tooltip.shortLabel)}</button>`;
+  }
+
+  private heatmapTooltip(mode: HeatmapMode, label: string): { title: string; body: string; meta: string; shortLabel: string } {
+    const tooltips: Record<HeatmapMode, { body: string; meta: string; shortLabel: string }> = {
+      energy: {
+        body: "Affiche les zones de production, de demande et de deficit energetique.",
+        meta: "Power flow",
+        shortLabel: "PWR"
+      },
+      cooling: {
+        body: "Met en avant les capacites de refroidissement et les reserves thermiques.",
+        meta: "Cooling",
+        shortLabel: "CLD"
+      },
+      network: {
+        body: "Priorise les congestions, liens actifs et transferts interregionaux.",
+        meta: "Grid",
+        shortLabel: "NET"
+      },
+      compute: {
+        body: "Compare la production compute et les regions a forte charge IA.",
+        meta: "Compute",
+        shortLabel: "CPU"
+      },
+      co2: {
+        body: "Visualise la pression carbone et les zones a fort impact climatique.",
+        meta: "Carbon",
+        shortLabel: "CO2"
+      },
+      none: {
+        body: "Masque le filtre couleur pour lire la carte tactique brute.",
+        meta: "Neutral",
+        shortLabel: "OFF"
+      }
+    };
+    const tooltip = tooltips[mode];
+    return {
+      title: `Heatmap ${label}`,
+      body: tooltip.body,
+      meta: tooltip.meta,
+      shortLabel: tooltip.shortLabel
+    };
   }
 
   private paletteTab(tab: "construction" | "research", label: string): string {
@@ -266,20 +410,73 @@ export class GameHud {
       ? `<i class="alert-life" style="--alert-life:${alert.autoDismissMs}ms; --alert-elapsed:${elapsed}ms"></i>`
       : "";
     return `
-      <article class="alert-item alert-${alert.state} ${alert.actionable ? "is-actionable" : "is-info"}" data-alert="${escapeHtml(alert.id)}">
-        <button class="alert-main" type="button" ${alert.region_id ? `data-region="${escapeHtml(alert.region_id)}"` : ""}>
+      <article class="alert-item alert-${alert.state} alert-kind-${this.alertKind(alert)} ${alert.actionable ? "is-actionable" : "is-info"}" data-alert="${escapeHtml(alert.id)}">
+        <span class="alert-icon" aria-hidden="true"></span>
+        <button class="alert-main" type="button" ${alert.region_id ? `data-region="${escapeHtml(alert.region_id)}"` : ""} ${this.tooltipAttrs(alert.title, alert.body, alert.actionable ? "Cliquer pour cadrer la region" : "Information systeme")}>
           <strong>${escapeHtml(alert.title)}</strong>
           <span>${escapeHtml(alert.body)}</span>
         </button>
+        <button class="alert-action" type="button" ${alert.region_id ? `data-region="${escapeHtml(alert.region_id)}"` : ""} title="${escapeHtml(this.alertActionTitle(alert))}">${escapeHtml(this.alertActionLabel(alert))}</button>
         <button class="alert-dismiss" type="button" data-dismiss-alert="${escapeHtml(alert.id)}" title="Fermer">x</button>
         ${progress}
       </article>
     `;
   }
 
+  private alertKind(alert: Alert): string {
+    const text = `${alert.id} ${alert.title} ${alert.body}`.toLowerCase();
+    if (text.includes("research")) {
+      return "research";
+    }
+    if (text.includes("cooling") || text.includes("froid")) {
+      return "cooling";
+    }
+    if (text.includes("network") || text.includes("grid") || text.includes("saturated")) {
+      return "network";
+    }
+    if (text.includes("market") || text.includes("budget")) {
+      return "market";
+    }
+    return "warning";
+  }
+
+  private alertActionLabel(alert: Alert): string {
+    const kind = this.alertKind(alert);
+    if (kind === "research") {
+      return "Claim";
+    }
+    return alert.actionable ? "View" : "Info";
+  }
+
+  private alertActionTitle(alert: Alert): string {
+    return this.alertActionLabel(alert) === "View" ? `Voir ${alert.title}` : alert.title;
+  }
+
+  private stableStatusCards(summary: ReturnType<SimulationCore["getSummary"]>): string {
+    const cards = [
+      ["GRID STABLE", "Systems nominal"],
+      ["MARKET UPDATE", `Budget ${fmt(summary.money)}M`],
+      ["RESEARCH READY", `${fmt(summary.researchers_available)} researchers`],
+      ["SIMULATION", summary.date_text]
+    ];
+    return cards.map(([title, body]) => `
+      <article class="alert-item alert-stable is-info">
+        <div class="alert-main">
+          <strong>${escapeHtml(title)}</strong>
+          <span>${escapeHtml(body)}</span>
+        </div>
+      </article>
+    `).join("");
+  }
+
   private regionPanel(region: RegionSnapshot, buildings: Record<string, BuildingDefinition>, monthProgress: number): string {
     const cached = region.cached;
-    const slotPct = region.slots_max > 0 ? (region.slots_used / region.slots_max) * 100 : 0;
+    const levelXp = Math.min(2000, Math.round((region.buildings.length * 110 + region.tags.length * 40) / 10) * 10);
+    const regionLevel = Math.max(1, Math.min(9, Math.floor(levelXp / 400) + 1));
+    const levelPct = (levelXp / 2000) * 100;
+    const freeSlotCards = Array.from({ length: Math.min(Math.max(region.slots_max - region.slots_used, 0), 2) })
+      .map(() => `<span class="locked-slot-card" aria-label="Slot verrouille"><i></i></span>`)
+      .join("");
     const queueCards = region.construction_queue.length === 0
       ? `<span class="empty-slot-card">Aucun chantier</span>`
       : region.construction_queue
@@ -295,20 +492,52 @@ export class GameHud {
       : region.buildings
         .map((id, index) => this.builtCard(id, buildings[id], index))
         .join("");
+    const energyProduction = cached.energy_production ?? 0;
+    const energyDemand = cached.energy_consumption ?? 0;
+    const energyReserve = Math.max(0, energyProduction + (cached.energy_imported ?? 0) - energyDemand);
+    const coolingAvailable = cached.cooling_available ?? 0;
+    const coolingUsed = cached.cooling_used ?? 0;
+    const coolingReserve = Math.max(0, coolingAvailable - coolingUsed);
+    const computeDemand = cached.compute_demand ?? 0;
+    const computeSupply = cached.compute_produced ?? 0;
+    const computeDeficit = Math.max(0, computeDemand - computeSupply);
+    const computePct = computeDemand > 0 ? (computeSupply / computeDemand) * 100 : 100;
 
-    return `
-      <div class="panel-title">
-        <span>Region</span>
-        <strong>${escapeHtml(region.display_name)}</strong>
-      </div>
-      <div class="region-stats">
-        ${this.bar("Slots", slotPct, `${region.slots_used}/${region.slots_max}`, "cyan")}
-        ${this.bar("Energie", (cached.energy_efficiency ?? 1) * 100, `${fmt(cached.energy_efficiency ?? 1, 2)}`, "green")}
-        ${this.bar("Froid", (cached.cooling_efficiency ?? 1) * 100, `${fmt(cached.cooling_efficiency ?? 1, 2)}`, "blue")}
-        ${this.bar("Compute", Math.min((cached.compute_produced ?? 0) * 4, 100), fmt(cached.compute_produced ?? 0), "violet")}
-      </div>
+    const overviewContent = `
       <div class="region-tags">
         ${region.tags.slice(0, 6).map((tag) => `<span>${escapeHtml(tag)}</span>`).join("")}
+      </div>
+      <div class="region-section region-buildings">
+        <div class="panel-subtitle"><span>Building slots</span><strong>${region.slots_used}/${region.slots_max}</strong></div>
+        <div class="built-grid">
+          ${builtCards}${freeSlotCards}
+        </div>
+      </div>
+      <div class="region-status-stack">
+        ${this.regionStatusBlock("energy", "Energy status", (cached.energy_efficiency ?? 1) * 100, [
+          ["Production", `${fmt(energyProduction, 1)} GW`],
+          ["Demand", `${fmt(energyDemand, 1)} GW`],
+          ["Reserve", `${fmt(energyReserve, 1)} GW`]
+        ])}
+        ${this.regionStatusBlock("cooling", "Cooling status", (cached.cooling_efficiency ?? 1) * 100, [
+          ["Capacity", `${fmt(coolingAvailable, 1)} GWth`],
+          ["Usage", `${fmt(coolingUsed, 1)} GWth`],
+          ["Reserve", `${fmt(coolingReserve, 1)} GWth`]
+        ])}
+        ${this.regionStatusBlock("compute", "Compute demand", computePct, [
+          ["Demand", `${fmt(computeDemand, 1)} EFLOPS`],
+          ["Supply", `${fmt(computeSupply, 1)} EFLOPS`],
+          [computeDeficit > 0 ? "Deficit" : "Reserve", `${fmt(computeDeficit > 0 ? computeDeficit : computeSupply - computeDemand, 1)} EFLOPS`]
+        ], computeDeficit > 0)}
+      </div>
+      ${this.regionManageButton(region)}
+    `;
+    const buildingsContent = `
+      <div class="region-section region-buildings">
+        <div class="panel-subtitle"><span>Building slots</span><strong>${region.slots_used}/${region.slots_max}</strong></div>
+        <div class="built-grid">
+          ${builtCards}${freeSlotCards}
+        </div>
       </div>
       <div class="region-section region-queue">
         <div class="panel-subtitle"><span>Chantier</span><strong>${region.construction_queue.length}</strong></div>
@@ -322,10 +551,115 @@ export class GameHud {
           ${demolitionCards}
         </div>
       </div>
-      <div class="region-section region-buildings">
-        <div class="panel-subtitle"><span>Batiments actifs</span><strong>${region.buildings.length}/${region.slots_max}</strong></div>
-        <div class="built-grid">
-          ${builtCards}
+      ${this.regionManageButton(region)}
+    `;
+    const statsContent = `
+      <div class="region-stats-grid">
+        ${this.regionStatTile("Slots", `${region.slots_used}/${region.slots_max}`, `${Math.max(0, region.slots_max - region.slots_used)} libres`)}
+        ${this.regionStatTile("Level XP", `${fmt(levelXp)}`, `Niveau ${regionLevel}`)}
+        ${this.regionStatTile("Energy reserve", `${fmt(energyReserve, 1)} GW`, `${fmt(energyProduction, 1)} prod`)}
+        ${this.regionStatTile("Cooling reserve", `${fmt(coolingReserve, 1)} GWth`, `${fmt(coolingAvailable, 1)} capacite`)}
+        ${this.regionStatTile(computeDeficit > 0 ? "Compute deficit" : "Compute reserve", `${fmt(computeDeficit > 0 ? computeDeficit : computeSupply - computeDemand, 1)} EFLOPS`, `${fmt(computeSupply, 1)} supply`)}
+        ${this.regionStatTile("Tags", `${region.tags.length}`, region.tags.slice(0, 2).join(" / ") || "Aucun")}
+      </div>
+      <div class="region-status-stack">
+        ${this.regionStatusBlock("energy", "Energy status", (cached.energy_efficiency ?? 1) * 100, [
+          ["Production", `${fmt(energyProduction, 1)} GW`],
+          ["Demand", `${fmt(energyDemand, 1)} GW`],
+          ["Reserve", `${fmt(energyReserve, 1)} GW`]
+        ])}
+        ${this.regionStatusBlock("cooling", "Cooling status", (cached.cooling_efficiency ?? 1) * 100, [
+          ["Capacity", `${fmt(coolingAvailable, 1)} GWth`],
+          ["Usage", `${fmt(coolingUsed, 1)} GWth`],
+          ["Reserve", `${fmt(coolingReserve, 1)} GWth`]
+        ])}
+        ${this.regionStatusBlock("compute", "Compute demand", computePct, [
+          ["Demand", `${fmt(computeDemand, 1)} EFLOPS`],
+          ["Supply", `${fmt(computeSupply, 1)} EFLOPS`],
+          [computeDeficit > 0 ? "Deficit" : "Reserve", `${fmt(computeDeficit > 0 ? computeDeficit : computeSupply - computeDemand, 1)} EFLOPS`]
+        ], computeDeficit > 0)}
+      </div>
+    `;
+    const tabContent = this.activeRegionTab === "buildings"
+      ? buildingsContent
+      : this.activeRegionTab === "stats"
+        ? statsContent
+        : overviewContent;
+
+    return `
+      <div class="panel-title region-title">
+        <div>
+          <span>Region</span>
+          <strong>${escapeHtml(region.display_name)}</strong>
+        </div>
+        <span class="region-close" aria-hidden="true">x</span>
+      </div>
+      <div class="region-level-card">
+        <strong>${regionLevel}</strong>
+        <div>
+          <span>Region level</span>
+          <i style="--meter:${clampPctFloat(levelPct)}%"></i>
+        </div>
+        <small>${fmt(levelXp)} / 2 000 XP</small>
+      </div>
+      <div class="region-tabs" role="tablist" aria-label="Vues region">
+        ${this.regionTabButton("overview", "Overview", "Vue synthese", "Slots, statuts et action principale")}
+        ${this.regionTabButton("buildings", "Buildings", "Actifs regionaux", "Actifs, chantiers et demolition")}
+        ${this.regionTabButton("stats", "Stats", "Statistiques detaillees", "Capacites, reserves et tags")}
+      </div>
+      <div class="region-tab-view region-tab-${this.activeRegionTab}">
+        ${tabContent}
+      </div>
+    `;
+  }
+
+  private regionTabButton(tab: RegionPanelTab, label: string, title: string, body: string): string {
+    const active = this.activeRegionTab === tab;
+    return `
+      <button class="${active ? "is-active" : ""}" type="button" role="tab" data-region-tab="${tab}" aria-selected="${active}" ${this.tooltipAttrs(title, body, active ? "Actif" : "Changer de vue")}>
+        ${escapeHtml(label)}
+      </button>
+    `;
+  }
+
+  private regionManageButton(region: RegionSnapshot): string {
+    return `
+      <button class="region-manage-button" type="button" data-action="open-construction" ${this.tooltipAttrs("Manage region", `Open the construction dock for ${region.display_name}.`, `${region.slots_max - region.slots_used} free slots`)}>
+        Manage region
+      </button>
+    `;
+  }
+
+  private regionStatTile(label: string, value: string, detail: string): string {
+    return `
+      <span class="region-stat-tile">
+        <small>${escapeHtml(label)}</small>
+        <strong>${escapeHtml(value)}</strong>
+        <em>${escapeHtml(detail)}</em>
+      </span>
+    `;
+  }
+
+  private regionStatusBlock(
+    tone: "energy" | "cooling" | "compute",
+    title: string,
+    pct: number,
+    metrics: Array<[string, string]>,
+    isDeficit = false
+  ): string {
+    const tooltipBody = metrics.map(([label, value]) => `${label}: ${value}`).join(". ");
+    return `
+      <div class="region-status region-status-${tone} ${isDeficit ? "has-deficit" : ""}" ${this.tooltipAttrs(title, tooltipBody, `${fmt(clampPctFloat(pct))}%`)}>
+        <div class="region-status-title">
+          <span class="region-status-heading">
+            <i class="region-status-icon" aria-hidden="true"></i>
+            <span>${escapeHtml(title)}</span>
+          </span>
+          <strong>${fmt(clampPctFloat(pct))}%</strong>
+        </div>
+        <i style="--meter:${clampPctFloat(pct)}%"></i>
+        <div class="region-status-metrics">
+          ${metrics.map(([label, value]) => `<span><small>${escapeHtml(label)}</small><b>${escapeHtml(value)}</b></span>`).join("")}
         </div>
       </div>
     `;
@@ -399,7 +733,7 @@ export class GameHud {
   private builtCard(buildingId: string, building: BuildingDefinition | undefined, index: number): string {
     const demolishCost = building ? Math.ceil(building.cost * 0.2) : 0;
     return `
-      <button class="built-card" type="button" data-demolish="${index}" title="Demonter ${escapeHtml(building?.display_name ?? buildingId)} (${demolishCost}M)">
+      <button class="built-card" type="button" data-demolish="${index}" title="Demonter ${escapeHtml(building?.display_name ?? buildingId)} (${demolishCost}M)" ${this.tooltipAttrs(building?.display_name ?? buildingId, this.buildingTooltipBody(building), `Demontage ${demolishCost}M`)}>
         ${this.buildingArt(building)}
         <span class="built-copy">
           <strong>${escapeHtml(building?.display_name ?? buildingId)}</strong>
@@ -481,6 +815,206 @@ export class GameHud {
     `;
   }
 
+  private gridOverviewCard(summary: ReturnType<SimulationCore["getSummary"]>): string {
+    const layout = this.simulation.getRegionLayout();
+    const graph = this.simulation.getNetworkGraph();
+    const graphLines = this.gridOverviewGraphLines(layout, graph);
+    const hubLines = this.gridOverviewHubLines(layout, graph, summary);
+    const flowLines = this.gridOverviewFlowLines(layout, summary);
+    const nodes = this.gridOverviewNodes(layout, graph, summary);
+    const activeFlows = summary.network_flows.length;
+    const congestedFlows = summary.network_flows.filter((flow) => flow.is_congested).length;
+    const tooltip =
+      `${activeFlows} liaisons actives. ${congestedFlows} congestions. ` +
+      `Flux energie ${fmt(summary.energy_consumed)} / ${fmt(summary.energy_produced)} GW.`;
+
+    return `
+      <aside class="grid-overview-card" aria-label="Grid overview" ${this.tooltipAttrs("Grid overview", tooltip, "Carte reseau compacte")}>
+        <div class="grid-overview-heading">
+          <strong>Grid overview</strong>
+          <span class="grid-overview-expand" aria-hidden="true"></span>
+        </div>
+        <div class="grid-overview-map" aria-hidden="true">
+          <svg viewBox="0 0 100 100" preserveAspectRatio="none">
+            ${this.gridOverviewEuropePaths()}
+            ${graphLines}
+            ${hubLines}
+            ${flowLines}
+          </svg>
+          ${nodes}
+        </div>
+        <div class="grid-overview-legend">
+          <span class="legend-power">Power flow <b>${fmt(activeFlows)}</b></span>
+          <span class="legend-data">Data flow <b>${fmt(summary.compute_used)}</b></span>
+          <span class="legend-congestion">Congestion <b>${fmt(congestedFlows)}</b></span>
+          <span class="legend-planned">Planned</span>
+        </div>
+      </aside>
+    `;
+  }
+
+  private gridOverviewEuropePaths(): string {
+    return "";
+  }
+
+  private gridOverviewGraphLines(
+    layout: ReturnType<SimulationCore["getRegionLayout"]>,
+    graph: ReturnType<SimulationCore["getNetworkGraph"]>
+  ): string {
+    const seen = new Set<string>();
+    const lines: string[] = [];
+    for (const [sourceId, targets] of Object.entries(graph)) {
+      for (const targetId of targets) {
+        const key = [sourceId, targetId].sort().join(":");
+        if (seen.has(key)) {
+          continue;
+        }
+        seen.add(key);
+        const source = layout[sourceId];
+        const target = layout[targetId];
+        if (!source || !target) {
+          continue;
+        }
+        lines.push(`<path class="mini-flow mini-flow-data" d="${miniRoutePath(source, target, key, 5)}" />`);
+        if (lines.length >= 18) {
+          return lines.join("");
+        }
+      }
+    }
+    return lines.join("");
+  }
+
+  private gridOverviewFlowLines(
+    layout: ReturnType<SimulationCore["getRegionLayout"]>,
+    summary: ReturnType<SimulationCore["getSummary"]>
+  ): string {
+    return [...summary.network_flows]
+      .sort(
+        (a, b) =>
+          Number(b.is_congested) - Number(a.is_congested) ||
+          b.intensity_normalized - a.intensity_normalized
+      )
+      .slice(0, 14)
+      .map((flow) => {
+        const source = layout[flow.source_region_id];
+        const target = layout[flow.target_region_id];
+        if (!source || !target) {
+          return "";
+        }
+        const tone = flow.is_congested ? "congestion" : "power";
+        const width = 0.7 + flow.intensity_normalized * 1.7;
+        const opacity = 0.36 + flow.intensity_normalized * 0.5;
+        const key = `${flow.source_region_id}:${flow.target_region_id}:${tone}`;
+        const route = miniRoutePath(source, target, key, 9 + flow.intensity_normalized * 8);
+        return (
+          `<path class="mini-flow mini-flow-shadow" d="${route}" />` +
+          `<path class="mini-flow mini-flow-${tone}" d="${route}" ` +
+          `style="--flow-width:${fmt(width, 2)}; --flow-opacity:${fmt(opacity, 2)}" />`
+        );
+      })
+      .join("");
+  }
+
+  private gridOverviewHubLines(
+    layout: ReturnType<SimulationCore["getRegionLayout"]>,
+    graph: ReturnType<SimulationCore["getNetworkGraph"]>,
+    summary: ReturnType<SimulationCore["getSummary"]>
+  ): string {
+    const selectedPoint = layout[summary.selected_region_id];
+    if (!selectedPoint) {
+      return "";
+    }
+    return this.gridOverviewRankedRegions(layout, graph, summary)
+      .filter(([regionId]) => regionId !== summary.selected_region_id)
+      .slice(0, 10)
+      .map(([regionId, weight], index) => {
+        const point = layout[regionId];
+        if (!point) {
+          return "";
+        }
+        const route = miniRoutePath(selectedPoint, point, `hub:${summary.selected_region_id}:${regionId}`, 3.5 + index * 0.28);
+        const strong = index < 4 ? " mini-flow-hub-strong" : "";
+        const opacity = Math.min(0.78, 0.26 + weight * 0.12);
+        return `<path class="mini-flow mini-flow-hub${strong}" d="${route}" style="--hub-opacity:${fmt(opacity, 2)}" />`;
+      })
+      .join("");
+  }
+
+  private gridOverviewNodes(
+    layout: ReturnType<SimulationCore["getRegionLayout"]>,
+    graph: ReturnType<SimulationCore["getNetworkGraph"]>,
+    summary: ReturnType<SimulationCore["getSummary"]>
+  ): string {
+    const activeEndpoints = new Set<string>();
+    const congestedEndpoints = new Set<string>();
+    for (const flow of summary.network_flows) {
+      activeEndpoints.add(flow.source_region_id);
+      activeEndpoints.add(flow.target_region_id);
+      if (flow.is_congested) {
+        congestedEndpoints.add(flow.source_region_id);
+        congestedEndpoints.add(flow.target_region_id);
+      }
+    }
+
+    return this.gridOverviewRankedRegions(layout, graph, summary)
+      .slice(0, 20)
+      .map(([regionId, weight]) => {
+        const point = layout[regionId];
+        if (!point) {
+          return "";
+        }
+        const selected = regionId === summary.selected_region_id;
+        const degree = (graph[regionId]?.length ?? 0) + Object.values(graph).filter((targets) => targets.includes(regionId)).length;
+        const classes = ["grid-overview-node"];
+        if (selected) {
+          classes.push("is-selected");
+        }
+        if (activeEndpoints.has(regionId)) {
+          classes.push("is-flow");
+        }
+        if (congestedEndpoints.has(regionId)) {
+          classes.push("is-congested");
+        }
+        if (!selected && !activeEndpoints.has(regionId) && (degree >= 12 || weight >= 2.6)) {
+          classes.push("is-relay");
+        }
+        const size = Math.min(7.8, 1.8 + weight * 1.28);
+        const power = Math.min(1, 0.2 + weight / 6);
+        return (
+          `<span class="${classes.join(" ")}" ` +
+          `style="--node-x:${miniCoordX(point.x)}%; --node-y:${miniCoordY(point.y)}%; ` +
+          `--node-size:${fmt(size, 2)}px; --node-power:${fmt(power, 2)}"></span>`
+        );
+      })
+      .join("");
+  }
+
+  private gridOverviewRankedRegions(
+    layout: ReturnType<SimulationCore["getRegionLayout"]>,
+    graph: ReturnType<SimulationCore["getNetworkGraph"]>,
+    summary: ReturnType<SimulationCore["getSummary"]>
+  ): Array<[string, number]> {
+    const ranked = new Map<string, number>();
+    for (const [sourceId, targets] of Object.entries(graph)) {
+      if (layout[sourceId]) {
+        ranked.set(sourceId, (ranked.get(sourceId) ?? 0) + Math.min(1.2, 0.18 + targets.length * 0.08));
+      }
+      for (const targetId of targets) {
+        if (layout[targetId]) {
+          ranked.set(targetId, (ranked.get(targetId) ?? 0) + 0.24);
+        }
+      }
+    }
+    for (const flow of summary.network_flows) {
+      ranked.set(flow.source_region_id, (ranked.get(flow.source_region_id) ?? 0) + 0.9 + flow.intensity_normalized);
+      ranked.set(flow.target_region_id, (ranked.get(flow.target_region_id) ?? 0) + 0.9 + flow.intensity_normalized);
+    }
+    ranked.set(summary.selected_region_id, (ranked.get(summary.selected_region_id) ?? 0) + 4);
+    return [...ranked.entries()]
+      .filter(([regionId]) => Boolean(layout[regionId]))
+      .sort((a, b) => b[1] - a[1]);
+  }
+
   private buildCategoryTab(
     category: string,
     buildings: Record<string, BuildingDefinition>,
@@ -493,10 +1027,14 @@ export class GameHud {
     ).length;
     return `
       <button class="build-category-tab ${active ? "is-active" : ""}" type="button" data-build-category="${category}" data-onboarding-target="build.category.${category}" role="tab" aria-selected="${active}">
-        <span>${CATEGORY_LABELS[category] ?? category}</span>
+        <span>${escapeHtml(this.buildCategoryLabel(category))}</span>
         <strong>${count}</strong>
       </button>
     `;
+  }
+
+  private buildCategoryLabel(category: string): string {
+    return CATEGORY_LABELS[category] ?? category;
   }
 
   private ensureActiveBuildCategory(buildings: Record<string, BuildingDefinition>): void {
@@ -515,20 +1053,60 @@ export class GameHud {
     buildings: Record<string, BuildingDefinition>,
     availability: Record<string, BuildAvailability>
   ): string {
-    const items = Object.values(buildings).filter((building) =>
-      building.category === category && this.shouldShowBuilding(building, availability[building.id])
-    );
-    if (items.length === 0) {
+    const categoryItems = Object.values(buildings).filter((building) => building.category === category);
+    const items = categoryItems.filter((building) => this.shouldShowBuilding(building, availability[building.id]));
+    if (items.length === 0 && categoryItems.length === 0) {
       return "";
     }
+    const previewClass = items.length === 0 ? " is-locked-preview" : "";
+    const label = this.buildCategoryLabel(category);
+    const optionCount = items.length > 0 ? items.length : Math.max(1, Math.min(4, categoryItems.length));
     return `
-      <div class="build-category">
-        <h2>${CATEGORY_LABELS[category] ?? category}</h2>
+      <div class="build-category${previewClass}">
+        <div class="build-category-heading">
+          <span class="build-category-icon utility-category-icon utility-category-icon-${this.categoryIconKey(category)}" aria-hidden="true"></span>
+          <h2>
+            <button class="build-category-title" type="button" data-build-category-title="${escapeHtml(category)}" ${this.tooltipAttrs(label, `Afficher seulement ${label}.`, `${optionCount} options`)}>
+              ${escapeHtml(label)}
+            </button>
+          </h2>
+        </div>
         <div class="build-grid">
-          ${items.map((building) => this.buildButton(building, availability[building.id])).join("")}
+          ${items.length > 0
+            ? items.map((building) => this.buildButton(building, availability[building.id])).join("")
+            : this.lockedCategoryPreview(category, categoryItems)}
         </div>
       </div>
     `;
+  }
+
+  private lockedCategoryPreview(category: string, items: BuildingDefinition[]): string {
+    const label = this.buildCategoryLabel(category);
+    const previewCount = Math.max(1, Math.min(4, items.length));
+    return Array.from({ length: previewCount }, (_, index) => `
+      <span class="build-card is-disabled build-locked-preview-card" role="button" aria-disabled="true" ${this.tooltipAttrs(label, "Options verrouillees par la recherche ou le potentiel regional.", "A debloquer")}>
+        <span class="build-visual locked-preview-art utility-category-icon utility-category-icon-${this.categoryIconKey(category)}" aria-hidden="true">
+          <span>${index === 0 ? "Rech." : ""}</span>
+        </span>
+        <span class="build-copy">
+          <strong>${escapeHtml(label)}</strong>
+          <small>A debloquer</small>
+        </span>
+      </span>
+    `).join("");
+  }
+
+  private categoryIconKey(category: string): string {
+    const icons: Record<string, string> = {
+      research: "research",
+      energy: "energy",
+      storage: "grid",
+      cooling: "cooling",
+      compute: "datacenter",
+      grid: "grid",
+      all: "grid"
+    };
+    return icons[category] ?? "grid";
   }
 
   private buildButton(building: BuildingDefinition, availability: BuildAvailability | undefined): string {
@@ -536,7 +1114,7 @@ export class GameHud {
     const reason = availability?.reason ?? "";
     const cause = availability?.cause ? `data-availability-cause="${availability.cause}"` : "";
     return `
-      <button class="build-card ${enabled ? "" : "is-disabled"}" type="button" data-build="${building.id}" data-onboarding-target="build.${building.id}" ${cause} ${enabled ? "" : "disabled"} title="${escapeHtml(reason || building.description)}">
+      <button class="build-card ${enabled ? "" : "is-disabled"}" type="button" data-build="${building.id}" data-onboarding-target="build.${building.id}" ${cause} ${enabled ? "" : "disabled"} title="${escapeHtml(reason || building.description)}" ${this.tooltipAttrs(building.display_name, this.buildingTooltipBody(building), enabled ? "Disponible" : reason || "Verrouille")}>
         <span class="build-visual" aria-hidden="true">
           ${this.buildingArt(building)}
           ${this.buildingBadges(building, availability)}
@@ -560,6 +1138,29 @@ export class GameHud {
       return true;
     }
     return !BUILD_ACCESS_LOCK_CAUSES.includes(availability.cause);
+  }
+
+  private tooltipAttrs(title: string, body: string, meta = ""): string {
+    return `data-rich-tooltip="1" data-tooltip-title="${escapeHtml(title)}" data-tooltip-body="${escapeHtml(body)}" data-tooltip-meta="${escapeHtml(meta)}"`;
+  }
+
+  private buildingTooltipBody(building: BuildingDefinition | undefined): string {
+    if (!building) {
+      return "Infrastructure regionale.";
+    }
+    const basics = `${CATEGORY_LABELS[building.category] ?? building.category} - ${building.cost}M - ${building.construction_months}m - ${building.slots_required} slots`;
+    const output = this.buildingSummary(building);
+    const demand: string[] = [];
+    if (building.consumes_energy > 0) {
+      demand.push(`-${fmt(building.consumes_energy)} Energie`);
+    }
+    if (building.consumes_cooling > 0) {
+      demand.push(`-${fmt(building.consumes_cooling)} Froid`);
+    }
+    if (building.researchers_required > 0) {
+      demand.push(`${fmt(building.researchers_required)} chercheurs`);
+    }
+    return [basics, output, demand.join(" / "), building.description].filter(Boolean).join(" | ");
   }
 
   private buildingBadges(building: BuildingDefinition, availability: BuildAvailability | undefined): string {
@@ -609,6 +1210,7 @@ export class GameHud {
       ? this.renderProgressValue(this.activeResearchProgressKey(active), activeTargetProgress, "--research-progress")
       : 0;
     const activePoints = active ? this.visualResearchPoints(active, monthProgress) : 0;
+    const hasVisibleOptions = visibleOptions.length > 0;
     const statusMarkup = active
       ? `
         <div class="research-status is-active" data-onboarding-target="research.status" ${this.progressAttributes(this.activeResearchProgressKey(active), "--research-progress", "research-active", activeTargetProgress)} data-progress-fill="research-active" data-progress-research-id="${escapeHtml(active.id)}" style="--research-progress:${activeProgress}%">
@@ -628,11 +1230,38 @@ export class GameHud {
             ? `<span class="research-queue-empty">Aucune recherche en attente</span>`
             : queued.map((option) => this.researchQueueItem(option)).join("")}
         </div>
-        <div class="research-grid">
-          ${visibleOptions.map((option) => this.researchCard(option, buildings, monthProgress)).join("")}
+        <div class="research-grid ${hasVisibleOptions ? "" : "is-preview"}">
+          ${hasVisibleOptions
+            ? visibleOptions.map((option) => this.researchCard(option, buildings, monthProgress)).join("")
+            : this.researchPreviewCards(options)}
         </div>
       </div>
     `;
+  }
+
+  private researchPreviewCards(options: ResearchOption[]): string {
+    return options
+      .slice()
+      .sort((a, b) => a.tier - b.tier || a.branch.localeCompare(b.branch) || a.display_name.localeCompare(b.display_name))
+      .slice(0, 4)
+      .map((option) => {
+        const effect = this.researchEffect(option);
+        const meta = `${option.branch} T${option.tier} - ${fmt(option.cost)} pts`;
+        return `
+          <span class="research-card research-preview-card research-locked" role="button" aria-disabled="true" ${this.tooltipAttrs(option.display_name, option.reason || option.notes || effect, meta)}>
+            <span class="research-card-head">
+              <span class="research-card-glyph utility-category-icon utility-category-icon-${this.researchBranchIconKey(option.branch)}" aria-hidden="true"></span>
+              <span>
+                <strong>${escapeHtml(option.display_name)}</strong>
+                <small>${escapeHtml(option.branch)} T${option.tier}</small>
+              </span>
+            </span>
+            <span class="research-progress" style="--progress:0%"><b></b></span>
+            <span class="research-copy">${escapeHtml(option.reason || "Recherche requise")}</span>
+          </span>
+        `;
+      })
+      .join("");
   }
 
   private researchQueueItem(option: ResearchOption): string {
@@ -666,9 +1295,13 @@ export class GameHud {
     const targetProgress = this.visualResearchProgress(option, monthProgress);
     const progress = this.renderProgressValue(progressKey, targetProgress, "--progress");
     const lockCause = option.lock_cause ? `data-lock-cause="${option.lock_cause}"` : "";
+    const tooltipBody = [option.reason || option.notes || effect, unlocks.length ? `Debloque: ${unlocks.join(", ")}` : ""]
+      .filter(Boolean)
+      .join(" | ");
     return `
-      <button class="research-card research-${option.status}" type="button" data-research="${option.id}" data-onboarding-target="research.${option.id}" ${lockCause} ${enabled ? "" : "disabled"} title="${escapeHtml(option.reason || option.notes)}">
+      <button class="research-card research-${option.status}" type="button" data-research="${option.id}" data-onboarding-target="research.${option.id}" ${lockCause} ${enabled ? "" : "disabled"} title="${escapeHtml(option.reason || option.notes)}" ${this.tooltipAttrs(option.display_name, tooltipBody, `${option.branch} T${option.tier} - ${fmt(option.cost)} pts`)}>
         <span class="research-card-head">
+          <span class="research-card-glyph utility-category-icon utility-category-icon-${this.researchBranchIconKey(option.branch)}" aria-hidden="true"></span>
           <strong>${escapeHtml(option.display_name)}</strong>
           <small>${escapeHtml(option.branch)} T${option.tier} · ${fmt(option.cost)} pts · ${this.researchEta(option)}</small>
         </span>
@@ -690,6 +1323,20 @@ export class GameHud {
       return true;
     }
     return !RESEARCH_UNAVAILABLE_CAUSES.includes(option.lock_cause);
+  }
+
+  private researchBranchIconKey(branch: string): string {
+    const normalized = branch.toLowerCase();
+    if (normalized.includes("energy")) {
+      return "energy";
+    }
+    if (normalized.includes("infrastructure") || normalized.includes("grid")) {
+      return "grid";
+    }
+    if (normalized.includes("cool")) {
+      return "cooling";
+    }
+    return "research";
   }
 
   private visualResearchPoints(option: ResearchOption, monthProgress: number): number {
@@ -821,6 +1468,188 @@ export class GameHud {
     return option.effect_key;
   }
 
+  private handleTooltipOver(event: PointerEvent): void {
+    if (performance.now() < this.tooltipSuppressedUntil) {
+      return;
+    }
+    const trigger = (event.target as HTMLElement).closest<HTMLElement>("[data-rich-tooltip]");
+    if (!trigger) {
+      return;
+    }
+    this.showTooltip(trigger, event.clientX, event.clientY);
+  }
+
+  private handleTooltipMove(event: PointerEvent): void {
+    if (!this.tooltipElement || !this.tooltipTrigger) {
+      return;
+    }
+    this.positionTooltip(event.clientX, event.clientY);
+  }
+
+  private handleTooltipOut(event: PointerEvent): void {
+    const trigger = (event.target as HTMLElement).closest<HTMLElement>("[data-rich-tooltip]");
+    if (!trigger) {
+      return;
+    }
+    const related = event.relatedTarget;
+    if (related instanceof Node && trigger.contains(related)) {
+      return;
+    }
+    this.hideTooltip();
+  }
+
+  private handleTooltipFocus(event: FocusEvent): void {
+    if (performance.now() < this.tooltipSuppressedUntil) {
+      return;
+    }
+    const trigger = (event.target as HTMLElement).closest<HTMLElement>("[data-rich-tooltip]");
+    if (!trigger) {
+      return;
+    }
+    const rect = trigger.getBoundingClientRect();
+    this.showTooltip(trigger, rect.left + rect.width / 2, rect.top + rect.height / 2);
+  }
+
+  private showTooltip(trigger: HTMLElement, x: number, y: number): void {
+    const title = trigger.dataset.tooltipTitle ?? "";
+    const body = trigger.dataset.tooltipBody ?? "";
+    const meta = trigger.dataset.tooltipMeta ?? "";
+    if (!title && !body && !meta) {
+      return;
+    }
+
+    const tooltip = this.ensureTooltipElement();
+    const titleElement = document.createElement("strong");
+    titleElement.textContent = title;
+    const bodyElement = document.createElement("span");
+    bodyElement.textContent = body;
+    tooltip.replaceChildren(titleElement, bodyElement);
+    if (meta) {
+      const metaElement = document.createElement("small");
+      metaElement.textContent = meta;
+      tooltip.append(metaElement);
+    }
+    tooltip.classList.add("is-visible");
+    this.tooltipTrigger = trigger;
+    this.positionTooltip(x, y);
+  }
+
+  private ensureTooltipElement(): HTMLElement {
+    if (this.tooltipElement?.isConnected) {
+      return this.tooltipElement;
+    }
+    const tooltip = document.createElement("div");
+    tooltip.className = "rich-tooltip";
+    tooltip.setAttribute("role", "tooltip");
+    this.root.append(tooltip);
+    this.tooltipElement = tooltip;
+    return tooltip;
+  }
+
+  private positionTooltip(x: number, y: number): void {
+    const tooltip = this.tooltipElement;
+    if (!tooltip) {
+      return;
+    }
+    const margin = 12;
+    const offset = 16;
+    const rect = tooltip.getBoundingClientRect();
+    let left = x + offset;
+    let top = y + offset;
+    if (left + rect.width > window.innerWidth - margin) {
+      left = x - rect.width - offset;
+    }
+    if (top + rect.height > window.innerHeight - margin) {
+      top = y - rect.height - offset;
+    }
+    tooltip.style.left = `${Math.max(margin, left)}px`;
+    tooltip.style.top = `${Math.max(margin, top)}px`;
+  }
+
+  private hideTooltip(): void {
+    this.tooltipElement?.classList.remove("is-visible");
+    this.tooltipTrigger = undefined;
+  }
+
+  private handleWheel(event: WheelEvent): void {
+    const target = event.target instanceof HTMLElement ? event.target : null;
+    if (!target || !this.root.contains(target)) {
+      return;
+    }
+
+    const nativeScroller = this.closestScrollable(target);
+    if (nativeScroller && this.canConsumeWheel(nativeScroller, event)) {
+      return;
+    }
+
+    const fallbackScroller = this.fallbackWheelScroller(target);
+    if (fallbackScroller) {
+      const didScrollY = this.scrollElement(fallbackScroller, event.deltaY, "y");
+      const didScrollX = this.scrollElement(fallbackScroller, event.deltaX, "x");
+      if (didScrollY || didScrollX) {
+        event.preventDefault();
+        event.stopPropagation();
+        return;
+      }
+    }
+
+    const horizontalScroller = target.closest<HTMLElement>(".build-category-tabs, .build-grid");
+    const horizontalDelta = event.deltaX || (event.shiftKey ? event.deltaY : 0);
+    if (horizontalScroller && this.scrollElement(horizontalScroller, horizontalDelta, "x")) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+  }
+
+  private closestScrollable(target: HTMLElement): HTMLElement | undefined {
+    let node: HTMLElement | null = target;
+    while (node && node !== this.root) {
+      const style = getComputedStyle(node);
+      const canScrollY = /(auto|scroll)/.test(style.overflowY) && node.scrollHeight > node.clientHeight + 1;
+      const canScrollX = /(auto|scroll)/.test(style.overflowX) && node.scrollWidth > node.clientWidth + 1;
+      if (canScrollY || canScrollX) {
+        return node;
+      }
+      node = node.parentElement;
+    }
+    return undefined;
+  }
+
+  private fallbackWheelScroller(target: HTMLElement): HTMLElement | undefined {
+    const palette = target.closest<HTMLElement>(".build-palette");
+    if (palette) {
+      return palette.querySelector<HTMLElement>(".palette-body[data-scroll-key]") ?? palette;
+    }
+    return target.closest<HTMLElement>(".region-panel, .alerts-panel") ?? undefined;
+  }
+
+  private canConsumeWheel(scroller: HTMLElement, event: WheelEvent): boolean {
+    return this.canScrollAxis(scroller, event.deltaY, "y") || this.canScrollAxis(scroller, event.deltaX, "x");
+  }
+
+  private canScrollAxis(scroller: HTMLElement, delta: number, axis: "x" | "y"): boolean {
+    if (Math.abs(delta) < 0.5) {
+      return false;
+    }
+    const position = axis === "y" ? scroller.scrollTop : scroller.scrollLeft;
+    const max = axis === "y" ? scroller.scrollHeight - scroller.clientHeight : scroller.scrollWidth - scroller.clientWidth;
+    return delta > 0 ? position < max - 1 : position > 1;
+  }
+
+  private scrollElement(scroller: HTMLElement, delta: number, axis: "x" | "y"): boolean {
+    if (!this.canScrollAxis(scroller, delta, axis)) {
+      return false;
+    }
+    if (axis === "y") {
+      const before = scroller.scrollTop;
+      scroller.scrollTop = Math.max(0, Math.min(scroller.scrollHeight - scroller.clientHeight, before + delta));
+      return Math.abs(scroller.scrollTop - before) > 0.5;
+    }
+    const before = scroller.scrollLeft;
+    scroller.scrollLeft = Math.max(0, Math.min(scroller.scrollWidth - scroller.clientWidth, before + delta));
+    return Math.abs(scroller.scrollLeft - before) > 0.5;
+  }
+
   private handleClick(event: Event): void {
     const target = event.target as HTMLElement;
     const button = target.closest("button") as HTMLButtonElement | null;
@@ -843,7 +1672,16 @@ export class GameHud {
       return;
     }
 
-    const buildCategory = button.dataset.buildCategory;
+    const regionTab = button.dataset.regionTab as RegionPanelTab | undefined;
+    if (regionTab === "overview" || regionTab === "buildings" || regionTab === "stats") {
+      this.activeRegionTab = regionTab;
+      this.tooltipSuppressedUntil = performance.now() + 500;
+      this.hideTooltip();
+      this.render();
+      return;
+    }
+
+    const buildCategory = button.dataset.buildCategory ?? button.dataset.buildCategoryTitle;
     if (buildCategory) {
       this.activeBuildCategory = buildCategory;
       this.capturePaletteScroll();
@@ -924,9 +1762,17 @@ export class GameHud {
     const action = button.dataset.action;
     if (action === "advance") {
       this.callbacks.onAdvance();
+    } else if (action === "open-construction") {
+      this.paletteOpen = true;
+      this.activeDockTab = "construction";
+      this.render();
     } else if (action === "toggle-palette") {
       this.paletteOpen = !this.paletteOpen;
       this.render();
+    } else if (action === "dismiss-all-alerts") {
+      for (const alert of this.simulation.getSummary().alerts) {
+        this.dismissAlert(alert.id);
+      }
     } else if (action === "replay-onboarding") {
       this.callbacks.onReplayOnboarding();
     }
@@ -1094,6 +1940,62 @@ function fmt(value: number, digits = 0): string {
     return "0";
   }
   return value.toFixed(digits);
+}
+
+function moneyBillions(valueInMillions: number): string {
+  if (!Number.isFinite(valueInMillions)) {
+    return "EUR 0.0B";
+  }
+  return `EUR ${(valueInMillions / 1000).toFixed(1)}B`;
+}
+
+function miniCoordX(value: number): number {
+  return miniCoordAxis(value, 12, 76);
+}
+
+function miniCoordY(value: number): number {
+  return miniCoordAxis(value, 4, 92);
+}
+
+function miniCoordAxis(value: number, offset: number, scale: number): number {
+  if (!Number.isFinite(value)) {
+    return 50;
+  }
+  return Math.max(4, Math.min(96, Math.round((offset + value * scale) * 10) / 10));
+}
+
+function miniRoutePath(
+  source: { x: number; y: number },
+  target: { x: number; y: number },
+  key: string,
+  strength: number
+): string {
+  const sx = miniCoordX(source.x);
+  const sy = miniCoordY(source.y);
+  const tx = miniCoordX(target.x);
+  const ty = miniCoordY(target.y);
+  const dx = tx - sx;
+  const dy = ty - sy;
+  const distance = Math.hypot(dx, dy) || 1;
+  const hash = miniHashString(key);
+  const sign = hash % 2 === 0 ? 1 : -1;
+  const jitter = ((hash % 9) - 4) * 0.36;
+  const curve = Math.min(20, Math.max(5, distance * 0.14 + strength + jitter));
+  const cx = miniClampCoord((sx + tx) / 2 - (dy / distance) * curve * sign);
+  const cy = miniClampCoord((sy + ty) / 2 + (dx / distance) * curve * sign);
+  return `M ${fmt(sx, 1)} ${fmt(sy, 1)} Q ${fmt(cx, 1)} ${fmt(cy, 1)} ${fmt(tx, 1)} ${fmt(ty, 1)}`;
+}
+
+function miniClampCoord(value: number): number {
+  return Math.max(2, Math.min(98, value));
+}
+
+function miniHashString(value: string): number {
+  let hash = 0;
+  for (let index = 0; index < value.length; index += 1) {
+    hash = (hash * 31 + value.charCodeAt(index)) >>> 0;
+  }
+  return hash;
 }
 
 function clampPctFloat(value: number): number {

@@ -15,6 +15,7 @@ declare global {
       onboarding: OnboardingController;
       runP0Scenario: () => void;
       runAlertScenario: () => void;
+      runConceptScenario: () => void;
       setHeatmap: (mode: HeatmapMode) => void;
       resetOnboarding: () => void;
     };
@@ -34,6 +35,8 @@ if (!hudRoot || !canvasRoot || !appRoot) {
 }
 
 document.documentElement.dataset.testMode = testMode ? "1" : "0";
+document.documentElement.dataset.egridSceneReady = "0";
+document.documentElement.dataset.conceptScenario = params.get("scenario") === "concept" ? "1" : "0";
 
 document.documentElement.style.setProperty(
   "--building-atlas",
@@ -43,10 +46,34 @@ document.documentElement.style.setProperty(
   "--building-art-atlas",
   cssUrlForPageAsset("assets/generated/building-card-art-atlas.png")
 );
+document.documentElement.style.setProperty(
+  "--grid-overview-map",
+  cssUrlForPageAsset("assets/generated/grid-overview-europe-map-only-v1.png")
+);
+document.documentElement.style.setProperty(
+  "--panel-chrome-texture",
+  cssUrlForPageAsset("assets/generated/panel-chrome-texture-v1.png")
+);
+for (const [name, file] of Object.entries({
+  energy: "00_energy.png",
+  datacenter: "01_datacenter.png",
+  cooling: "02_cooling.png",
+  research: "03_research.png",
+  grid: "04_grid.png"
+})) {
+  document.documentElement.style.setProperty(
+    `--utility-icon-${name}`,
+    cssUrlForPageAsset(`assets/ui/utility_icons_48px/${file}`)
+  );
+}
 
 const data = await DataLoader.load();
 const simulation = new SimulationCore(data);
 simulation.newGame(seed);
+const requestedRegion = params.get("region");
+if (requestedRegion && simulation.getRegionSnapshot(requestedRegion)) {
+  simulation.selectRegion(requestedRegion);
+}
 if (testMode) {
   simulation.setPaused(true);
 }
@@ -195,6 +222,7 @@ window.__EGRID__ = {
   onboarding,
   runP0Scenario,
   runAlertScenario,
+  runConceptScenario,
   setHeatmap: (mode: HeatmapMode) => {
     currentHeatmap = mode;
     scene.setHeatmapMode(mode);
@@ -204,6 +232,10 @@ window.__EGRID__ = {
   },
   resetOnboarding: () => onboarding?.reset()
 };
+
+if (params.get("scenario") === "concept") {
+  runConceptScenario();
+}
 
 function redraw(renderHud = true): void {
   scene.renderState();
@@ -247,6 +279,49 @@ function runAlertScenario(): void {
   scene.setHeatmapMode("cooling");
   currentHeatmap = "cooling";
   hud.setHeatmapMode("cooling");
+  redraw();
+  onboarding?.recordGameEvent({ type: "game_changed" });
+}
+
+function runConceptScenario(): void {
+  simulation.newGame(seed);
+  simulation.state.money = 50000;
+  const buildPlan: Array<[string, string]> = [
+    ["benelux", "university"],
+    ["benelux", "ai_research_center"],
+    ["benelux", "energy_research_center"],
+    ["benelux", "datacenter_standard"],
+    ["benelux", "datacenter_standard"],
+    ["benelux", "datacenter_standard"],
+    ["benelux", "sea_cooling"],
+    ["benelux", "sea_cooling"],
+    ["benelux", "gas_power_plant"],
+    ["benelux", "wind_onshore"],
+    ["fr_nord", "gas_power_plant"],
+    ["fr_nord", "datacenter_standard"],
+    ["de_west", "gas_power_plant"],
+    ["de_west", "datacenter_standard"],
+    ["dk", "wind_onshore"],
+    ["se_south", "sea_cooling"]
+  ];
+  for (const [regionId, buildingId] of buildPlan) {
+    simulation.requestBuilding(regionId, buildingId);
+  }
+  for (let index = 0; index < 24; index += 1) {
+    simulation.advanceMonth();
+  }
+  simulation.state.year = 2045;
+  simulation.state.month = 5;
+  simulation.state.month_index = 244;
+  simulation.state.money = 26900;
+  simulation.state.monthly_income = 1620;
+  simulation.state.eu_agi_progress = 67;
+  simulation.state.usa_agi_progress = 51;
+  simulation.selectRegion("benelux");
+  currentHeatmap = "energy";
+  scene.focusRegion("benelux");
+  scene.setHeatmapMode("energy");
+  hud.setHeatmapMode("energy");
   redraw();
   onboarding?.recordGameEvent({ type: "game_changed" });
 }
