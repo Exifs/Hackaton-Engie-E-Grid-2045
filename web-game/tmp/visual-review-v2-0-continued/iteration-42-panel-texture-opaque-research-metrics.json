@@ -1,0 +1,6 @@
+{
+  "buildPaletteBackground": "url(\"http://127.0.0.1:5173/assets/generated/panel-chrome-texture-v1.png\")",
+  "blend": "normal",
+  "researchPreviewCards": 4,
+  "overflowingVisibleTitles": 0
+}

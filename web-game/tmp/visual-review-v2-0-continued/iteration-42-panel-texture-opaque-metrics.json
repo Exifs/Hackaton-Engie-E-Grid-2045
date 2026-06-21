@@ -1,0 +1,82 @@
+[
+  {
+    "selector": ".top-kpi",
+    "present": true,
+    "backgroundImage": "url(\"http://127.0.0.1:5173/assets/generated/panel-chrome-texture-v1.png\")",
+    "backgroundSize": "100% 100%",
+    "backgroundBlendMode": "normal",
+    "backgroundColor": "rgba(3, 10, 15, 0.96)"
+  },
+  {
+    "selector": ".top-brand",
+    "present": true,
+    "backgroundImage": "url(\"http://127.0.0.1:5173/assets/generated/panel-chrome-texture-v1.png\")",
+    "backgroundSize": "100% 100%",
+    "backgroundBlendMode": "normal",
+    "backgroundColor": "rgba(3, 12, 18, 0.96)"
+  },
+  {
+    "selector": ".agi-duel",
+    "present": true,
+    "backgroundImage": "url(\"http://127.0.0.1:5173/assets/generated/panel-chrome-texture-v1.png\")",
+    "backgroundSize": "100% 100%",
+    "backgroundBlendMode": "normal",
+    "backgroundColor": "rgba(3, 11, 17, 0.96)"
+  },
+  {
+    "selector": ".kpi-chip",
+    "present": true,
+    "backgroundImage": "url(\"http://127.0.0.1:5173/assets/generated/panel-chrome-texture-v1.png\")",
+    "backgroundSize": "100% 100%",
+    "backgroundBlendMode": "normal",
+    "backgroundColor": "rgba(4, 13, 20, 0.94)"
+  },
+  {
+    "selector": ".time-controls",
+    "present": true,
+    "backgroundImage": "url(\"http://127.0.0.1:5173/assets/generated/panel-chrome-texture-v1.png\")",
+    "backgroundSize": "100% 100%",
+    "backgroundBlendMode": "normal",
+    "backgroundColor": "rgba(4, 13, 20, 0.94)"
+  },
+  {
+    "selector": ".top-menu-command",
+    "present": true,
+    "backgroundImage": "url(\"http://127.0.0.1:5173/assets/generated/panel-chrome-texture-v1.png\")",
+    "backgroundSize": "100% 100%",
+    "backgroundBlendMode": "normal",
+    "backgroundColor": "rgba(3, 10, 15, 0.96)"
+  },
+  {
+    "selector": ".build-palette",
+    "present": true,
+    "backgroundImage": "url(\"http://127.0.0.1:5173/assets/generated/panel-chrome-texture-v1.png\")",
+    "backgroundSize": "100% 100%",
+    "backgroundBlendMode": "normal",
+    "backgroundColor": "rgba(4, 13, 20, 0.94)"
+  },
+  {
+    "selector": ".grid-overview-card",
+    "present": true,
+    "backgroundImage": "url(\"http://127.0.0.1:5173/assets/generated/panel-chrome-texture-v1.png\")",
+    "backgroundSize": "100% 100%",
+    "backgroundBlendMode": "normal",
+    "backgroundColor": "rgba(4, 13, 20, 0.94)"
+  },
+  {
+    "selector": ".region-panel",
+    "present": true,
+    "backgroundImage": "url(\"http://127.0.0.1:5173/assets/generated/panel-chrome-texture-v1.png\")",
+    "backgroundSize": "100% 100%",
+    "backgroundBlendMode": "normal",
+    "backgroundColor": "rgba(4, 13, 20, 0.94)"
+  },
+  {
+    "selector": ".alerts-panel",
+    "present": true,
+    "backgroundImage": "url(\"http://127.0.0.1:5173/assets/generated/panel-chrome-texture-v1.png\")",
+    "backgroundSize": "100% 100%",
+    "backgroundBlendMode": "normal",
+    "backgroundColor": "rgba(4, 13, 20, 0.94)"
+  }
+]

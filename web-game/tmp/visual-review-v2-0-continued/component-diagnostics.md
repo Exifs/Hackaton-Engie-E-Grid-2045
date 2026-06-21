@@ -1,6 +1,8 @@
 # Component diagnostics - E-Grid 2045 v2.0 convergence
 
-Current audit screenshot: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-34b-concept-panel-texture-topbar.png`
+Current audit screenshot: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-43-panel-texture-9patch-scale-global.png`
+
+Current targeted component sheet: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-43-panel-texture-9patch-scale-contact-sheet.png`
 
 Reference: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\reference-v2-0.png`
 
@@ -200,5 +202,61 @@ Visible differences:
 Future actions:
 - Add targeted wheel tests for the region panel and research tab if further manual testing finds cursor-position dead zones.
 - Keep pointer-event changes scoped to HUD panels so the central map remains interactive outside the UI.
+
+Priority: Medium.
+
+## 10. Iteration 41 targeted component audit
+
+Current evidence:
+- Contact sheet: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-41-final-component-contact-sheet.png`
+- Concept-state global capture: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-41-final-concept-global-component-audit.png`
+- BUILD rail crop: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-41-final-concept-left-rail.png`
+- Real Recherche tab crop: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-41-final-real-research-tab-left-rail.png`
+- Recherche tooltip: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-41-final-real-research-tooltip.png`
+
+Updated current state:
+- The left BUILD rail no longer lets the mini GRID OVERVIEW cover the lower construction categories. `Grid & Network` is visible in both the real game and concept-state capture.
+- The `Grid & Network` row uses a non-actionable locked preview cell while the real locked `battery_storage` button remains absent at game start. This preserves the gameplay rule that locked buildings are not constructible before unlock.
+- Category titles are clickable and carry rich tooltips. In desktop `All` view, the horizontal category tab strip is hidden to recover vertical space; selecting a title switches to the single-category view where the category tabs return.
+- The Recherche tab now has a concept-compatible rail treatment even though it has no direct reference crop: active status, queue, compact preview cards, branch glyphs, and rich hover tooltips.
+- Recherche preview cards are non-actionable until prerequisites are met; metrics report `trueResearchActions: 0` at initial start and `previewTooltips: 4`.
+- Long Recherche labels are intentionally ellipsized inside cards and expanded through tooltips. Metrics confirm title boxes remain inside their card bounds.
+
+Visible differences:
+- The BUILD rail is more compact than the static concept because it keeps real controls for Construction/Recherche and locked filtering.
+- The current mini GRID OVERVIEW raster is recognizable and visible in the real game, but the reference still has denser cyan hubs and a more diagrammatic painted network.
+- Recherche has no concept-art reference and therefore follows the BUILD rail material/spacing rather than trying to copy a nonexistent layout.
+- The central map still shows real overlay controls, live routes and selected-slot affordances that are not present in the static art.
+
+Future actions:
+- If BUILD rail exactness becomes the next priority, generate or draw a monochrome card glyph set so compact cards look less like UI thumbnails and more like the concept's abstract slot icons.
+- If Recherche receives more content, add a dedicated wheel regression test for `.palette-body-research` from card surfaces, mirroring the construction scroll test.
+- If mini GRID OVERVIEW remains a priority, generate a less terrain-heavy raster variant with stronger central hub clustering.
+- Keep validating the real game first for empty start, locked construction and Recherche prerequisites before comparing against `scenario=concept`.
+
+Priority: High for keeping this state stable; medium for further art exactness.
+
+## 11. Iteration 43 panel texture scale correction
+
+Current evidence:
+- Contact sheet: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-43-panel-texture-9patch-scale-contact-sheet.png`
+- Metrics: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-43-panel-texture-9patch-scale-metrics.json`
+- Top bar crop: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-43-panel-texture-9patch-scale-topbar.png`
+- BUILD rail crop: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-43-panel-texture-9patch-scale-left-rail.png`
+- Recherche crop: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-43-panel-texture-9patch-scale-research-left-rail.png`
+
+Updated current state:
+- `panel-chrome-texture-v1.png` is now used as an opaque panel material, not a soft-light/translucent layer.
+- The bitmap is rendered with overscan and `border-image-slice: 92 fill`, so its thick painted border is compressed into a 7-10px CSS border instead of passing behind text and controls.
+- The center texture remains visible in panel interiors while large corner hardware is kept near the outer edge.
+- Metrics confirm `backgroundBlendMode: normal`, `borderImageSlice: 92 fill`, and component-specific overscan values on top bar, BUILD rail, region panel, alert dock and GRID OVERVIEW.
+
+Visible differences:
+- The texture is still a single source image adapted to many aspect ratios, not a hand-authored separate 9-patch for each panel shape.
+- The original concept has bespoke corner hardware per module; the game now uses a consistent shared material frame.
+
+Future actions:
+- If exact panel chrome remains a priority, generate separate horizontal, vertical and corner assets instead of deriving all panels from one square source.
+- Keep any future panel texture changes checked against text legibility crops, especially right-panel metrics and bottom alert cards.
 
 Priority: Medium.

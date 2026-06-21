@@ -893,7 +893,7 @@ export class GameHud {
     const label = this.buildCategoryLabel(category);
     const previewCount = Math.max(1, Math.min(4, items.length));
     return Array.from({ length: previewCount }, (_, index) => `
-      <button class="build-card is-disabled build-locked-preview-card" type="button" disabled ${this.tooltipAttrs(label, "Options verrouillees par la recherche ou le potentiel regional.", "A debloquer")}>
+      <span class="build-card is-disabled build-locked-preview-card" role="button" aria-disabled="true" ${this.tooltipAttrs(label, "Options verrouillees par la recherche ou le potentiel regional.", "A debloquer")}>
         <span class="build-visual locked-preview-art utility-category-icon utility-category-icon-${this.categoryIconKey(category)}" aria-hidden="true">
           <span>${index === 0 ? "Rech." : ""}</span>
         </span>
@@ -901,7 +901,7 @@ export class GameHud {
           <strong>${escapeHtml(label)}</strong>
           <small>A debloquer</small>
         </span>
-      </button>
+      </span>
     `).join("");
   }
 
@@ -1019,6 +1019,7 @@ export class GameHud {
       ? this.renderProgressValue(this.activeResearchProgressKey(active), activeTargetProgress, "--research-progress")
       : 0;
     const activePoints = active ? this.visualResearchPoints(active, monthProgress) : 0;
+    const hasVisibleOptions = visibleOptions.length > 0;
     const statusMarkup = active
       ? `
         <div class="research-status is-active" data-onboarding-target="research.status" ${this.progressAttributes(this.activeResearchProgressKey(active), "--research-progress", "research-active", activeTargetProgress)} data-progress-fill="research-active" data-progress-research-id="${escapeHtml(active.id)}" style="--research-progress:${activeProgress}%">
@@ -1038,11 +1039,38 @@ export class GameHud {
             ? `<span class="research-queue-empty">Aucune recherche en attente</span>`
             : queued.map((option) => this.researchQueueItem(option)).join("")}
         </div>
-        <div class="research-grid">
-          ${visibleOptions.map((option) => this.researchCard(option, buildings, monthProgress)).join("")}
+        <div class="research-grid ${hasVisibleOptions ? "" : "is-preview"}">
+          ${hasVisibleOptions
+            ? visibleOptions.map((option) => this.researchCard(option, buildings, monthProgress)).join("")
+            : this.researchPreviewCards(options)}
         </div>
       </div>
     `;
+  }
+
+  private researchPreviewCards(options: ResearchOption[]): string {
+    return options
+      .slice()
+      .sort((a, b) => a.tier - b.tier || a.branch.localeCompare(b.branch) || a.display_name.localeCompare(b.display_name))
+      .slice(0, 4)
+      .map((option) => {
+        const effect = this.researchEffect(option);
+        const meta = `${option.branch} T${option.tier} - ${fmt(option.cost)} pts`;
+        return `
+          <span class="research-card research-preview-card research-locked" role="button" aria-disabled="true" ${this.tooltipAttrs(option.display_name, option.reason || option.notes || effect, meta)}>
+            <span class="research-card-head">
+              <span class="research-card-glyph utility-category-icon utility-category-icon-${this.researchBranchIconKey(option.branch)}" aria-hidden="true"></span>
+              <span>
+                <strong>${escapeHtml(option.display_name)}</strong>
+                <small>${escapeHtml(option.branch)} T${option.tier}</small>
+              </span>
+            </span>
+            <span class="research-progress" style="--progress:0%"><b></b></span>
+            <span class="research-copy">${escapeHtml(option.reason || "Recherche requise")}</span>
+          </span>
+        `;
+      })
+      .join("");
   }
 
   private researchQueueItem(option: ResearchOption): string {
@@ -1076,9 +1104,13 @@ export class GameHud {
     const targetProgress = this.visualResearchProgress(option, monthProgress);
     const progress = this.renderProgressValue(progressKey, targetProgress, "--progress");
     const lockCause = option.lock_cause ? `data-lock-cause="${option.lock_cause}"` : "";
+    const tooltipBody = [option.reason || option.notes || effect, unlocks.length ? `Debloque: ${unlocks.join(", ")}` : ""]
+      .filter(Boolean)
+      .join(" | ");
     return `
-      <button class="research-card research-${option.status}" type="button" data-research="${option.id}" data-onboarding-target="research.${option.id}" ${lockCause} ${enabled ? "" : "disabled"} title="${escapeHtml(option.reason || option.notes)}">
+      <button class="research-card research-${option.status}" type="button" data-research="${option.id}" data-onboarding-target="research.${option.id}" ${lockCause} ${enabled ? "" : "disabled"} title="${escapeHtml(option.reason || option.notes)}" ${this.tooltipAttrs(option.display_name, tooltipBody, `${option.branch} T${option.tier} - ${fmt(option.cost)} pts`)}>
         <span class="research-card-head">
+          <span class="research-card-glyph utility-category-icon utility-category-icon-${this.researchBranchIconKey(option.branch)}" aria-hidden="true"></span>
           <strong>${escapeHtml(option.display_name)}</strong>
           <small>${escapeHtml(option.branch)} T${option.tier} · ${fmt(option.cost)} pts · ${this.researchEta(option)}</small>
         </span>
@@ -1100,6 +1132,20 @@ export class GameHud {
       return true;
     }
     return !RESEARCH_UNAVAILABLE_CAUSES.includes(option.lock_cause);
+  }
+
+  private researchBranchIconKey(branch: string): string {
+    const normalized = branch.toLowerCase();
+    if (normalized.includes("energy")) {
+      return "energy";
+    }
+    if (normalized.includes("infrastructure") || normalized.includes("grid")) {
+      return "grid";
+    }
+    if (normalized.includes("cool")) {
+      return "cooling";
+    }
+    return "research";
   }
 
   private visualResearchPoints(option: ResearchOption, monthProgress: number): number {

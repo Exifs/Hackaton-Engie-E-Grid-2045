@@ -457,7 +457,7 @@ test.describe("E-Grid 2045 web game visuals", () => {
       game.hud.render();
     });
     await page.locator('[data-palette-tab="construction"]').click();
-    await page.locator('[data-build-category="grid"]').click();
+    await page.locator('[data-build-category-title="grid"]').click();
     const battery = page.locator(".build-card", { hasText: "Batterie" });
     await expect(battery).toBeVisible();
     await expect(battery).not.toBeDisabled();
@@ -831,7 +831,7 @@ test.describe("E-Grid 2045 web game visuals", () => {
     await page.locator('[data-filter-toggle="unavailable-research"]').click();
     await expect(page.locator('[data-research="batteries"]')).toBeVisible();
     await page.locator('[data-palette-tab="construction"]').click();
-    await page.locator('[data-build-category="energy"]').click();
+    await page.locator('[data-build-category-title="energy"]').click();
     await page.locator('[data-build="gas_power_plant"]').click();
 
     const queueLength = await page.evaluate(() =>

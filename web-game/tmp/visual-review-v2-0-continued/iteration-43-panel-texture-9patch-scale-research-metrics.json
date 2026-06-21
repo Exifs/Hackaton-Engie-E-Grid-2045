@@ -1,0 +1,7 @@
+{
+  "paletteBackgroundSize": "calc(100% + 150px) calc(100% + 150px)",
+  "borderImageWidth": "10px",
+  "blend": "normal",
+  "researchPreviewCards": 4,
+  "overflowingVisibleTitles": 0
+}

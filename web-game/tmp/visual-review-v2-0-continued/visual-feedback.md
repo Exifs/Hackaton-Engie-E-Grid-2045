@@ -987,3 +987,86 @@ What should be tried next:
 
 Regressions introduced:
 - None observed in screenshots. `iteration-34b-panel-texture-metrics.json` verifies the texture is loaded on all major desktop panels and top-bar submodules.
+
+## Iteration 41 - Targeted component audit, BUILD rail fit and Recherche tab
+
+Screenshots and metrics:
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-41-final-component-contact-sheet.png`
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-41-final-concept-global-component-audit.png`
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-41-final-concept-left-rail.png`
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-41-final-concept-mini-grid-overview.png`
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-41-final-real-research-tab-left-rail.png`
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-41-final-real-research-tooltip.png`
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-41-final-concept-component-metrics.json`
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-41-final-real-research-metrics.json`
+
+What is closer to the concept art and the playable game:
+- The left rail now shows the five BUILD families before GRID OVERVIEW. The mini overview no longer covers the lower category stack.
+- `GRID & NETWORK` remains visible even at game start, but only as a locked preview cell. The actual locked building button is still absent until unlock, preserving gameplay state.
+- The mini GRID OVERVIEW is visible in the real game and in the concept-state capture after the rail layout changes.
+- Recherche now has a compact rail treatment matching BUILD's material language: status card, queue card, branch-glyph preview cards, and rich hover tooltips.
+- Recherche preview cards are not real research actions before prerequisites are met; the initial real-game metric reports `trueResearchActions: 0`.
+- Long Recherche titles are clipped inside their cards rather than overlapping adjacent cards, with the full detail available in tooltip.
+
+What still differs visibly:
+- The BUILD rail remains denser than the static concept because it keeps Construction/Recherche and filter controls.
+- The mini GRID OVERVIEW still uses a generated terrain-like raster rather than the reference's exact painted cyan topology.
+- Recherche has no direct concept reference, so it is intentionally adapted rather than copied.
+- Alert titles can still ellipsize because live alert copy is longer than the concept's short hand-authored labels.
+- Central-map assets and routes remain the largest art-source gap versus the painted concept.
+
+What was changed:
+- Fixed desktop rail layout so the BUILD body and mini GRID OVERVIEW occupy separate rows.
+- Hid the horizontal category tab strip in desktop `All` view and made category titles clickable with rich tooltips, recovering vertical space without removing category navigation.
+- Added non-actionable locked preview cells for categories with no currently visible build options.
+- Added Recherche preview cards, branch glyph mapping, and rich tooltips for Recherche cards.
+- Updated Playwright tests to use visible category-title interactions and preserve locked-state expectations.
+- Updated `component-diagnostics.md` with the current targeted audit.
+
+What should be tried next:
+- Generate a tighter mini GRID OVERVIEW raster variant if this component remains the priority.
+- Consider a compact monochrome slot/glyph atlas for BUILD cards if the card thumbnails still feel too literal.
+- Add a Recherche wheel-position regression test if manual testing finds scroll dead zones in that tab.
+
+Regressions introduced:
+- Initial test runs caught hidden-category-tab selectors and a real locked building button appearing too early; both were fixed.
+- Final validation passed `pnpm lint`, the targeted Playwright visual subset for BUILD/Recherche/dock interactions, and `pnpm build`.
+- `pnpm build` still emits the existing Vite chunk-size warning for the large bundled game chunk.
+
+## Iteration 43 - Opaque panel texture with scaled 9-patch treatment
+
+Screenshots and metrics:
+- Source texture: `C:\Users\cleme\.codex\generated_images\019ee6ab-f27a-78b2-904c-b7a46fb678d8\ig_07ae84ef8f8336f6016a3751a608ac8191a6837a916cd69d81.png`
+- Project asset: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\public\assets\generated\panel-chrome-texture-v1.png`
+- Contact sheet: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-43-panel-texture-9patch-scale-contact-sheet.png`
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-43-panel-texture-9patch-scale-topbar.png`
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-43-panel-texture-9patch-scale-left-rail.png`
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-43-panel-texture-9patch-scale-right-panel.png`
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-43-panel-texture-9patch-scale-alert-dock.png`
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-43-panel-texture-9patch-scale-research-left-rail.png`
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-43-panel-texture-9patch-scale-metrics.json`
+
+What is closer to the concept art and the playable game:
+- The generated panel texture is now visibly used as an opaque bitmap on the major panels and top-bar modules.
+- It is no longer blended as `soft-light`, so the material, scan grain and edge hardware are perceptible.
+- The too-large painted borders from the first opaque pass were corrected with overscan plus `border-image-slice: 92 fill`; the border now renders at 7-10px instead of sitting under content.
+- Text readability is restored on the top bar, BUILD rail, right panel, alert dock, mini GRID OVERVIEW and Recherche tab.
+
+What still differs visibly:
+- This remains a shared square texture adapted to multiple rectangular panels, not a bespoke per-panel chrome asset.
+- Some corners are less exact than the concept because the same source frame is being sliced and scaled everywhere.
+
+What was changed:
+- Replaced panel texture `soft-light` usage with normal opaque bitmap rendering.
+- Added shared overscan variables and CSS `border-image` slicing for the panel texture.
+- Tuned smaller overscan/border widths for top-bar modules and mini GRID OVERVIEW.
+- Captured component-specific texture metrics showing `backgroundBlendMode: normal`, `backgroundSize: calc(...)`, and `borderImageWidth` values.
+
+What should be tried next:
+- If this still feels too generic, generate a real 9-patch asset set: corners, horizontal rails, vertical rails and center fill as separate images.
+- Keep future panel changes checked with targeted crops before comparing the full screen.
+
+Regressions introduced:
+- The first opaque texture attempt made borders too large and hurt readability; iteration 43 fixed that by scaling/slicing the texture.
+- Final validation passed `pnpm lint`, targeted Playwright visual tests for desktop/BUILD/Recherche/dock interactions, and `pnpm build`.
+- `pnpm build` still emits the existing Vite chunk-size warning for the large bundled game chunk.

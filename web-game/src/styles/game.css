@@ -1256,6 +1256,9 @@ html[data-egrid-scene-ready="0"] #game-canvas canvas {
   --panel-edge: rgba(137, 234, 255, 0.36);
   --panel-glass: rgba(8, 30, 43, 0.84);
   --panel-deep: rgba(2, 10, 17, 0.86);
+  --panel-texture-overscan-x: 140px;
+  --panel-texture-overscan-y: 140px;
+  --panel-texture-border-width: 12px;
 }
 
 .kpi-chip,
@@ -1266,14 +1269,18 @@ html[data-egrid-scene-ready="0"] #game-canvas canvas {
 .build-palette {
   overflow: hidden;
   border-color: var(--panel-edge);
-  background:
-    linear-gradient(180deg, rgba(3, 12, 18, 0.82), rgba(2, 8, 12, 0.9)),
-    var(--panel-chrome-texture),
-    linear-gradient(135deg, rgba(76, 235, 255, 0.12), transparent 34%),
-    linear-gradient(180deg, var(--panel-glass), var(--panel-deep));
+  background-color: rgba(4, 13, 20, 0.94);
+  background-image: var(--panel-chrome-texture);
   background-position: center;
-  background-size: 100% 100%, 100% 100%, auto, auto;
-  background-blend-mode: normal, soft-light, normal, normal;
+  background-size:
+    calc(100% + var(--panel-texture-overscan-x))
+    calc(100% + var(--panel-texture-overscan-y));
+  background-repeat: no-repeat;
+  background-blend-mode: normal;
+  border-image-source: var(--panel-chrome-texture);
+  border-image-slice: 92 fill;
+  border-image-width: var(--panel-texture-border-width);
+  border-image-repeat: stretch;
   box-shadow:
     0 18px 46px rgba(0, 0, 0, 0.34),
     inset 0 1px 0 rgba(255, 255, 255, 0.08),
@@ -1609,21 +1616,47 @@ html[data-egrid-scene-ready="0"] #game-canvas canvas {
 
 .research-card-head {
   display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
   gap: 3px;
+  align-items: center;
+}
+
+.research-card-glyph {
+  grid-row: 1 / span 2;
+  width: 34px;
+  height: 34px;
+  border: 1px solid rgba(83, 231, 255, 0.32);
+  border-radius: 6px;
+  background-color: rgba(7, 25, 35, 0.88);
 }
 
 .research-card-head strong,
 .research-card-head small,
 .research-copy {
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.research-card-head > span:not(.research-card-glyph) {
+  min-width: 0;
 }
 
 .research-card-head small,
 .research-copy {
   color: var(--muted);
   font-size: 11px;
+}
+
+.research-card-head strong,
+.research-card-head small {
+  grid-column: 2;
+}
+
+.research-preview-card {
+  cursor: not-allowed;
+  opacity: 0.68;
 }
 
 .research-progress {
@@ -2462,19 +2495,22 @@ html[data-egrid-scene-ready="0"] #game-canvas canvas {
   .region-panel,
   .alerts-panel,
   .grid-overview-card {
+    --panel-texture-overscan-x: 150px;
+    --panel-texture-overscan-y: 150px;
+    --panel-texture-border-width: 10px;
     border-color: rgba(137, 234, 255, 0.38);
-    background:
-      linear-gradient(135deg, rgba(137, 234, 255, 0.28) 0 8px, transparent 9px) top left / 30px 30px no-repeat,
-      linear-gradient(225deg, rgba(137, 234, 255, 0.22) 0 8px, transparent 9px) top right / 30px 30px no-repeat,
-      linear-gradient(45deg, rgba(137, 234, 255, 0.16) 0 8px, transparent 9px) bottom left / 30px 30px no-repeat,
-      linear-gradient(315deg, rgba(137, 234, 255, 0.16) 0 8px, transparent 9px) bottom right / 30px 30px no-repeat,
-      linear-gradient(180deg, rgba(3, 12, 18, 0.76), rgba(2, 8, 12, 0.9)),
-      var(--panel-chrome-texture),
-      linear-gradient(135deg, rgba(76, 235, 255, 0.1), transparent 34%),
-      linear-gradient(180deg, rgba(8, 30, 43, 0.88), rgba(2, 10, 17, 0.88));
-    background-position: top left, top right, bottom left, bottom right, center, center, center, center;
-    background-size: 30px 30px, 30px 30px, 30px 30px, 30px 30px, 100% 100%, 100% 100%, auto, auto;
-    background-blend-mode: normal, normal, normal, normal, normal, soft-light, normal, normal;
+    background-color: rgba(4, 13, 20, 0.94);
+    background-image: var(--panel-chrome-texture);
+    background-position: center;
+    background-size:
+      calc(100% + var(--panel-texture-overscan-x))
+      calc(100% + var(--panel-texture-overscan-y));
+    background-repeat: no-repeat;
+    background-blend-mode: normal;
+    border-image-source: var(--panel-chrome-texture);
+    border-image-slice: 92 fill;
+    border-image-width: var(--panel-texture-border-width);
+    border-image-repeat: stretch;
     clip-path: polygon(10px 0, calc(100% - 10px) 0, 100% 10px, 100% calc(100% - 10px), calc(100% - 10px) 100%, 10px 100%, 0 calc(100% - 10px), 0 10px);
     box-shadow:
       0 0 0 1px rgba(0, 0, 0, 0.72),
@@ -2494,6 +2530,9 @@ html[data-egrid-scene-ready="0"] #game-canvas canvas {
   }
 
   .top-kpi {
+    --panel-texture-overscan-x: 220px;
+    --panel-texture-overscan-y: 56px;
+    --panel-texture-border-width: 8px;
     top: 8px;
     left: 8px;
     right: 8px;
@@ -2501,13 +2540,18 @@ html[data-egrid-scene-ready="0"] #game-canvas canvas {
     padding: 8px;
     border: 1px solid rgba(137, 234, 255, 0.26);
     border-radius: 7px;
-    background:
-      linear-gradient(90deg, rgba(3, 10, 15, 0.96), rgba(8, 22, 30, 0.88)),
-      var(--panel-chrome-texture),
-      rgba(3, 10, 15, 0.94);
+    background-color: rgba(3, 10, 15, 0.96);
+    background-image: var(--panel-chrome-texture);
     background-position: center;
-    background-size: 100% 100%, 100% 100%, auto;
-    background-blend-mode: normal, soft-light, normal;
+    background-size:
+      calc(100% + var(--panel-texture-overscan-x))
+      calc(100% + var(--panel-texture-overscan-y));
+    background-repeat: no-repeat;
+    background-blend-mode: normal;
+    border-image-source: var(--panel-chrome-texture);
+    border-image-slice: 92 fill;
+    border-image-width: var(--panel-texture-border-width);
+    border-image-repeat: stretch;
     box-shadow:
       0 14px 36px rgba(0, 0, 0, 0.46),
       inset 0 1px 0 rgba(255, 255, 255, 0.05);
@@ -2524,6 +2568,9 @@ html[data-egrid-scene-ready="0"] #game-canvas canvas {
   }
 
   .top-brand {
+    --panel-texture-overscan-x: 78px;
+    --panel-texture-overscan-y: 46px;
+    --panel-texture-border-width: 7px;
     position: relative;
     display: grid;
     align-content: center;
@@ -2532,15 +2579,18 @@ html[data-egrid-scene-ready="0"] #game-canvas canvas {
     overflow: hidden;
     border: 1px solid rgba(137, 234, 255, 0.18);
     border-radius: 5px;
-    background:
-      linear-gradient(180deg, rgba(3, 12, 18, 0.7), rgba(2, 8, 12, 0.88)),
-      var(--panel-chrome-texture),
-      linear-gradient(145deg, rgba(137, 234, 255, 0.12), transparent 42%),
-      repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.018) 0 1px, transparent 1px 4px),
-      linear-gradient(180deg, rgba(10, 26, 35, 0.86), rgba(3, 10, 15, 0.94));
+    background-color: rgba(3, 12, 18, 0.96);
+    background-image: var(--panel-chrome-texture);
     background-position: center;
-    background-size: 100% 100%, 100% 100%, auto, auto, auto;
-    background-blend-mode: normal, soft-light, normal, normal, normal;
+    background-size:
+      calc(100% + var(--panel-texture-overscan-x))
+      calc(100% + var(--panel-texture-overscan-y));
+    background-repeat: no-repeat;
+    background-blend-mode: normal;
+    border-image-source: var(--panel-chrome-texture);
+    border-image-slice: 92 fill;
+    border-image-width: var(--panel-texture-border-width);
+    border-image-repeat: stretch;
     box-shadow:
       inset 0 0 0 1px rgba(255, 255, 255, 0.035),
       inset 0 0 26px rgba(83, 231, 255, 0.07);
@@ -2600,6 +2650,9 @@ html[data-egrid-scene-ready="0"] #game-canvas canvas {
   }
 
   .agi-duel {
+    --panel-texture-overscan-x: 96px;
+    --panel-texture-overscan-y: 48px;
+    --panel-texture-border-width: 7px;
     position: relative;
     display: grid;
     grid-template-columns: minmax(0, 1fr) 66px 28px 66px minmax(0, 0.78fr);
@@ -2610,14 +2663,18 @@ html[data-egrid-scene-ready="0"] #game-canvas canvas {
     overflow: hidden;
     border: 1px solid rgba(137, 234, 255, 0.22);
     border-radius: 4px;
-    background:
-      linear-gradient(90deg, rgba(3, 12, 18, 0.74), rgba(2, 8, 12, 0.86)),
-      var(--panel-chrome-texture),
-      linear-gradient(90deg, rgba(8, 24, 33, 0.88), rgba(3, 11, 17, 0.78)),
-      rgba(3, 11, 17, 0.9);
+    background-color: rgba(3, 11, 17, 0.96);
+    background-image: var(--panel-chrome-texture);
     background-position: center;
-    background-size: 100% 100%, 100% 100%, auto, auto;
-    background-blend-mode: normal, soft-light, normal, normal;
+    background-size:
+      calc(100% + var(--panel-texture-overscan-x))
+      calc(100% + var(--panel-texture-overscan-y));
+    background-repeat: no-repeat;
+    background-blend-mode: normal;
+    border-image-source: var(--panel-chrome-texture);
+    border-image-slice: 92 fill;
+    border-image-width: var(--panel-texture-border-width);
+    border-image-repeat: stretch;
     box-shadow:
       inset 1px 0 0 rgba(137, 234, 255, 0.12),
       inset -1px 0 0 rgba(255, 111, 44, 0.08);
@@ -2762,16 +2819,23 @@ html[data-egrid-scene-ready="0"] #game-canvas canvas {
 
   .kpi-chip,
   .time-controls {
+    --panel-texture-overscan-x: 86px;
+    --panel-texture-overscan-y: 46px;
+    --panel-texture-border-width: 7px;
     min-height: 68px;
     border-radius: 4px;
-    background:
-      linear-gradient(180deg, rgba(3, 12, 18, 0.68), rgba(2, 8, 12, 0.84)),
-      var(--panel-chrome-texture),
-      linear-gradient(180deg, rgba(11, 27, 36, 0.86), rgba(4, 13, 20, 0.78)),
-      rgba(4, 13, 20, 0.86);
+    background-color: rgba(4, 13, 20, 0.94);
+    background-image: var(--panel-chrome-texture);
     background-position: center;
-    background-size: 100% 100%, 100% 100%, auto, auto;
-    background-blend-mode: normal, soft-light, normal, normal;
+    background-size:
+      calc(100% + var(--panel-texture-overscan-x))
+      calc(100% + var(--panel-texture-overscan-y));
+    background-repeat: no-repeat;
+    background-blend-mode: normal;
+    border-image-source: var(--panel-chrome-texture);
+    border-image-slice: 92 fill;
+    border-image-width: var(--panel-texture-border-width);
+    border-image-repeat: stretch;
     box-shadow: inset 1px 0 0 rgba(137, 234, 255, 0.1);
   }
 
@@ -2864,20 +2928,27 @@ html[data-egrid-scene-ready="0"] #game-canvas canvas {
   }
 
   .top-menu-command {
+    --panel-texture-overscan-x: 58px;
+    --panel-texture-overscan-y: 46px;
+    --panel-texture-border-width: 7px;
     position: relative;
     display: grid;
     place-items: center;
     min-height: 68px;
     border: 1px solid rgba(137, 234, 255, 0.22);
     border-radius: 5px;
-    background:
-      linear-gradient(180deg, rgba(3, 12, 18, 0.7), rgba(2, 8, 12, 0.88)),
-      var(--panel-chrome-texture),
-      linear-gradient(145deg, rgba(137, 234, 255, 0.09), transparent 45%),
-      linear-gradient(180deg, rgba(10, 26, 35, 0.9), rgba(3, 10, 15, 0.92));
+    background-color: rgba(3, 10, 15, 0.96);
+    background-image: var(--panel-chrome-texture);
     background-position: center;
-    background-size: 100% 100%, 100% 100%, auto, auto;
-    background-blend-mode: normal, soft-light, normal, normal;
+    background-size:
+      calc(100% + var(--panel-texture-overscan-x))
+      calc(100% + var(--panel-texture-overscan-y));
+    background-repeat: no-repeat;
+    background-blend-mode: normal;
+    border-image-source: var(--panel-chrome-texture);
+    border-image-slice: 92 fill;
+    border-image-width: var(--panel-texture-border-width);
+    border-image-repeat: stretch;
     cursor: pointer;
     box-shadow:
       inset 0 0 0 1px rgba(255, 255, 255, 0.035),
@@ -2935,6 +3006,9 @@ html[data-egrid-scene-ready="0"] #game-canvas canvas {
   }
 
   .grid-overview-card {
+    --panel-texture-overscan-x: 96px;
+    --panel-texture-overscan-y: 72px;
+    --panel-texture-border-width: 7px;
     position: relative;
     z-index: 2;
     display: grid;
@@ -2947,14 +3021,18 @@ html[data-egrid-scene-ready="0"] #game-canvas canvas {
     overflow: hidden;
     border: 1px solid rgba(137, 234, 255, 0.24);
     border-radius: 4px;
-    background:
-      linear-gradient(180deg, rgba(3, 12, 18, 0.76), rgba(2, 8, 12, 0.9)),
-      var(--panel-chrome-texture),
-      linear-gradient(135deg, rgba(31, 83, 97, 0.18), rgba(4, 13, 20, 0.92)),
-      rgba(4, 13, 20, 0.9);
+    background-color: rgba(4, 13, 20, 0.94);
+    background-image: var(--panel-chrome-texture);
     background-position: center;
-    background-size: 100% 100%, 100% 100%, auto, auto;
-    background-blend-mode: normal, soft-light, normal, normal;
+    background-size:
+      calc(100% + var(--panel-texture-overscan-x))
+      calc(100% + var(--panel-texture-overscan-y));
+    background-repeat: no-repeat;
+    background-blend-mode: normal;
+    border-image-source: var(--panel-chrome-texture);
+    border-image-slice: 92 fill;
+    border-image-width: var(--panel-texture-border-width);
+    border-image-repeat: stretch;
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 0.06),
       inset 0 0 34px rgba(83, 231, 255, 0.08);
@@ -3470,6 +3548,58 @@ html[data-egrid-scene-ready="0"] #game-canvas canvas {
   }
 
   .build-copy small {
+    display: none;
+  }
+
+  .palette-body-research .research-panel {
+    display: grid;
+    gap: 8px;
+    padding-top: 0;
+  }
+
+  .palette-body-research .research-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 7px;
+  }
+
+  .palette-body-research .research-card {
+    min-height: 82px;
+    padding: 7px;
+    border-radius: 4px;
+  }
+
+  .palette-body-research .research-card-head {
+    grid-template-columns: 32px minmax(0, 1fr);
+  }
+
+  .palette-body-research .research-card-glyph {
+    width: 32px;
+    height: 32px;
+    border-radius: 5px;
+  }
+
+  .palette-body-research .research-card-head strong {
+    display: block;
+    max-width: 100%;
+    font-size: 9px;
+    line-height: 1.15;
+    text-transform: uppercase;
+  }
+
+  .palette-body-research .research-card-head small,
+  .palette-body-research .research-copy {
+    font-size: 9px;
+  }
+
+  .palette-body-research .research-copy {
+    white-space: normal;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+
+  .palette-body-research .research-tags {
     display: none;
   }
 
