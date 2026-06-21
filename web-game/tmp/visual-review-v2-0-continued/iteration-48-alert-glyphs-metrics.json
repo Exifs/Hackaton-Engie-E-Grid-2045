@@ -1,0 +1,158 @@
+{
+  "panelRect": {
+    "x": 8,
+    "y": 932,
+    "width": 1776,
+    "height": 84,
+    "bottom": 1016,
+    "right": 1784
+  },
+  "panelOverflowY": 0,
+  "cards": [
+    {
+      "index": 0,
+      "className": "alert-item alert-power_warning alert-kind-warning is-actionable",
+      "title": "Energy deficit - Italie Sud & îles",
+      "cardRect": {
+        "x": 17,
+        "y": 941,
+        "width": 334,
+        "height": 66,
+        "bottom": 1007,
+        "right": 351
+      },
+      "iconRect": {
+        "x": 25,
+        "y": 961,
+        "width": 26,
+        "height": 26,
+        "bottom": 987,
+        "right": 51
+      },
+      "mainWidthRatio": 0.71,
+      "titleOverflowX": 0,
+      "cardOverflowY": 0,
+      "beforeContent": "\"\"",
+      "beforeClipPath": "polygon(50% 0px, 100% 100%, 0px 100%)",
+      "beforeBackground": "none",
+      "afterContent": "\"\"",
+      "afterBackground": "linear-gradient(rgb(247, 207, 160), rgb(247, 207, 160)), radial-gradient(circle, rgb(247, 207, 160) 0px, rgb(247, 207, 160) 2px, rgba(0, 0, 0, 0) 2.2px)"
+    },
+    {
+      "index": 1,
+      "className": "alert-item alert-power_warning alert-kind-warning is-actionable",
+      "title": "Energy deficit - Baltique Nord",
+      "cardRect": {
+        "x": 359,
+        "y": 941,
+        "width": 334,
+        "height": 66,
+        "bottom": 1007,
+        "right": 693
+      },
+      "iconRect": {
+        "x": 367,
+        "y": 961,
+        "width": 26,
+        "height": 26,
+        "bottom": 987,
+        "right": 393
+      },
+      "mainWidthRatio": 0.71,
+      "titleOverflowX": 0,
+      "cardOverflowY": 0,
+      "beforeContent": "\"\"",
+      "beforeClipPath": "polygon(50% 0px, 100% 100%, 0px 100%)",
+      "beforeBackground": "none",
+      "afterContent": "\"\"",
+      "afterBackground": "linear-gradient(rgb(247, 207, 160), rgb(247, 207, 160)), radial-gradient(circle, rgb(247, 207, 160) 0px, rgb(247, 207, 160) 2px, rgba(0, 0, 0, 0) 2.2px)"
+    },
+    {
+      "index": 2,
+      "className": "alert-item alert-power_warning alert-kind-warning is-actionable",
+      "title": "Energy deficit - Méditerranée insulaire",
+      "cardRect": {
+        "x": 701,
+        "y": 941,
+        "width": 334,
+        "height": 66,
+        "bottom": 1007,
+        "right": 1035
+      },
+      "iconRect": {
+        "x": 709,
+        "y": 961,
+        "width": 26,
+        "height": 26,
+        "bottom": 987,
+        "right": 735
+      },
+      "mainWidthRatio": 0.71,
+      "titleOverflowX": 0,
+      "cardOverflowY": 0,
+      "beforeContent": "\"\"",
+      "beforeClipPath": "polygon(50% 0px, 100% 100%, 0px 100%)",
+      "beforeBackground": "none",
+      "afterContent": "\"\"",
+      "afterBackground": "linear-gradient(rgb(247, 207, 160), rgb(247, 207, 160)), radial-gradient(circle, rgb(247, 207, 160) 0px, rgb(247, 207, 160) 2px, rgba(0, 0, 0, 0) 2.2px)"
+    },
+    {
+      "index": 3,
+      "className": "alert-item alert-power_warning alert-kind-research is-actionable",
+      "title": "Researchers insufficient - Europe",
+      "cardRect": {
+        "x": 1043,
+        "y": 941,
+        "width": 334,
+        "height": 66,
+        "bottom": 1007,
+        "right": 1377
+      },
+      "iconRect": {
+        "x": 1051,
+        "y": 961,
+        "width": 26,
+        "height": 26,
+        "bottom": 987,
+        "right": 1077
+      },
+      "mainWidthRatio": 0.71,
+      "titleOverflowX": 0,
+      "cardOverflowY": 0,
+      "beforeContent": "\"\"",
+      "beforeClipPath": "none",
+      "beforeBackground": "none",
+      "afterContent": "\"\"",
+      "afterBackground": "radial-gradient(circle, rgb(138, 196, 255) 0px, rgb(138, 196, 255) 2px, rgba(0, 0, 0, 0) 2.4px), linear-gradient(rgb(138, 196, 255), rgb(138, 196, 255)), linear-gradient(90deg, rgb(138, 196, 255), rgb(138, 196, 255))"
+    },
+    {
+      "index": 4,
+      "className": "alert-item alert-power_warning alert-kind-network is-actionable",
+      "title": "Network saturated - Suède Sud",
+      "cardRect": {
+        "x": 1385,
+        "y": 941,
+        "width": 334,
+        "height": 66,
+        "bottom": 1007,
+        "right": 1719
+      },
+      "iconRect": {
+        "x": 1393,
+        "y": 961,
+        "width": 26,
+        "height": 26,
+        "bottom": 987,
+        "right": 1419
+      },
+      "mainWidthRatio": 0.71,
+      "titleOverflowX": 0,
+      "cardOverflowY": 0,
+      "beforeContent": "\"\"",
+      "beforeClipPath": "none",
+      "beforeBackground": "linear-gradient(90deg, rgba(0, 0, 0, 0) 0px, rgba(0, 0, 0, 0) 3px, rgb(255, 193, 95) 3px, rgb(255, 193, 95) 4px, rgba(0, 0, 0, 0) 4px, rgba(0, 0, 0, 0) 10px, rgb(255, 193, 95) 10px, rgb(255, 193, 95) 11px, rgba(0, 0, 0, 0) 11px), linear-gradient(rgba(0, 0, 0, 0) 0px, rgba(0, 0, 0, 0) 3px, rgb(255, 193, 95) 3px, rgb(255, 193, 95) 4px, rgba(0, 0, 0, 0) 4px, rgba(0, 0, 0, 0) 10px, rgb(255, 193, 95) 10px, rgb(255, 193, 95) 11px, rgba(0, 0, 0, 0) 11px)",
+      "afterContent": "\"\"",
+      "afterBackground": "none"
+    }
+  ]
+}

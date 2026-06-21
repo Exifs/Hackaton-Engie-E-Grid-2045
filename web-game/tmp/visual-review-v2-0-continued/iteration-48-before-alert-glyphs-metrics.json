@@ -1,0 +1,47 @@
+[
+  {
+    "index": 0,
+    "className": "alert-item alert-power_warning alert-kind-warning is-actionable",
+    "beforeContent": "\"!\"",
+    "iconWidth": 26,
+    "iconHeight": 26,
+    "color": "rgb(247, 207, 160)",
+    "borderColor": "rgba(255, 103, 88, 0.56)"
+  },
+  {
+    "index": 1,
+    "className": "alert-item alert-power_warning alert-kind-warning is-actionable",
+    "beforeContent": "\"!\"",
+    "iconWidth": 26,
+    "iconHeight": 26,
+    "color": "rgb(247, 207, 160)",
+    "borderColor": "rgba(255, 103, 88, 0.56)"
+  },
+  {
+    "index": 2,
+    "className": "alert-item alert-power_warning alert-kind-warning is-actionable",
+    "beforeContent": "\"!\"",
+    "iconWidth": 26,
+    "iconHeight": 26,
+    "color": "rgb(247, 207, 160)",
+    "borderColor": "rgba(255, 103, 88, 0.56)"
+  },
+  {
+    "index": 3,
+    "className": "alert-item alert-power_warning alert-kind-research is-actionable",
+    "beforeContent": "\"*\"",
+    "iconWidth": 26,
+    "iconHeight": 26,
+    "color": "rgb(138, 196, 255)",
+    "borderColor": "rgba(83, 185, 255, 0.58)"
+  },
+  {
+    "index": 4,
+    "className": "alert-item alert-power_warning alert-kind-network is-actionable",
+    "beforeContent": "\"#\"",
+    "iconWidth": 26,
+    "iconHeight": 26,
+    "color": "rgb(255, 193, 95)",
+    "borderColor": "rgba(255, 193, 95, 0.6)"
+  }
+]

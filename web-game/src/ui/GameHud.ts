@@ -44,6 +44,7 @@ const MIN_DOCK_HEIGHT = 190;
 const MIN_RIGHT_PANEL_WIDTH = 280;
 
 type ResizeTarget = "dock" | "region";
+type RegionPanelTab = "overview" | "buildings" | "stats";
 type QueueProgressItem = { building_id: string; months_remaining: number; total_months: number };
 type ProgressCssVar = "--progress" | "--research-progress";
 
@@ -60,6 +61,7 @@ export class GameHud {
   private heatmapMode: HeatmapMode = "energy";
   private paletteOpen = !window.matchMedia("(max-width: 720px)").matches;
   private activeDockTab: "construction" | "research" = "construction";
+  private activeRegionTab: RegionPanelTab = "overview";
   private activeBuildCategory = ALL_BUILD_CATEGORY;
   private showLockedBuildings = false;
   private showUnavailableResearch = false;
@@ -86,6 +88,7 @@ export class GameHud {
   private progressAnimationFrame: number | null = null;
   private tooltipElement?: HTMLElement;
   private tooltipTrigger?: HTMLElement;
+  private tooltipSuppressedUntil = 0;
 
   constructor(root: HTMLElement, simulation: SimulationCore, callbacks: HudCallbacks) {
     this.root = root;
@@ -291,7 +294,7 @@ export class GameHud {
     const delta = eu - usa;
     const meta = delta >= 0 ? `Europe +${fmt(delta)} pts` : `USA +${fmt(Math.abs(delta))} pts`;
     return `
-      <section class="agi-duel" aria-label="Progression AGI Europe contre USA" data-onboarding-target="kpi.agi" ${this.tooltipAttrs("Course AGI", `Europe ${fmt(eu)}% contre USA ${fmt(usa)}%. Les anneaux indiquent la progression strategique globale.`, meta)}>
+      <section class="agi-duel" aria-label="Progression AGI Europe contre USA" data-onboarding-target="kpi.agi" ${this.tooltipAttrs("Course AGI", `Europe ${fmt(eu)}% contre USA ${fmt(usa)}%. Les ticks indiquent la progression strategique globale.`, meta)}>
         <div class="agi-side agi-side-europe">
           <span>AGI Progress</span>
           <strong>Europe</strong>
@@ -350,7 +353,50 @@ export class GameHud {
   }
 
   private heatmapButton(mode: HeatmapMode, label: string): string {
-    return `<button class="heatmap-button ${this.heatmapMode === mode ? "is-active" : ""}" type="button" data-heatmap="${mode}" data-onboarding-target="overlay.${mode}">${label}</button>`;
+    const tooltip = this.heatmapTooltip(mode, label);
+    return `<button class="heatmap-button ${this.heatmapMode === mode ? "is-active" : ""}" type="button" data-heatmap="${mode}" data-onboarding-target="overlay.${mode}" aria-label="${escapeHtml(tooltip.title)}" title="${escapeHtml(tooltip.title)}" ${this.tooltipAttrs(tooltip.title, tooltip.body, tooltip.meta)}>${escapeHtml(tooltip.shortLabel)}</button>`;
+  }
+
+  private heatmapTooltip(mode: HeatmapMode, label: string): { title: string; body: string; meta: string; shortLabel: string } {
+    const tooltips: Record<HeatmapMode, { body: string; meta: string; shortLabel: string }> = {
+      energy: {
+        body: "Affiche les zones de production, de demande et de deficit energetique.",
+        meta: "Power flow",
+        shortLabel: "PWR"
+      },
+      cooling: {
+        body: "Met en avant les capacites de refroidissement et les reserves thermiques.",
+        meta: "Cooling",
+        shortLabel: "CLD"
+      },
+      network: {
+        body: "Priorise les congestions, liens actifs et transferts interregionaux.",
+        meta: "Grid",
+        shortLabel: "NET"
+      },
+      compute: {
+        body: "Compare la production compute et les regions a forte charge IA.",
+        meta: "Compute",
+        shortLabel: "CPU"
+      },
+      co2: {
+        body: "Visualise la pression carbone et les zones a fort impact climatique.",
+        meta: "Carbon",
+        shortLabel: "CO2"
+      },
+      none: {
+        body: "Masque le filtre couleur pour lire la carte tactique brute.",
+        meta: "Neutral",
+        shortLabel: "OFF"
+      }
+    };
+    const tooltip = tooltips[mode];
+    return {
+      title: `Heatmap ${label}`,
+      body: tooltip.body,
+      meta: tooltip.meta,
+      shortLabel: tooltip.shortLabel
+    };
   }
 
   private paletteTab(tab: "construction" | "research", label: string): string {
@@ -457,27 +503,7 @@ export class GameHud {
     const computeDeficit = Math.max(0, computeDemand - computeSupply);
     const computePct = computeDemand > 0 ? (computeSupply / computeDemand) * 100 : 100;
 
-    return `
-      <div class="panel-title region-title">
-        <div>
-          <span>Region</span>
-          <strong>${escapeHtml(region.display_name)}</strong>
-        </div>
-        <span class="region-close" aria-hidden="true">x</span>
-      </div>
-      <div class="region-level-card">
-        <strong>${regionLevel}</strong>
-        <div>
-          <span>Region level</span>
-          <i style="--meter:${clampPctFloat(levelPct)}%"></i>
-        </div>
-        <small>${fmt(levelXp)} / 2 000 XP</small>
-      </div>
-      <div class="region-tabs" role="tablist" aria-label="Vues region">
-        <span class="is-active" role="tab" aria-selected="true">Overview</span>
-        <span role="tab" aria-selected="false">Buildings</span>
-        <span role="tab" aria-selected="false">Stats</span>
-      </div>
+    const overviewContent = `
       <div class="region-tags">
         ${region.tags.slice(0, 6).map((tag) => `<span>${escapeHtml(tag)}</span>`).join("")}
       </div>
@@ -504,9 +530,15 @@ export class GameHud {
           [computeDeficit > 0 ? "Deficit" : "Reserve", `${fmt(computeDeficit > 0 ? computeDeficit : computeSupply - computeDemand, 1)} EFLOPS`]
         ], computeDeficit > 0)}
       </div>
-      <button class="region-manage-button" type="button" data-action="open-construction" ${this.tooltipAttrs("Manage region", `Open the construction dock for ${region.display_name}.`, `${region.slots_max - region.slots_used} free slots`)}>
-        Manage region
-      </button>
+      ${this.regionManageButton(region)}
+    `;
+    const buildingsContent = `
+      <div class="region-section region-buildings">
+        <div class="panel-subtitle"><span>Building slots</span><strong>${region.slots_used}/${region.slots_max}</strong></div>
+        <div class="built-grid">
+          ${builtCards}${freeSlotCards}
+        </div>
+      </div>
       <div class="region-section region-queue">
         <div class="panel-subtitle"><span>Chantier</span><strong>${region.construction_queue.length}</strong></div>
         <div class="queue-list">
@@ -519,6 +551,92 @@ export class GameHud {
           ${demolitionCards}
         </div>
       </div>
+      ${this.regionManageButton(region)}
+    `;
+    const statsContent = `
+      <div class="region-stats-grid">
+        ${this.regionStatTile("Slots", `${region.slots_used}/${region.slots_max}`, `${Math.max(0, region.slots_max - region.slots_used)} libres`)}
+        ${this.regionStatTile("Level XP", `${fmt(levelXp)}`, `Niveau ${regionLevel}`)}
+        ${this.regionStatTile("Energy reserve", `${fmt(energyReserve, 1)} GW`, `${fmt(energyProduction, 1)} prod`)}
+        ${this.regionStatTile("Cooling reserve", `${fmt(coolingReserve, 1)} GWth`, `${fmt(coolingAvailable, 1)} capacite`)}
+        ${this.regionStatTile(computeDeficit > 0 ? "Compute deficit" : "Compute reserve", `${fmt(computeDeficit > 0 ? computeDeficit : computeSupply - computeDemand, 1)} EFLOPS`, `${fmt(computeSupply, 1)} supply`)}
+        ${this.regionStatTile("Tags", `${region.tags.length}`, region.tags.slice(0, 2).join(" / ") || "Aucun")}
+      </div>
+      <div class="region-status-stack">
+        ${this.regionStatusBlock("energy", "Energy status", (cached.energy_efficiency ?? 1) * 100, [
+          ["Production", `${fmt(energyProduction, 1)} GW`],
+          ["Demand", `${fmt(energyDemand, 1)} GW`],
+          ["Reserve", `${fmt(energyReserve, 1)} GW`]
+        ])}
+        ${this.regionStatusBlock("cooling", "Cooling status", (cached.cooling_efficiency ?? 1) * 100, [
+          ["Capacity", `${fmt(coolingAvailable, 1)} GWth`],
+          ["Usage", `${fmt(coolingUsed, 1)} GWth`],
+          ["Reserve", `${fmt(coolingReserve, 1)} GWth`]
+        ])}
+        ${this.regionStatusBlock("compute", "Compute demand", computePct, [
+          ["Demand", `${fmt(computeDemand, 1)} EFLOPS`],
+          ["Supply", `${fmt(computeSupply, 1)} EFLOPS`],
+          [computeDeficit > 0 ? "Deficit" : "Reserve", `${fmt(computeDeficit > 0 ? computeDeficit : computeSupply - computeDemand, 1)} EFLOPS`]
+        ], computeDeficit > 0)}
+      </div>
+    `;
+    const tabContent = this.activeRegionTab === "buildings"
+      ? buildingsContent
+      : this.activeRegionTab === "stats"
+        ? statsContent
+        : overviewContent;
+
+    return `
+      <div class="panel-title region-title">
+        <div>
+          <span>Region</span>
+          <strong>${escapeHtml(region.display_name)}</strong>
+        </div>
+        <span class="region-close" aria-hidden="true">x</span>
+      </div>
+      <div class="region-level-card">
+        <strong>${regionLevel}</strong>
+        <div>
+          <span>Region level</span>
+          <i style="--meter:${clampPctFloat(levelPct)}%"></i>
+        </div>
+        <small>${fmt(levelXp)} / 2 000 XP</small>
+      </div>
+      <div class="region-tabs" role="tablist" aria-label="Vues region">
+        ${this.regionTabButton("overview", "Overview", "Vue synthese", "Slots, statuts et action principale")}
+        ${this.regionTabButton("buildings", "Buildings", "Actifs regionaux", "Actifs, chantiers et demolition")}
+        ${this.regionTabButton("stats", "Stats", "Statistiques detaillees", "Capacites, reserves et tags")}
+      </div>
+      <div class="region-tab-view region-tab-${this.activeRegionTab}">
+        ${tabContent}
+      </div>
+    `;
+  }
+
+  private regionTabButton(tab: RegionPanelTab, label: string, title: string, body: string): string {
+    const active = this.activeRegionTab === tab;
+    return `
+      <button class="${active ? "is-active" : ""}" type="button" role="tab" data-region-tab="${tab}" aria-selected="${active}" ${this.tooltipAttrs(title, body, active ? "Actif" : "Changer de vue")}>
+        ${escapeHtml(label)}
+      </button>
+    `;
+  }
+
+  private regionManageButton(region: RegionSnapshot): string {
+    return `
+      <button class="region-manage-button" type="button" data-action="open-construction" ${this.tooltipAttrs("Manage region", `Open the construction dock for ${region.display_name}.`, `${region.slots_max - region.slots_used} free slots`)}>
+        Manage region
+      </button>
+    `;
+  }
+
+  private regionStatTile(label: string, value: string, detail: string): string {
+    return `
+      <span class="region-stat-tile">
+        <small>${escapeHtml(label)}</small>
+        <strong>${escapeHtml(value)}</strong>
+        <em>${escapeHtml(detail)}</em>
+      </span>
     `;
   }
 
@@ -701,8 +819,9 @@ export class GameHud {
     const layout = this.simulation.getRegionLayout();
     const graph = this.simulation.getNetworkGraph();
     const graphLines = this.gridOverviewGraphLines(layout, graph);
+    const hubLines = this.gridOverviewHubLines(layout, graph, summary);
     const flowLines = this.gridOverviewFlowLines(layout, summary);
-    const nodes = this.gridOverviewNodes(layout, summary);
+    const nodes = this.gridOverviewNodes(layout, graph, summary);
     const activeFlows = summary.network_flows.length;
     const congestedFlows = summary.network_flows.filter((flow) => flow.is_congested).length;
     const tooltip =
@@ -713,12 +832,13 @@ export class GameHud {
       <aside class="grid-overview-card" aria-label="Grid overview" ${this.tooltipAttrs("Grid overview", tooltip, "Carte reseau compacte")}>
         <div class="grid-overview-heading">
           <strong>Grid overview</strong>
-          <span class="grid-overview-expand" aria-hidden="true">[]</span>
+          <span class="grid-overview-expand" aria-hidden="true"></span>
         </div>
         <div class="grid-overview-map" aria-hidden="true">
           <svg viewBox="0 0 100 100" preserveAspectRatio="none">
             ${this.gridOverviewEuropePaths()}
             ${graphLines}
+            ${hubLines}
             ${flowLines}
           </svg>
           ${nodes}
@@ -734,12 +854,7 @@ export class GameHud {
   }
 
   private gridOverviewEuropePaths(): string {
-    return `
-      <path class="mini-overview-thread mini-overview-thread-main" d="M22 46 L34 50 L49 55 L62 49 L79 53 M49 55 L42 68 L57 74 M49 55 L52 36" />
-      <path class="mini-overview-thread mini-overview-thread-secondary" d="M18 70 L34 50 M34 50 L28 35 M57 74 L70 67 L85 78 M62 49 L72 36" />
-      <path class="mini-overview-orbit mini-overview-orbit-a" d="M8 72 C29 38 58 26 94 30" />
-      <path class="mini-overview-orbit mini-overview-orbit-b" d="M3 56 C28 49 54 51 92 67" />
-    `;
+    return "";
   }
 
   private gridOverviewGraphLines(
@@ -774,7 +889,11 @@ export class GameHud {
     summary: ReturnType<SimulationCore["getSummary"]>
   ): string {
     return [...summary.network_flows]
-      .sort((a, b) => b.intensity_normalized - a.intensity_normalized)
+      .sort(
+        (a, b) =>
+          Number(b.is_congested) - Number(a.is_congested) ||
+          b.intensity_normalized - a.intensity_normalized
+      )
       .slice(0, 14)
       .map((flow) => {
         const source = layout[flow.source_region_id];
@@ -796,32 +915,104 @@ export class GameHud {
       .join("");
   }
 
-  private gridOverviewNodes(
+  private gridOverviewHubLines(
     layout: ReturnType<SimulationCore["getRegionLayout"]>,
+    graph: ReturnType<SimulationCore["getNetworkGraph"]>,
     summary: ReturnType<SimulationCore["getSummary"]>
   ): string {
-    const ranked = new Map<string, number>();
-    for (const flow of summary.network_flows) {
-      ranked.set(flow.source_region_id, (ranked.get(flow.source_region_id) ?? 0) + flow.intensity_normalized);
-      ranked.set(flow.target_region_id, (ranked.get(flow.target_region_id) ?? 0) + flow.intensity_normalized);
+    const selectedPoint = layout[summary.selected_region_id];
+    if (!selectedPoint) {
+      return "";
     }
-    ranked.set(summary.selected_region_id, (ranked.get(summary.selected_region_id) ?? 0) + 4);
-    return [...ranked.entries()]
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 18)
+    return this.gridOverviewRankedRegions(layout, graph, summary)
+      .filter(([regionId]) => regionId !== summary.selected_region_id)
+      .slice(0, 10)
+      .map(([regionId, weight], index) => {
+        const point = layout[regionId];
+        if (!point) {
+          return "";
+        }
+        const route = miniRoutePath(selectedPoint, point, `hub:${summary.selected_region_id}:${regionId}`, 3.5 + index * 0.28);
+        const strong = index < 4 ? " mini-flow-hub-strong" : "";
+        const opacity = Math.min(0.78, 0.26 + weight * 0.12);
+        return `<path class="mini-flow mini-flow-hub${strong}" d="${route}" style="--hub-opacity:${fmt(opacity, 2)}" />`;
+      })
+      .join("");
+  }
+
+  private gridOverviewNodes(
+    layout: ReturnType<SimulationCore["getRegionLayout"]>,
+    graph: ReturnType<SimulationCore["getNetworkGraph"]>,
+    summary: ReturnType<SimulationCore["getSummary"]>
+  ): string {
+    const activeEndpoints = new Set<string>();
+    const congestedEndpoints = new Set<string>();
+    for (const flow of summary.network_flows) {
+      activeEndpoints.add(flow.source_region_id);
+      activeEndpoints.add(flow.target_region_id);
+      if (flow.is_congested) {
+        congestedEndpoints.add(flow.source_region_id);
+        congestedEndpoints.add(flow.target_region_id);
+      }
+    }
+
+    return this.gridOverviewRankedRegions(layout, graph, summary)
+      .slice(0, 20)
       .map(([regionId, weight]) => {
         const point = layout[regionId];
         if (!point) {
           return "";
         }
-        const selected = regionId === summary.selected_region_id ? " is-selected" : "";
-        const size = Math.min(8.5, 3.2 + weight * 2.1);
+        const selected = regionId === summary.selected_region_id;
+        const degree = (graph[regionId]?.length ?? 0) + Object.values(graph).filter((targets) => targets.includes(regionId)).length;
+        const classes = ["grid-overview-node"];
+        if (selected) {
+          classes.push("is-selected");
+        }
+        if (activeEndpoints.has(regionId)) {
+          classes.push("is-flow");
+        }
+        if (congestedEndpoints.has(regionId)) {
+          classes.push("is-congested");
+        }
+        if (!selected && !activeEndpoints.has(regionId) && (degree >= 12 || weight >= 2.6)) {
+          classes.push("is-relay");
+        }
+        const size = Math.min(7.8, 1.8 + weight * 1.28);
+        const power = Math.min(1, 0.2 + weight / 6);
         return (
-          `<span class="grid-overview-node${selected}" ` +
-          `style="--node-x:${miniCoordX(point.x)}%; --node-y:${miniCoordY(point.y)}%; --node-size:${fmt(size, 2)}px"></span>`
+          `<span class="${classes.join(" ")}" ` +
+          `style="--node-x:${miniCoordX(point.x)}%; --node-y:${miniCoordY(point.y)}%; ` +
+          `--node-size:${fmt(size, 2)}px; --node-power:${fmt(power, 2)}"></span>`
         );
       })
       .join("");
+  }
+
+  private gridOverviewRankedRegions(
+    layout: ReturnType<SimulationCore["getRegionLayout"]>,
+    graph: ReturnType<SimulationCore["getNetworkGraph"]>,
+    summary: ReturnType<SimulationCore["getSummary"]>
+  ): Array<[string, number]> {
+    const ranked = new Map<string, number>();
+    for (const [sourceId, targets] of Object.entries(graph)) {
+      if (layout[sourceId]) {
+        ranked.set(sourceId, (ranked.get(sourceId) ?? 0) + Math.min(1.2, 0.18 + targets.length * 0.08));
+      }
+      for (const targetId of targets) {
+        if (layout[targetId]) {
+          ranked.set(targetId, (ranked.get(targetId) ?? 0) + 0.24);
+        }
+      }
+    }
+    for (const flow of summary.network_flows) {
+      ranked.set(flow.source_region_id, (ranked.get(flow.source_region_id) ?? 0) + 0.9 + flow.intensity_normalized);
+      ranked.set(flow.target_region_id, (ranked.get(flow.target_region_id) ?? 0) + 0.9 + flow.intensity_normalized);
+    }
+    ranked.set(summary.selected_region_id, (ranked.get(summary.selected_region_id) ?? 0) + 4);
+    return [...ranked.entries()]
+      .filter(([regionId]) => Boolean(layout[regionId]))
+      .sort((a, b) => b[1] - a[1]);
   }
 
   private buildCategoryTab(
@@ -1278,6 +1469,9 @@ export class GameHud {
   }
 
   private handleTooltipOver(event: PointerEvent): void {
+    if (performance.now() < this.tooltipSuppressedUntil) {
+      return;
+    }
     const trigger = (event.target as HTMLElement).closest<HTMLElement>("[data-rich-tooltip]");
     if (!trigger) {
       return;
@@ -1305,6 +1499,9 @@ export class GameHud {
   }
 
   private handleTooltipFocus(event: FocusEvent): void {
+    if (performance.now() < this.tooltipSuppressedUntil) {
+      return;
+    }
     const trigger = (event.target as HTMLElement).closest<HTMLElement>("[data-rich-tooltip]");
     if (!trigger) {
       return;
@@ -1471,6 +1668,15 @@ export class GameHud {
       this.capturePaletteScroll();
       this.activeDockTab = paletteTab;
       this.paletteOpen = true;
+      this.render();
+      return;
+    }
+
+    const regionTab = button.dataset.regionTab as RegionPanelTab | undefined;
+    if (regionTab === "overview" || regionTab === "buildings" || regionTab === "stats") {
+      this.activeRegionTab = regionTab;
+      this.tooltipSuppressedUntil = performance.now() + 500;
+      this.hideTooltip();
       this.render();
       return;
     }

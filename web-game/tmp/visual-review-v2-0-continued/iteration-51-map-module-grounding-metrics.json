@@ -1,0 +1,25 @@
+{
+  "states": [
+    {
+      "name": "built-concept",
+      "selected": "benelux",
+      "built": 10,
+      "constructing": 0,
+      "buildingTextureCount": 45
+    },
+    {
+      "name": "empty-real",
+      "selected": "fr_nord",
+      "built": 0,
+      "constructing": 0,
+      "buildingTextureCount": 0
+    },
+    {
+      "name": "construction-real",
+      "selected": "fr_nord",
+      "built": 0,
+      "constructing": 1,
+      "buildingTextureCount": 0
+    }
+  ]
+}

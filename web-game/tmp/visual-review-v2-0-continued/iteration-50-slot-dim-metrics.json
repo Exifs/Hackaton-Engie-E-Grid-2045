@@ -1,0 +1,36 @@
+{
+  "concept-built": {
+    "selectedRegion": "benelux",
+    "buildingCount": 10,
+    "constructionCount": 0,
+    "slotsUsed": 16,
+    "slotGrid": {
+      "cols": 5,
+      "rows": 4
+    },
+    "hasVisibleStructures": true,
+    "baseSlotSize": 8.7,
+    "slotSize": 4.53,
+    "gap": 1.36,
+    "expectedEmptyAlpha": 0.028,
+    "expectedOccupiedAlpha": 0.16,
+    "expectedConstructingAlpha": 0.24
+  },
+  "real-empty": {
+    "selectedRegion": "fr_nord",
+    "buildingCount": 0,
+    "constructionCount": 0,
+    "slotsUsed": 0,
+    "slotGrid": {
+      "cols": 6,
+      "rows": 5
+    },
+    "hasVisibleStructures": false,
+    "baseSlotSize": 8.7,
+    "slotSize": 8.7,
+    "gap": 3.31,
+    "expectedEmptyAlpha": 0.42,
+    "expectedOccupiedAlpha": 0.72,
+    "expectedConstructingAlpha": 0.78
+  }
+}

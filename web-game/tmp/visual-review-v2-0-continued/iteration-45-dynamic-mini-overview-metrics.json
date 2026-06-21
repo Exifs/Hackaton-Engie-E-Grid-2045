@@ -1,0 +1,76 @@
+{
+  "real-start": {
+    "cardRect": {
+      "x": 19,
+      "y": 747,
+      "width": 282,
+      "height": 160,
+      "bottom": 907,
+      "right": 301
+    },
+    "mapRect": {
+      "x": 132,
+      "y": 785,
+      "width": 157,
+      "height": 111,
+      "bottom": 896,
+      "right": 289
+    },
+    "backgroundImage": "linear-gradient(90deg, rgba(2, 9, 15, 0.48), rgba(2, 9, 15, 0.02) 42%, rgba(2, 9, 15, 0.28)), url(\"http://127.0.0.1:5173/assets/generated/grid-overview-europe-map-only-v1.png\"), radial-gradient(at 50% 55%, rgba(83, 231, 255, 0.06), rgba(0, 0, 0, 0) 34%), radial-gradient(circle at 40% 66%, rgba(93, 244, 197, 0.055), rgba(0, 0, 0, 0) 23%), radial-gradient(circle at 73% 38%, rgba(255, 193, 95, 0.055), rgba(0, 0, 0, 0) 20%), linear-gradient(135deg, rgba(9, 35, 48, 0.62), rgba(0, 0, 0, 0) 56%), repeating-linear-gradient(90deg, rgba(0, 0, 0, 0) 0px, rgba(0, 0, 0, 0) 19px, rgba(137, 234, 255, 0.05) 19px, rgba(137, 234, 255, 0.05) 20px), repeating-linear-gradient(0deg, rgba(0, 0, 0, 0) 0px, rgba(0, 0, 0, 0) 16px, rgba(137, 234, 255, 0.04) 16px, rgba(137, 234, 255, 0.04) 17px), none",
+    "svgPathCount": 26,
+    "staticThreadCount": 0,
+    "staticOrbitCount": 0,
+    "dataLineCount": 18,
+    "powerLineCount": 4,
+    "nodeCount": 8,
+    "cardOverflowY": 0,
+    "mapOverflowY": 0,
+    "dataStroke": "rgba(83, 231, 255, 0.42)",
+    "dataOpacity": "0.82",
+    "selectedNodeRect": {
+      "x": 185,
+      "y": 839.4,
+      "width": 12.5,
+      "height": 12.5,
+      "bottom": 851.9,
+      "right": 197.5
+    }
+  },
+  "concept-state": {
+    "cardRect": {
+      "x": 19,
+      "y": 747,
+      "width": 282,
+      "height": 160,
+      "bottom": 907,
+      "right": 301
+    },
+    "mapRect": {
+      "x": 132,
+      "y": 785,
+      "width": 157,
+      "height": 111,
+      "bottom": 896,
+      "right": 289
+    },
+    "backgroundImage": "linear-gradient(90deg, rgba(2, 9, 15, 0.48), rgba(2, 9, 15, 0.02) 42%, rgba(2, 9, 15, 0.28)), url(\"http://127.0.0.1:5173/assets/generated/grid-overview-europe-map-only-v1.png\"), radial-gradient(at 50% 55%, rgba(83, 231, 255, 0.06), rgba(0, 0, 0, 0) 34%), radial-gradient(circle at 40% 66%, rgba(93, 244, 197, 0.055), rgba(0, 0, 0, 0) 23%), radial-gradient(circle at 73% 38%, rgba(255, 193, 95, 0.055), rgba(0, 0, 0, 0) 20%), linear-gradient(135deg, rgba(9, 35, 48, 0.62), rgba(0, 0, 0, 0) 56%), repeating-linear-gradient(90deg, rgba(0, 0, 0, 0) 0px, rgba(0, 0, 0, 0) 19px, rgba(137, 234, 255, 0.05) 19px, rgba(137, 234, 255, 0.05) 20px), repeating-linear-gradient(0deg, rgba(0, 0, 0, 0) 0px, rgba(0, 0, 0, 0) 16px, rgba(137, 234, 255, 0.04) 16px, rgba(137, 234, 255, 0.04) 17px), none",
+    "svgPathCount": 46,
+    "staticThreadCount": 0,
+    "staticOrbitCount": 0,
+    "dataLineCount": 18,
+    "powerLineCount": 14,
+    "nodeCount": 18,
+    "cardOverflowY": 0,
+    "mapOverflowY": 0,
+    "dataStroke": "rgba(83, 231, 255, 0.42)",
+    "dataOpacity": "0.82",
+    "selectedNodeRect": {
+      "x": 194.6,
+      "y": 827,
+      "width": 12.5,
+      "height": 12.5,
+      "bottom": 839.5,
+      "right": 207.1
+    }
+  }
+}

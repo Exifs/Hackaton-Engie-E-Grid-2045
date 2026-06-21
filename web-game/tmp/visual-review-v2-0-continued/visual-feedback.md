@@ -2,6 +2,38 @@
 
 Reference: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\reference-v2-0.png`
 
+Current audit after iteration 73:
+- Fresh global and component captures were regenerated in `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-72-current-audit-*`, then the central-map module pass was captured as `iteration-73-module-ground-blend-*`.
+- The main panels now fill their screen zones without measured overflow: top bar, BUILD rail, right region panel, alert dock and GRID OVERVIEW all report `overflowX: 0` and `overflowY: 0` in both concept-state and real-start captures.
+- Real-start state is still correct: `buildingTextureCount: 0`; no final building sprite appears before construction.
+- Construction state is still correct: one queued building renders as a grey construction placeholder and reports `buildingTextureCount: 0`.
+- The accepted mini GRID OVERVIEW background remains `grid-overview-europe-map-only-v1.png`; it has `staticThreadCount: 0`, 10 dynamic hub lines and 20 dynamic nodes.
+- Recherche now has fresh evidence: no body/card/title overflow, 4 readable cards in the default real-start view, and the mini GRID OVERVIEW remains visible in the rail.
+- Iteration 73 adds a small central-map module integration pass: built atlas sprites are slightly smaller/lower, less glowy, lightly desaturated and receive a foreground terrain skirt. The effect is deliberately subtle and preserves the gameplay state rules.
+
+Current priority order:
+1. Central map visual identity: modules are better grounded after iteration 73 but still read as generated isometric atlas props. Next high-return map work is a true tiny map-marker atlas or a more deliberate selected-region composition, while preserving no-start-sprite/construction-cube/final-built-sprite rules.
+2. Right region panel visual polish: functionally stable, but slot cards are much more blue thumbnail/UI-grid than the concept's painted building-slot tiles. A slot/glyph treatment pass would be higher value than more top-bar tuning.
+3. Scroll interaction audit: Recherche card-surface scroll is covered, but the user's reported inconsistent scrolling across panels should be tested across construction, Recherche, right panel tabs and alert dock before more layout changes.
+4. BUILD rail card/glyph fidelity: layout is stable and visible, but the category art remains darker and more abstract than the concept's pictogram grid.
+5. Bottom alerts polish: text now fits, but alert cards still use live copy rhythm and CSS glyphs rather than bespoke concept-like warning assets.
+6. Top bar and mini GRID OVERVIEW are currently regression-guard items, not active targets. AGI rings must remain ticks-only; mini overview background is accepted and must stay map-only.
+
+Standing constraints superseding older notes:
+- The mini GRID OVERVIEW is now a real, visible component in the playable game and in `scenario=concept`.
+- Its bitmap background is `grid-overview-europe-map-only-v1.png` and must remain map-only. Do not bake static hubs, routes, links or network nodes into future overview rasters.
+- User review after iteration 71 accepts the current mini GRID OVERVIEW background asset. Do not spend further iteration time on this asset unless a regression appears; move attention to other components.
+- Mini overview topology must remain dynamic SVG flows and DOM nodes only if it is touched for gameplay/readability reasons.
+- Earlier notes about raster topology or static route/orbit threads are historical and superseded by iterations 44-46.
+- The bottom alert strip now gives more width to alert copy, allows controlled two-line titles, and uses CSS-drawn pictograms instead of punctuation marks; earlier notes about early one-line title ellipsis or `!/*/#` icons are superseded by iterations 47-48.
+- Compact desktop BUILD cards are now centered module slots with toned bitmap art and CSS schematic overlays; earlier notes about off-center cards are superseded by iteration 49, but a true generated glyph atlas is still a future fidelity option.
+- On the central map, selected-region slot markers are now much dimmer/smaller when buildings or construction already exist; empty selected regions keep the full planning grid. Earlier notes about built-region slot grids dominating modules are superseded by iteration 50.
+- On the central map, built modules now have stronger contact shadows, accent pads, connector struts and anchor dots. This improves grounding but does not replace the need for a true painted map-module atlas if asset exactness remains the priority.
+- The central map now uses `building-map-atlas-v4.png`, generated with ImageGen and chroma-key-cleaned to RGBA. It preserves the 4x4 atlas format, maps cells 0-11 to actual buildings, and keeps cells 12-15 as neutral spare pads with no warning/CO2/lock symbols.
+- AGI progress rings are ticks-only. `.agi-ring` must not regain a continuous circular progress track, radial ring background or conic progress layer.
+- The mini GRID OVERVIEW now has a denser dynamic topology layer: selected-region hub paths and ranked graph nodes are generated as SVG/DOM per game state. The raster background remains map-only with no baked routes.
+- Compact BUILD cards now have CSS line-art glyph overlays per building type. The thumbnail atlas remains as a subdued backing layer; future rail work should refine glyphs, not return to raw thumbnails.
+
 ## Iteration 00 - Continued baseline
 
 Screenshot: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-00-current.png`
@@ -1070,3 +1102,984 @@ Regressions introduced:
 - The first opaque texture attempt made borders too large and hurt readability; iteration 43 fixed that by scaling/slicing the texture.
 - Final validation passed `pnpm lint`, targeted Playwright visual tests for desktop/BUILD/Recherche/dock interactions, and `pnpm build`.
 - `pnpm build` still emits the existing Vite chunk-size warning for the large bundled game chunk.
+
+## Iteration 44 - Mini GRID OVERVIEW map-only raster and dynamic links
+
+Screenshots and metrics:
+- Source ImageGen asset: `C:\Users\cleme\.codex\generated_images\019ee6ab-f27a-78b2-904c-b7a46fb678d8\ig_097243fff3a88f3f016a376415b5848191a75da5950798c453.png`
+- Project asset: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\public\assets\generated\grid-overview-europe-map-only-v1.png`
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-44-real-start-mini-overview-global.png`
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-44-real-start-mini-overview-card.png`
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-44-real-start-mini-overview-map.png`
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-44-concept-state-mini-overview-global.png`
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-44-concept-state-mini-overview-card.png`
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-44-concept-state-mini-overview-map.png`
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-44-mini-overview-map-only-metrics.json`
+
+What is closer to the concept art and the playable game:
+- The mini GRID OVERVIEW now uses a cleaner ghostly Europe raster that matches the main map's cold tactical material without baking in routes, hubs or network links.
+- The real game consumes this asset through `--grid-overview-map`; this is not limited to a test-only view.
+- Static route/orbit overlays were removed from `GameHud.gridOverviewEuropePaths()`. Iteration 44 metrics report `staticThreadCount: 0` and `staticOrbitCount: 0` in both real start and concept-state captures.
+- The visible mini-map links and nodes now come from `getNetworkGraph()` and `network_flows`, so the component reflects gameplay state.
+- The card remains visible and bounded in both empty real start and concept-state captures, with `cardOverflowY: 0` and `mapOverflowY: 0`.
+
+What still differs visibly:
+- The reference crop has a more painterly, denser cyan hub cluster and stronger central glow.
+- The current dynamic topology is readable but still more UI-like and less painted than the concept's miniature network.
+- The expand glyph remains a simple bracket mark rather than the exact four-corner icon.
+
+What was changed:
+- Generated a new no-connections ImageGen raster and saved it as `grid-overview-europe-map-only-v1.png`.
+- Updated `main.ts` to reference the new project asset.
+- Removed the unused project draft `grid-overview-europe-neon-v2.png` because it contained static network lines and would be misleading for this dynamic component.
+- Disabled static SVG thread/orbit paths in `GameHud.gridOverviewEuropePaths()`.
+- Updated the visual regression expectation from `grid-overview-europe-neon-v1` to `grid-overview-europe-map-only-v1`.
+- Updated `component-diagnostics.md` so future work does not reintroduce baked network links into the background asset.
+
+What should be tried next:
+- Tune dynamic mini-node and mini-flow styling for denser cyan clusters and a stronger selected-region glow while keeping all topology data-driven.
+- Keep validating empty start and concept-state captures whenever map overview assets or flow overlays change.
+
+Regressions introduced:
+- None observed in the iteration 44 crops or metrics.
+- Final validation passed `pnpm lint`, the targeted Playwright visual subset for desktop/BUILD/Recherche/dock interactions, and `pnpm build`.
+- `pnpm build` still emits the existing Vite chunk-size warning for the large bundled game chunk.
+
+## Iteration 45 - Dynamic mini GRID OVERVIEW density pass
+
+Screenshots and metrics:
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-45-real-start-dynamic-mini-overview-global.png`
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-45-real-start-dynamic-mini-overview-card.png`
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-45-real-start-dynamic-mini-overview-map.png`
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-45-concept-state-dynamic-mini-overview-global.png`
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-45-concept-state-dynamic-mini-overview-card.png`
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-45-concept-state-dynamic-mini-overview-map.png`
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-45-dynamic-mini-overview-metrics.json`
+
+What is closer to the concept art and the playable game:
+- The mini-map now reads closer to the concept crop's dense cyan tactical network without baking that network into the raster.
+- Data graph lines are more visible and slightly tighter, improving the perceived topology in both empty real start and concept-state captures.
+- The selected node is less like a solid UI dot and more like a luminous hub, with a smaller core and broader soft halo.
+- Metrics still report `staticThreadCount: 0`, `staticOrbitCount: 0`, `cardOverflowY: 0`, and `mapOverflowY: 0`.
+
+What still differs visibly:
+- The concept has a more hand-painted electric starburst at the central hub.
+- The dynamic line placement is still governed by the simulation graph rather than a concept-composed topology, so exact line rhythm differs.
+- The expand glyph remains simplified.
+
+What was changed:
+- Tuned `.mini-flow-data` opacity, dash rhythm, stroke width and glow.
+- Tuned `.grid-overview-node` and `.grid-overview-node.is-selected` gradients, border, halo and selected core size.
+- Added a selected-node pseudo halo without adding static topology.
+
+What should be tried next:
+- If the mini overview remains the priority, tune the expand glyph and add a subtle dynamic pulse to the selected node in non-test mode.
+- Keep any further network-density work attached to dynamic graph/flow data only.
+
+Regressions introduced:
+- None observed in the iteration 45 crops or metrics.
+- Final validation passed `pnpm lint`, the targeted Playwright visual subset for desktop/BUILD/Recherche/dock interactions, and `pnpm build`.
+- `pnpm build` still emits the existing Vite chunk-size warning for the large bundled game chunk.
+
+## Iteration 46 - Mini GRID OVERVIEW expand glyph
+
+Screenshots and metrics:
+- Before crop: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-46-before-miniOverview.png`
+- Before glyph crop: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-46-before-miniExpand.png`
+- After global: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-46-expand-glyph-global.png`
+- After crop: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-46-expand-glyph-mini-overview-card.png`
+- After glyph crop: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-46-expand-glyph-crop.png`
+- `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-46-expand-glyph-metrics.json`
+
+What is closer to the concept art and the playable game:
+- The mini overview expand control no longer displays literal `[]` text.
+- The replacement is a compact four-corner glyph, matching the concept crop's visual language more closely while keeping the same 24x20 control bounds.
+- Metrics report `expandText: ""`, unchanged bounds and `cardOverflowY: 0`.
+
+What still differs visibly:
+- The glyph is CSS-drawn and cleaner than the concept's painted four-corner mark.
+- The broader mini overview still differs in exact hand-painted hub/starburst rhythm, but topology remains correctly dynamic.
+
+What was changed:
+- Removed `[]` from the `grid-overview-expand` markup.
+- Drew the four-corner icon with CSS layered gradients inside the existing button frame.
+- Added a desktop visual regression assertion that the expand glyph text remains empty and its icon background is present.
+- Updated `component-diagnostics.md` with iteration 46 evidence and next actions.
+
+What should be tried next:
+- Move to a higher-impact component: central map module art, BUILD-card glyph assets or alert icon assets.
+- Keep the mini overview background map-only and data-driven.
+
+Regressions introduced:
+- None observed in the iteration 46 crop or metrics.
+- Final validation passed `pnpm lint`, the targeted Playwright visual subset for desktop/BUILD/Recherche/dock interactions, and `pnpm build`.
+- `pnpm build` still emits the existing Vite chunk-size warning for the large bundled game chunk.
+
+## Iteration 47 - Bottom alert text fit
+
+Screenshots and metrics:
+- Before crop: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-46-before-alerts.png`
+- First after crop: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-47-alert-text-fit-dock.png`
+- First after metrics: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-47-alert-text-fit-metrics.json`
+- Second after crop: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-47b-alert-text-fit-dock.png`
+- Second after metrics: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-47b-alert-text-fit-metrics.json`
+- Final after global: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-47c-alert-text-fit-global.png`
+- Final after crop: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-47c-alert-text-fit-dock.png`
+- Final after metrics: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-47c-alert-text-fit-metrics.json`
+
+What is closer to the concept art and the playable game:
+- The bottom alert strip still fits five cards plus the collapse control, but the main text column now gets about 71% of each alert card at the concept viewport and about 67.2% at the 1600px Playwright viewport.
+- Long titles such as `Energy deficit - Mediterranee insulaire` and `Researchers insufficient - Europe` now use controlled two-line wrapping instead of being cut off early.
+- Icon and action columns are more compact, closer to the concept's dense operational alert cards, while `VIEW` and `CLAIM` remain readable.
+- Final metrics show `panelOverflowY: 0`, `cardOverflowY: 0`, and `titleOverflowX: 0` for every alert card.
+
+What still differs visibly:
+- Live alert copy remains longer than the hand-authored concept labels, so some cards are text-denser than the reference.
+- Alert icons are still CSS punctuation-like symbols, not dedicated concept glyphs.
+
+What was changed:
+- Reduced desktop alert icon/action column widths and icon size across two adjustment passes.
+- Allowed alert titles to clamp to two lines and reduced title/body font metrics to fit the fixed 66px card height.
+- Added a Playwright assertion in the stressed alert scenario for main text width, title horizontal overflow and card vertical overflow.
+- Updated `component-diagnostics.md` with iteration 47 evidence and next actions.
+
+What should be tried next:
+- Replace alert icons with a tiny glyph asset set if the alert strip remains a priority.
+- Otherwise return to higher-impact work: central map module art or BUILD-card glyph assets.
+
+Regressions introduced:
+- The first alert fit attempt introduced a 1px vertical card overflow on one long-title card. The `47b` adjustment fixed this; `47c` then compacted icon/action columns further so the 1600px alert test also keeps the text column above the regression threshold.
+- Final validation passed `pnpm lint`, the targeted Playwright visual subset for desktop/BUILD/Recherche/dock/alert interactions, and `pnpm build`.
+- `pnpm build` still emits the existing Vite chunk-size warning for the large bundled game chunk.
+
+## Iteration 48 - Bottom alert glyph replacement
+
+Screenshots and metrics:
+- Before crop: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-48-before-alert-glyphs-dock.png`
+- Before metrics: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-48-before-alert-glyphs-metrics.json`
+- After global: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-48-alert-glyphs-global.png`
+- After crop: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-48-alert-glyphs-dock.png`
+- After metrics: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-48-alert-glyphs-metrics.json`
+
+What is closer to the concept art and the playable game:
+- Alert icons no longer read as raw punctuation (`!`, `*`, `#`).
+- Warning alerts now use a compact triangular glyph inside the existing ring; research uses a nucleus/crosshair mark; network uses a tiny node-grid mark.
+- Cooling and market alert kinds also have dedicated CSS glyphs for consistency even when not present in the current concept-state crop.
+- The alert text improvements from iteration 47 hold: metrics still show `panelOverflowY: 0`, `cardOverflowY: 0`, `titleOverflowX: 0`, and `mainWidthRatio: 0.71` at the concept viewport.
+
+What still differs visibly:
+- These are procedural CSS glyphs, not bespoke painted bitmap icons.
+- The concept's alert symbols have more handcrafted wear and slightly richer line weight variation.
+
+What was changed:
+- Replaced punctuation `content` values in `.alert-icon::before` with CSS-drawn shape layers.
+- Added `::after` detail layers for warning, research, network, cooling and market alert kinds.
+- Extended the stressed-alert Playwright check so alert pseudo-glyphs cannot regress to `!`, `*` or `#`, and so glyph pseudo boxes must exist.
+- Updated `component-diagnostics.md` with iteration 48 evidence and future actions.
+
+What should be tried next:
+- Move to a higher-impact component: central map module art or BUILD-card glyph/card composition.
+- If alert icons come back as a priority, use a small generated or hand-authored glyph atlas instead of further CSS complexity.
+
+Regressions introduced:
+- None observed in the iteration 48 crop or metrics.
+- Final validation passed `pnpm lint`, the targeted Playwright visual subset for desktop/BUILD/Recherche/dock/alert interactions, and `pnpm build`.
+- `pnpm build` still emits the existing Vite chunk-size warning for the large bundled game chunk.
+
+## Iteration 49 - BUILD card composition pass
+
+Screenshots and metrics:
+- Before construction crop: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-49-before-build-construction-left-rail.png`
+- Before research crop: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-49-before-build-research-left-rail.png`
+- Before metrics: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-49-before-build-rail-metrics.json`
+- First after crop: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-49-build-card-composition-left-rail.png`
+- First after metrics: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-49-build-card-composition-metrics.json`
+- Final after global: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-49b-build-card-composition-global.png`
+- Final after crop: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-49b-build-card-composition-left-rail.png`
+- Final after metrics: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-49b-build-card-composition-metrics.json`
+
+What is closer to the concept art and the playable game:
+- Desktop construction cards are more centered and read more like compact technical module slots than raw image thumbnails.
+- Existing bitmap art is scaled down, desaturated and placed under a subtle internal pad/crosshair overlay, closer to the concept's abstract build-slot treatment.
+- The left rail remains compact: the five BUILD groups and mini GRID OVERVIEW still fit without vertical clipping.
+- Final metrics report `railOverflowY: 0`, `overflowY: 0`, and exact centered art (`centerDeltaX: 0`, `centerDeltaY: 0`) for the sampled compact cards.
+
+What still differs visibly:
+- The underlying art remains the existing atlas, so it is not as clean or deliberately painted as the concept's small monochrome build symbols.
+- Locked/unavailable cards still dim according to real gameplay state, which differs from the static concept's chosen active state.
+
+What was changed:
+- Added desktop compact-card overlays with pseudo-element pad lines and a small schematic highlight.
+- Reduced compact-card art scale and tuned image filter/opacity.
+- Adjusted compact-card visual height to avoid internal 2px overflow found in the first pass.
+- Updated the construction-card responsive test to check desktop compact card dimensions, zero overflow, centered smaller art and pseudo-overlay presence while preserving tablet/mobile card expectations.
+- Updated `component-diagnostics.md` with iteration 49 evidence and future actions.
+
+What should be tried next:
+- Generate a dedicated abstract BUILD-card glyph atlas if the rail remains a visual priority.
+- Otherwise move back to higher-impact central map module art.
+
+Regressions introduced:
+- The first 49 pass had 2px internal card overflow; the `49b` adjustment fixed it.
+- Final validation passed `pnpm lint`, the targeted Playwright visual subset for desktop/BUILD/Recherche/dock/alert interactions including the responsive construction-card test, and `pnpm build`.
+- `pnpm build` still emits the existing Vite chunk-size warning for the large bundled game chunk.
+
+## Iteration 50 - Central map selected-slot dimming
+
+Screenshots and metrics:
+- Built concept-state global: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-50-concept-built-slot-dim-global.png`
+- Built concept-state map crop: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-50-concept-built-slot-dim-map.png`
+- Empty real-game global: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-50-real-empty-slot-dim-global.png`
+- Empty real-game map crop: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-50-real-empty-slot-dim-map.png`
+- Metrics: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-50-slot-dim-metrics.json`
+
+What is closer to the concept art and the playable game:
+- The selected-region slot grid no longer reads as a bright green square cluster over built Benelux modules.
+- Built/queued regions now use smaller, lower-alpha slot markers, so modules, terrain and flow lines carry the visual hierarchy.
+- Empty selected regions still retain the stronger planning grid needed at game start.
+- Metrics show the built-region slot size reduced from `8.7` to `4.53`, occupied alpha reduced to `0.16`, and empty-start slot size/alpha preserved at `8.7` / `0.42`.
+
+What still differs visibly:
+- The concept crop has no gameplay slot grid at all.
+- The map modules still rely on the current generated atlas and remain less painted than the reference.
+
+What was changed:
+- Tuned `EGridMapScene.drawSelectedSlots()` so selected regions with buildings/construction use smaller slots, tighter gaps and lower fill/stroke alpha.
+- Preserved the empty-region planning grid parameters.
+- Updated `component-diagnostics.md` with iteration 50 evidence and future actions.
+
+What should be tried next:
+- If the remaining selected-slot affordance still feels too game-like, gate built-region slot visibility to explicit construction/placement interaction.
+- Otherwise prioritize a more painted map module atlas.
+
+Regressions introduced:
+- None observed in the iteration 50 captures or metrics.
+- Final validation passed `pnpm lint`, the targeted Playwright visual subset for map state/BUILD/alert interactions, and `pnpm build`.
+- `pnpm build` still emits the existing Vite chunk-size warning for the large bundled game chunk.
+
+## Iteration 51 - Central map module grounding
+
+Screenshots and metrics:
+- Built concept-state global: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-51-map-module-grounding-built-global.png`
+- Built concept-state map crop: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-51-map-module-grounding-built-map.png`
+- Empty real-game global: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-51-map-module-grounding-empty-global.png`
+- Construction real-game map crop: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-51-map-module-grounding-construction-map.png`
+- Metrics: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-51-map-module-grounding-metrics.json`
+
+What is closer to the concept art and the playable game:
+- Built map modules now sit on a darker contact shadow and subtle accent pad instead of reading as raw icons floating over the terrain.
+- Enhanced map sprites get a low-alpha dark sprite shadow behind the luminous sprite pass.
+- Small connector struts and anchor dots make modules feel more physically attached to the selected region cluster.
+- Gameplay-state rules remain intact: empty real start and construction real state both report `buildingTextureCount: 0`; the final sprite appears only in the built state.
+
+What still differs visibly:
+- This remains a code/rendering integration pass on the current generated atlas, not a new hand-painted module asset set.
+- The concept modules still have better painterly integration, bespoke silhouettes and less UI-icon flavor.
+
+What was changed:
+- Tuned `EGridMapScene.drawModuleGroundIntegration()` with stronger contact shadows, inset shadow, pad glow, struts and anchor dots.
+- Added a subtle dark sprite shadow in `drawModuleSprite()` for enhanced map sprites.
+- Updated `component-diagnostics.md` with iteration 51 evidence and state-invariant notes.
+
+What should be tried next:
+- If the central map remains the priority, generate a dedicated painted in-map module atlas rather than continuing to push the current atlas.
+- Keep verifying empty start, grey construction cube and built-only final icon after every map-module change.
+
+Regressions introduced:
+- None observed in the iteration 51 captures or metrics.
+- Final validation passed `pnpm lint`, the targeted Playwright visual subset for desktop/map/BUILD/alert interactions, and `pnpm build`.
+- `pnpm build` still emits the existing Vite chunk-size warning for the large bundled game chunk.
+
+## Iteration 52 - AGI ticks-only correction
+
+Screenshots and metrics:
+- Global capture: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-52-agi-ticks-global.png`
+- Top bar crop: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-52-agi-ticks-topbar.png`
+- AGI duel crop: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-52-agi-ticks-duel.png`
+- Metrics: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-52-agi-ticks-metrics.json`
+
+What is closer to the concept art and the playable game:
+- AGI progress now reads as segmented ticks only. The `.agi-ring` container reports `background-image: none` and `box-shadow: none`.
+- The concept-state EU ring has 48 ticks with 32 active ticks at 67%.
+- The rich tooltip now describes the marks as ticks, avoiding the misleading "ring" wording.
+- The initial desktop Playwright visual test now prevents a continuous AGI ring background from coming back.
+
+What still differs visibly:
+- Tick geometry is still CSS-rendered and cleaner than the concept's painted micro-detail.
+- The exact progress values and top-bar state follow the playable scenario rather than copying the static reference image.
+
+What was changed:
+- Removed the remaining radial background/box-shadow from `.agi-ring`.
+- Kept a small dark readability backing directly behind the percent text, without a continuous progress track.
+- Updated `GameHud.agiDuel()` tooltip text.
+- Added a visual regression assertion for AGI ring background.
+- Updated `component-diagnostics.md` with iteration 52 evidence and future constraints.
+
+What should be tried next:
+- Do not add conic/radial progress circles back to AGI.
+- Continue with higher-impact remaining gaps: true painted map-module atlas, mini overview dynamic topology density, or BUILD-card glyph atlas.
+
+Regressions introduced:
+- None observed in the iteration 52 crop or metrics.
+- Final validation passed `pnpm lint`, the targeted Playwright visual subset for desktop/map/BUILD/alert interactions, and `pnpm build`.
+- `pnpm build` still emits the existing Vite chunk-size warning for the large bundled game chunk.
+
+## Iteration 53 - Painted map-module atlas v3
+
+Screenshots and metrics:
+- ImageGen source: `C:\Users\cleme\.codex\generated_images\019ee6ab-f27a-78b2-904c-b7a46fb678d8\ig_096e597f0995260f016a377752165c81919ef67819926f7b7b.png`
+- Project atlas: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\public\assets\generated\building-map-atlas-v3.png`
+- Built concept-state global: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-53c-map-atlas-v3-built-global.png`
+- Built concept-state map crop: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-53c-map-atlas-v3-built-map.png`
+- Empty real-game global: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-53c-map-atlas-v3-empty-global.png`
+- Construction real-game map crop: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-53c-map-atlas-v3-construction-map.png`
+- Metrics: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-53c-map-atlas-v3-metrics.json`
+
+What is closer to the concept art and the playable game:
+- The main map no longer uses the brighter cyan-outlined v2 atlas for built modules.
+- The v3 atlas is darker, more terrain-footed and less like a standalone UI sticker, while keeping the same 1254x1254 RGBA / 4x4 cell format.
+- Chroma-key cleanup produced transparent corners and preserved cell compatibility.
+- The real gameplay state rule remains intact: empty start and construction state both report `buildingTextureCount: 0`; final sprite textures appear only after buildings are built.
+
+What still differs visibly:
+- V3 is still generated art, not an exact painted extraction from the concept map.
+- The source sheet contains decorative warning/CO2/locked cells with symbols; current map building mapping uses only cells 0-11, so those text/symbol cells should stay unmapped.
+- The darker palette blends better into terrain but may need a small brightness pass if future full-map screenshots show poor readability.
+
+What was changed:
+- Generated a second, more map-oriented 4x4 atlas with ImageGen on magenta chroma-key.
+- Removed the chroma-key locally with the imagegen helper and saved `building-map-atlas-v3.png` in project assets.
+- Updated `EGridMapScene.preload()` to load `building-map-atlas-v3.png`.
+- Added a Playwright asset-request assertion for `building-map-atlas-v3.png`.
+- Updated `component-diagnostics.md` with iteration 53 evidence and future constraints.
+
+What should be tried next:
+- If map-module fidelity remains a priority, generate a focused 12-cell atlas for mapped building categories only, with no symbolic/text cells.
+- If readability drops on smaller screens, tune sprite brightness/scale in Phaser rather than returning to the cyan sticker outline.
+
+Regressions introduced:
+- None observed in the iteration 53c captures or metrics.
+- Final validation passed `pnpm lint`, the targeted Playwright visual subset for desktop/map/BUILD/alert interactions, and `pnpm build`.
+- `pnpm build` still emits the existing Vite chunk-size warning for the large bundled game chunk.
+
+## Iteration 54 - Mini GRID OVERVIEW dynamic density
+
+Screenshots and metrics:
+- Reference crop: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\reference-v2-0-grid-overview-crop.png`
+- Before real start crop: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-54-before-mini-overview-real-card.png`
+- Before concept-state crop: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-54-before-mini-overview-concept-card.png`
+- Before metrics: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-54-before-mini-overview-metrics.json`
+- Final real start crop: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-54b-mini-overview-density-tuned-real-card.png`
+- Final concept-state crop: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-54b-mini-overview-density-tuned-concept-card.png`
+- Final global capture: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-54b-mini-overview-density-tuned-global.png`
+- Final metrics: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-54b-mini-overview-density-tuned-metrics.json`
+
+What is closer to the concept art and the playable game:
+- The mini overview now has a brighter central topology cluster without baking any network into the raster.
+- The selected region emits 10 dynamic hub paths toward top ranked graph/flow regions; the first 4 are stronger to create a concept-like core.
+- Region dots now include graph-derived satellites, so the real start state no longer looks sparse just because few flows are active.
+- The tuned pass keeps 20 compact nodes instead of the first 24-node attempt, reducing the “large glowing bead” effect.
+- Metrics report `staticThreadCount: 0`, `cardOverflowY: 0`, `mapOverflowY: 0`, 10 hub lines, 4 strong hub lines and 20 nodes in both real start and concept-state captures.
+
+What still differs visibly:
+- The reference crop is still more hand-composed and painterly in its exact cyan starburst rhythm.
+- The current hub topology follows live graph/flow ranking, so exact node positions vary with gameplay state.
+- The expand glyph and legend remain CSS/DOM approximations rather than painted assets.
+
+What was changed:
+- Added `gridOverviewHubLines()` to generate selected-region SVG hub paths from current graph/flow state.
+- Changed mini overview nodes to rank both network graph regions and active flow endpoints.
+- Tuned node count and node styling so satellites are smaller, with a stronger selected hub core.
+- Added Playwright assertions for hub line count, node count and absence of old static thread/orbit paths.
+- Updated `component-diagnostics.md` with iteration 54 evidence and future constraints.
+
+What should be tried next:
+- Leave the bitmap map-only. Any further topology density must stay in SVG/DOM.
+- If this component remains a priority, tune the exact dynamic glow/line opacity; otherwise move to BUILD-card glyph assets or right-panel icon fidelity.
+
+Regressions introduced:
+- The first 54 density pass had 24 larger nodes and read slightly too bead-like. The `54b` tuning reduced nodes to 20 and softened satellite halos.
+- Final validation passed `pnpm lint`, the targeted Playwright visual subset for desktop/map/BUILD/alert interactions, and `pnpm build`.
+- `pnpm build` still emits the existing Vite chunk-size warning for the large bundled game chunk.
+
+## Iteration 55 - BUILD compact card glyph overlays
+
+Screenshots and metrics:
+- Reference left rail: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-35-reference-left-rail.png`
+- Before rail crop: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-55-before-build-glyph-rail.png`
+- Before metrics: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-55-before-build-glyph-metrics.json`
+- First after rail crop: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-55-build-card-glyph-overlay-rail.png`
+- Tooltip check: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-55-build-card-glyph-overlay-tooltip.png`
+- First after metrics: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-55-build-card-glyph-overlay-metrics.json`
+- Final rail crop: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-55b-build-card-glyph-overlay-rail.png`
+- Final metrics: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-55b-build-card-glyph-overlay-metrics.json`
+
+What is closer to the concept art and the playable game:
+- Compact BUILD cards now read as technical glyph tiles rather than raw miniature art thumbnails.
+- Each mapped building type has a CSS line-art overlay: gas stacks, nuclear tower, wind rotor, solar grid, datacenter rack, cooling fan, research/campus mark, battery/supergrid variants.
+- The bitmap card atlas remains behind the glyph as a subdued material layer, preserving visual richness without making the thumbnail the main signal.
+- Locked `Grid & Network` preview no longer displays the small `Rech.` text in compact desktop mode; it stays icon-led like the concept.
+- Rich tooltips still work on build cards after the overlay pass.
+- Metrics report `railOverflowY: 0`, 11 compact cards, 10 glyph-backed real building cards and hidden locked preview label.
+
+What still differs visibly:
+- Glyphs are CSS-built approximations, not a bespoke painted monochrome icon atlas.
+- Category rail glyphs still use the current project utility icons rather than exact concept symbols.
+- The rail still keeps gameplay controls absent from the static concept: Construction/Recherche tabs, locked filter and active category affordances.
+
+What was changed:
+- Added compact desktop `.building-art::before/::after` line-art overlays scoped to `.palette-body-construction`.
+- Added per-building CSS custom glyph definitions for energy, datacenter, cooling, research, storage and grid structures.
+- Hid the locked preview micro-label in compact desktop cards.
+- Extended the construction-card responsive Playwright test to assert glyph pseudo-elements exist on desktop cards.
+- Updated `component-diagnostics.md` with iteration 55 evidence and future constraints.
+
+What should be tried next:
+- If BUILD rail fidelity remains a priority, replace CSS glyphs with a small generated/painted glyph atlas or tune the category utility icons.
+- Otherwise move to right-panel icon/tab fidelity, because the BUILD rail now has a stronger concept-like card language.
+
+Regressions introduced:
+- None observed in the iteration 55 captures or metrics. The first pass left the locked preview text visible; `55b` hides it in compact desktop mode.
+- Final validation passed `pnpm lint`, the targeted Playwright visual subset for desktop/map/BUILD/alert interactions, and `pnpm build`.
+- `pnpm build` still emits the existing Vite chunk-size warning for the large bundled game chunk.
+
+## Iteration 56 - Right region panel functional tabs
+
+Screenshots and metrics:
+- Before concept-state panel: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-56-before-region-tabs-concept-panel.png`
+- Before real-game panel: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-56-before-region-tabs-real-panel.png`
+- Final Overview crop: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-56c-region-tabs-overview-panel.png`
+- Final Buildings crop: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-56c-region-tabs-buildings-panel.png`
+- Final Stats crop: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-56c-region-tabs-stats-panel.png`
+- Tooltip/global check: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-56c-region-tabs-tooltip-global.png`
+- Metrics: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-56c-region-tabs-metrics.json`
+
+What is closer to the concept art and the playable game:
+- The right panel no longer has dead tab labels. Overview/Buildings/Stats are real buttons with active state, aria state and rich tooltips.
+- Overview stays the default concept-like view with slots, live Energy/Cooling/Compute status blocks and Manage Region.
+- Buildings separates active slots, free/locked slots and chantier/demolition lists, which keeps gameplay details out of the default concept-like view.
+- Stats adds six compact live metric tiles while preserving the right-panel chrome, spacing and status-bar rhythm.
+- Metrics report `overflowY: 0` for all three tab views, one active tab per view, 6 stat tiles in Stats and no sticky tooltip after tab clicks.
+
+What still differs visibly:
+- Buildings and Stats have no direct concept reference, so they are functional extensions rather than copied static art.
+- Region name, values and slot contents remain live scenario/game state, not an exact Netherlands screenshot override.
+- Slot art and status pictograms are still current game/CSS assets rather than final painted glyph assets.
+
+What was changed:
+- Added `activeRegionTab` state and real tab buttons in `GameHud`.
+- Split right-panel content into Overview, Buildings and Stats tab views.
+- Added compact stat tiles and a reusable Manage Region button helper.
+- Suppressed stale rich tooltip display immediately after tab clicks, then kept tab hover/focus tooltips active.
+- Added a Playwright visual regression path for France Nord region tabs, overflow, tooltip suppression and post-click tooltip hover.
+- Updated `component-diagnostics.md` with iteration 56 evidence and future constraints.
+
+What should be tried next:
+- Continue component-by-component with either right-panel slot/status glyph fidelity or another high-visibility central-map crop.
+- Keep the mini GRID OVERVIEW raster map-only; any route, hub or connection density must remain dynamic SVG/DOM from game state.
+
+Regressions introduced:
+- The first tab pass left a tooltip overlay visible over the Stats view in targeted screenshots. The `56c` pass fixed this with a short click suppression window while preserving hover tooltips.
+- Final validation passed `pnpm lint`, the targeted Playwright visual subset for desktop/right-panel tabs/map state/BUILD/alerts/safe-area, and `pnpm build`.
+- `pnpm build` still emits the existing Vite chunk-size warning for the large bundled game chunk.
+
+## Iteration 57 - Recherche compact readability
+
+Screenshots and metrics:
+- Before real-game rail: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-57-before-real-research-rail.png`
+- Before concept-state rail: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-57-before-concept-research-rail.png`
+- Before metrics: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-57-before-research-metrics.json`
+- Final real-game rail: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-57b-research-compact-real-research-rail.png`
+- Final concept-state rail: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-57b-research-compact-concept-research-rail.png`
+- Final tooltip/global check: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-57b-research-compact-real-research-tooltip-global.png`
+- Final metrics: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-57b-research-compact-metrics.json`
+
+What is closer to the concept art and the playable game:
+- Recherche now follows the same compact technical-card language as BUILD instead of looking like a plain secondary list.
+- Research card titles wrap into two controlled uppercase lines, removing the previous horizontal title overflow on long names.
+- Research branch glyphs now have visible technical pseudo-detail, with energy, grid/infrastructure, cooling and generic research variants.
+- Locked/unavailable research cards are still visibly disabled but less muddy, so the real start state remains readable.
+- The default real-game Recherche view keeps the mini GRID OVERVIEW visible and uncut below the research cards.
+- Metrics report zero body overflow, zero card/title overflow, pseudo-glyphs on every research card, and visible GRID OVERVIEW in both real start and concept-state captures.
+
+What still differs visibly:
+- Recherche has no direct concept-art reference, so this is a style-aligned functional view rather than a copied static panel.
+- Glyphs are CSS-built approximations, not a bespoke painted atlas.
+- Real start shows mostly locked research because the required research buildings are absent, which is correct gameplay state.
+
+What was changed:
+- Added research-card material, scan highlight and technical glyph pseudo-elements in `game.css`.
+- Changed compact desktop research titles to two-line clamped uppercase text.
+- Tuned compact research card height/progress height so the mini GRID OVERVIEW remains visible.
+- Lightened locked research cards enough to keep labels and glyphs legible.
+- Added a Playwright regression for readable research cards and wheel scrolling from a research-card surface.
+- Updated `component-diagnostics.md` with iteration 57 evidence and future constraints.
+
+What should be tried next:
+- Continue component-by-component with either right-panel status/slot glyph fidelity or another central-map crop.
+- If Recherche becomes visually important again, replace the CSS branch glyphs with a small generated glyph atlas while preserving the current layout and scroll behavior.
+
+Regressions introduced:
+- The first 57 pass removed title overflow but created 9px of Recherche body overflow in the concept-state capture. The `57b` compact height adjustment restored zero overflow.
+- Final validation passed `pnpm lint`, the targeted Playwright visual subset for desktop/right-panel tabs/map state/BUILD/Recherche/alerts/safe-area, and `pnpm build`.
+- `pnpm build` still emits the existing Vite chunk-size warning for the large bundled game chunk.
+
+## Iteration 58 - Right panel slot/status glyph polish
+
+Screenshots and metrics:
+- Before concept Overview crop: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-58-before-concept-region-panel-overview.png`
+- Before concept Buildings crop: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-58-before-concept-region-panel-buildings.png`
+- Before real Overview crop: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-58-before-real-region-panel-overview.png`
+- Before metrics: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-58-before-region-panel-metrics.json`
+- Final concept Overview crop: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-58-region-panel-slot-status-concept-overview.png`
+- Final concept Buildings crop: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-58-region-panel-slot-status-concept-buildings.png`
+- Final real Overview crop: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-58-region-panel-slot-status-real-overview.png`
+- Final tab metrics: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-58b-region-panel-slot-status-tab-metrics.json`
+
+What is closer to the concept art and the playable game:
+- Right-panel status icons now have richer technical detail instead of single-shape glyphs: energy halo/spark, cooling snowflake hub and compute chip pins.
+- Built slot cards now read more like the concept's active building slots, with a darker technical frame, scan overlay, green slot pips and a small readiness badge.
+- Locked slots now have an internal frame and keyhole detail, closer to the concept's deliberate locked-slot cells.
+- The changes are applied in the real game and concept-state view, and they preserve the tab behavior from iteration 56.
+- Final metrics report zero overflow for Overview, Buildings and Stats; six visible built slots with pips/badges; two visible locked slots with frame/keyhole detail; and no sticky tooltip.
+
+What still differs visibly:
+- Slot modules still use the generated game atlas rather than exact painted right-panel concept art.
+- Slot pips are uniform, while the concept has more varied tiny indicator rhythms.
+- CSS pseudo-glyphs remain cleaner and more procedural than painted glyph assets.
+
+What was changed:
+- Added richer pseudo-elements for `.region-status-icon` variants.
+- Added built-slot card framing, scan overlay, green pips and mini readiness badges scoped to `.region-panel`.
+- Added locked-slot internal frame and keyhole detail.
+- Extended the P0 visual test to verify status icon pseudo-detail, built-slot pips/badges and locked-slot keyholes.
+- Updated `component-diagnostics.md` with iteration 58 evidence and future constraints.
+
+What should be tried next:
+- Continue with central-map asset fidelity or panel chrome/corner hardware, because right-panel slot/status polish is now guarded.
+- If exact right-panel art becomes a priority, replace CSS slot/status glyphs with a small generated atlas while preserving the current card structure.
+
+Regressions introduced:
+- None observed in the final iteration 58 crops or metrics.
+- Final validation passed `pnpm lint`, the targeted Playwright visual subset for desktop/right-panel tabs/P0 slots/map state/BUILD/Recherche/alerts/safe-area, and `pnpm build`.
+- `pnpm build` still emits the existing Vite chunk-size warning for the large bundled game chunk.
+
+## Iteration 59 - Shared panel corner hardware
+
+Screenshots and metrics:
+- Before global: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-59-before-panel-chrome-global.png`
+- Before top bar crop: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-59-before-panel-chrome-topbar.png`
+- Before left rail crop: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-59-before-panel-chrome-left-rail.png`
+- Before right panel crop: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-59-before-panel-chrome-right-panel.png`
+- Before metrics: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-59-before-panel-chrome-metrics.json`
+- Final global: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-59-panel-corner-hardware-global.png`
+- Final top bar crop: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-59-panel-corner-hardware-topbar.png`
+- Final left rail crop: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-59-panel-corner-hardware-left-rail.png`
+- Final right panel crop: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-59-panel-corner-hardware-right-panel.png`
+- Final alerts crop: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-59-panel-corner-hardware-alerts.png`
+- Final metrics: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-59-panel-corner-hardware-metrics.json`
+
+What is closer to the concept art and the playable game:
+- The five main HUD panels now have a shared mechanical corner layer: short luminous bracket strokes plus small bolt points.
+- The pass improves the concept-like panel frame without changing panel bounds or adding DOM.
+- The texture remains active underneath; this is an additional chrome layer, not a replacement for the 9-patch material.
+- Metrics report zero overflow and preserved `panel-chrome-texture-v1` on top bar, BUILD rail, right panel, alert dock and mini GRID OVERVIEW.
+
+What still differs visibly:
+- The concept has heavier bespoke hardware and unique corner wear per panel.
+- This pass is intentionally subtle to avoid the earlier readability issues from thick panel texture borders.
+- Inner modules such as individual top-bar KPI chips still use their existing local chrome rather than a separate generated bracket set.
+
+What was changed:
+- Added a common multi-layer CSS background for `.top-kpi`, `.build-palette`, `.region-panel`, `.alerts-panel` and `.grid-overview-card` in desktop concept-grade layout.
+- Kept the panel texture as the final background layer and added 8 bracket gradient layers plus 4 radial bolt layers.
+- Extended the initial desktop Playwright test to verify all five main panels retain texture, corner layers and zero overflow.
+- Updated `component-diagnostics.md` with iteration 59 evidence and future constraints.
+
+What should be tried next:
+- Continue with central-map asset fidelity, because global panel chrome is now improved and guarded.
+- If panel exactness becomes a priority again, replace this shared procedural layer with generated per-panel corner/edge assets.
+
+Regressions introduced:
+- None observed in the iteration 59 crops or metrics.
+- Final validation passed `pnpm lint`, the targeted Playwright visual subset for desktop chrome/right-panel tabs/P0 slots/map state/BUILD/Recherche/alerts/safe-area, and `pnpm build`.
+- `pnpm build` still emits the existing Vite chunk-size warning for the large bundled game chunk.
+
+## Iteration 60 - Dynamic mini GRID OVERVIEW hierarchy
+
+Screenshots and metrics:
+- Before real start crop: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-60-before-dynamic-overview-real-start-card.png`
+- Before concept-state crop: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-60-before-dynamic-overview-concept-state-card.png`
+- Final real start crop: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-60c-dynamic-congestion-priority-real-start-card.png`
+- Final concept-state crop: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-60c-dynamic-congestion-priority-concept-state-card.png`
+- Final metrics: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-60c-dynamic-congestion-priority-metrics.json`
+
+What is closer to the concept art and the playable game:
+- The mini overview still uses `grid-overview-europe-map-only-v1.png` as a map-only geography raster; no routes, hubs, network nodes or connection lines were baked into the background.
+- Dynamic node classes now distinguish active flow endpoints, non-active relay hubs and congested endpoints, giving the inset a clearer hub hierarchy without making the background static.
+- Congested flow paths are prioritized before ordinary power paths in the compact overlay, so the orange warning state appears when simulation data contains congestion.
+- Final metrics report `backgroundHasMapOnlyAsset: true`, `backgroundHasOldNetworkAsset: false`, `staticThreadCount: 0`, zero card/map overflow, 20 dynamic nodes in concept-state, and one dynamic congestion line.
+
+What still differs visibly:
+- The concept mini overview still has a more hand-painted starburst and denser tiny cyan connector rhythm.
+- The real start state is intentionally less dense than the concept-state crop because it reflects the actual early game network state.
+- The background geography remains a generated raster and does not exactly match the concept's painted inset.
+
+What was changed:
+- Added dynamic `is-flow`, `is-relay` and `is-congested` node classes in `GameHud.gridOverviewNodes()`.
+- Added CSS halos and state-specific coloring for dynamic mini overview nodes.
+- Prioritized congested `network_flows` before ordinary flows in the compact mini-map path selection.
+- Extended the initial desktop Playwright test so it rejects the old network-raster asset, keeps static route/orbit paths at zero, and checks dynamic node halos.
+- Updated `component-diagnostics.md` with the map-only asset constraint and iteration 60 evidence.
+
+What should be tried next:
+- Continue with central-map asset fidelity; the mini overview is now guarded against static-background regressions.
+- If mini-map fidelity remains a priority, adjust dynamic path/node styling only through DOM/SVG layers, not the background raster.
+
+Regressions introduced:
+- None observed in the iteration 60 crops or metrics.
+- Final validation passed `pnpm lint`, the targeted Playwright visual subset for desktop mini-overview/alerts, and `pnpm build`.
+- `pnpm build` still emits the existing Vite chunk-size warning for the large bundled game chunk.
+
+## Iteration 61 - Central map declutter and module grounding
+
+Screenshots and metrics:
+- Reference central-map crop: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\reference-v2-0-central-map-crop.png`
+- Before concept crop: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-61b-before-central-map-concept-state-crop.png`
+- Before real-start crop: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-61b-before-central-map-real-start-crop.png`
+- Final concept crop: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-61b-central-map-pad-tune-concept-state-crop.png`
+- Final real-start crop: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-61b-central-map-pad-tune-real-start-crop.png`
+- Final metrics: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-61b-central-map-pad-tune-metrics.json`
+
+What is closer to the concept art and the playable game:
+- The central map now reads less like a live debug overlay: concept-style desktop rendering suppresses live internal problem labels and keeps geographic/country labels plus the selected region label.
+- Long route clutter is reduced by sorting central-map strategic flows by congestion/intensity and drawing only the top 12 in the strategic overlay.
+- Built-region slots are much smaller and lower-alpha, so they no longer compete as strongly with the selected-region module cluster.
+- Map modules are slightly larger with a low-alpha additive detail lift, and their terrain pads are smaller/lighter so the building sprite reads above the base.
+- Real-start capture still shows no building sprites on the map, preserving the gameplay rule that buildings appear only after construction starts/completes.
+
+What still differs visibly:
+- The concept uses hand-painted route topology; the current routes still come from the simulation graph and can create different long arcs.
+- The building atlas is clearer but still not as bespoke or high-contrast as the painted concept modules.
+- The heatmap switch is a real-game control over the map and remains absent from the static concept.
+
+What was changed:
+- Changed `EGridMapScene.drawFlows()` to sort/cap strategic flow rendering and avoid random warning-colored secondary edges in concept-style mode.
+- Changed `EGridMapScene.drawRegions()` so geographic-label mode no longer draws every live problem region label.
+- Tuned built-region slot size/alpha in `drawSelectedSlots()`.
+- Tuned enhanced map sprite size/detail lift and built module pad opacity/size.
+- Added a Playwright visual regression for the concept central map label/module state.
+- Updated `component-diagnostics.md` with iteration 61 evidence and future constraints.
+
+What should be tried next:
+- Continue with central-map asset fidelity: either generate a tighter map module atlas for cells 0-11 or add a curated strategic route layer for the concept-state scenario.
+- Keep route/slot improvements constrained by the real-game state rules: no static buildings at start, grey cube during construction, final sprite only when built.
+
+Regressions introduced:
+- None observed in the iteration 61 crops or metrics.
+- Final validation passed `pnpm lint`, the targeted Playwright visual subset for desktop/map-state/concept-central-map/safe-area, and `pnpm build`.
+- `pnpm build` still emits the existing Vite chunk-size warning for the large bundled game chunk.
+
+## Iteration 62 - Central map route balance
+
+Screenshots and metrics:
+- Before route-balance crop: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-61b-central-map-pad-tune-concept-state-crop.png`
+- Final concept crop: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-62b-route-balance-concept-state-crop.png`
+- Final real-start crop: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-62b-route-balance-real-start-crop.png`
+- Final metrics: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-62b-route-balance-metrics.json`
+
+What is closer to the concept art and the playable game:
+- The central map keeps congestion visible, but orange warning routes no longer dominate as much of the topology.
+- Concept-style route rendering still uses simulation state, but now draws 12 strategic routes with a cap of 3 congested routes and 9 regular routes in the current concept-state capture.
+- Warning routes are thinner and lower-alpha, closer to the concept's occasional orange accents rather than a full orange route layer.
+- Empty real start still has zero map building sprites.
+
+What still differs visibly:
+- Routes are still selected from live simulation pressure, so their exact endpoints and long arcs differ from the painted concept.
+- Some long warning lines remain because the scenario really has long-distance deficits/congestion.
+
+What was changed:
+- Added `EGridMapScene.strategicMapFlows()` to choose a balanced strategic route subset.
+- Tuned warning-route width, alpha and pulse size in strategic rendering.
+- Updated `component-diagnostics.md` with iteration 62 evidence and future constraints.
+
+What should be tried next:
+- If central map remains the priority, either curate route selection by geography/representativeness or generate a tighter building map atlas for cells 0-11.
+- Keep all route state data-driven; do not paint static central-map routes into a background asset.
+
+Regressions introduced:
+- None observed in the iteration 62 crops or metrics.
+- Final validation passed `pnpm lint`, the targeted Playwright visual subset for desktop/map-state/concept-central-map/alerts/safe-area, and `pnpm build`.
+- `pnpm build` still emits the existing Vite chunk-size warning for the large bundled game chunk.
+
+## Iteration 63 - Map module atlas v4
+
+Screenshots and metrics:
+- Generated source: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-63-building-map-atlas-v4-source.png`
+- Project atlas: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\public\assets\generated\building-map-atlas-v4.png`
+- Atlas dark preview: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-63-building-map-atlas-v4-preview.png`
+- Final concept crop: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-63-map-atlas-v4-concept-state-crop.png`
+- Final real-start crop: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-63-map-atlas-v4-real-start-crop.png`
+- Final metrics: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-63-map-atlas-v4-metrics.json`
+
+What is closer to the concept art and the playable game:
+- The active map atlas now uses a new ImageGen v4 pass with thinner terrain feet, clearer silhouettes and neutral spare cells instead of text/status-symbol cells.
+- Cells 0-11 remain actual building modules in the same mapping order; cells 12-15 are safe neutral pads and are not mapped to normal buildings.
+- The v4 atlas keeps the same 1254x1254 RGBA / 4x4 format, so Phaser cropping and scale logic remain stable.
+- Real-start capture still reports `buildingTextureCount: 0`; built concept-state capture reports module textures loaded from the map atlas.
+
+What still differs visibly:
+- The generated sprites are cleaner and safer than v3 but still read more like isometric game assets than the concept's painted map-integrated modules.
+- Some modules remain taller/brighter than the reference modules once rendered on the map.
+
+What was changed:
+- Generated a second ImageGen atlas variant on a magenta chroma-key background.
+- Removed chroma locally with the imagegen helper and saved `building-map-atlas-v4.png` in project assets.
+- Updated `EGridMapScene.preload()` to load `building-map-atlas-v4.png`.
+- Updated the initial desktop visual test to request/assert `building-map-atlas-v4.png`.
+
+What should be tried next:
+- Judge the v4 module scale against a full concept crop. If still too isometric, prefer code-side scale/alpha/grounding adjustments or a more drastic hand-painted atlas prompt with very small map markers.
+- Keep the state rule unchanged: no building sprites before construction, grey cube while queued, final module sprite only after build completion.
+
+Regressions introduced:
+- None observed in the iteration 63 captures or metrics.
+- Final validation passed `pnpm lint`, the targeted Playwright visual subset for desktop/map-state/concept-central-map, and `pnpm build`.
+- `pnpm build` still emits the existing Vite chunk-size warning for the large bundled game chunk.
+
+## Iteration 64 - Map module scale and density
+
+Screenshots and metrics:
+- Before crop: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-63-map-atlas-v4-concept-state-crop.png`
+- Final concept crop: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-64-module-scale-density-concept-state-crop.png`
+- Final real-start crop: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-64-module-scale-density-real-start-crop.png`
+- Final metrics: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-64-module-scale-density-metrics.json`
+
+What is closer to the concept art and the playable game:
+- The Benelux module cluster is less overloaded: strategic rendering now caps selected-region visible modules at 6 and other regions at 2.
+- Enhanced map sprites are slightly smaller and less glow-heavy, so they sit closer to the map instead of reading as large standalone props.
+- Metrics show concept-state `buildingTextureCount: 48`, inferred 12 visible structures, and real-start `buildingTextureCount: 0`.
+- The concept central-map regression now guards both label cleanliness and module density.
+
+What still differs visibly:
+- The modules still use generated isometric art and are not fully hand-painted into the terrain like the concept.
+- The selected region still has several modules rather than a single dominant composed Netherlands building plus smaller satellites.
+
+What was changed:
+- Added `strategicStructureCandidates()` in `EGridMapScene` to cap visible structures per region in strategic desktop rendering.
+- Reduced enhanced sprite display size and lowered shadow/glow/detail lift alpha.
+- Extended the concept central-map Playwright test with an estimated visible-structure density range.
+- Updated `component-diagnostics.md` with iteration 64 evidence and constraints.
+
+What should be tried next:
+- Continue component-by-component with central-map route curation or selected-region module composition if map fidelity remains the priority.
+- Preserve the state rules: no starting building sprites, grey construction cube while queued, final module sprite only after completion.
+
+Regressions introduced:
+- None observed in the iteration 64 captures or metrics.
+- Final validation passed `pnpm lint`, the targeted Playwright visual subset for desktop/map-state/concept-central-map, and `pnpm build`.
+- `pnpm build` still emits the existing Vite chunk-size warning for the large bundled game chunk.
+
+## Iteration 65 - Central map node and route scale
+
+Screenshots and metrics:
+- Before crop: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-64-module-scale-density-concept-state-crop.png`
+- Final concept crop: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-65-node-route-scale-concept-state-crop.png`
+- Final real-start crop: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-65-node-route-scale-real-start-crop.png`
+- Final metrics: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-65-node-route-scale-metrics.json`
+
+What is closer to the concept art and the playable game:
+- Non-selected region markers now read as small tactical nodes instead of large filled circles.
+- Strategic route strokes, incidental route dots and animated pulses are thinner and less visually dominant.
+- Real-start capture still has zero map building textures.
+
+What still differs visibly:
+- The route topology is still generated from the simulation graph, not the hand-painted concept layout.
+- The selected Benelux cluster still needed a stronger primary/satellite hierarchy after this pass.
+
+What was changed:
+- Reduced strategic route widths, dark underlay width and pulse sizes in `EGridMapScene`.
+- Added a desktop/concept branch in `drawRegions()` for small non-selected node rendering.
+
+What should be tried next:
+- Improve selected-region module composition without violating the building state rules.
+
+Regressions introduced:
+- None observed in the iteration 65 captures or metrics.
+
+## Iterations 66-68 - Selected module hierarchy and sprite grounding
+
+Screenshots and metrics:
+- Iteration 66 hierarchy crop: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-66-selected-module-hierarchy-concept-state-crop.png`
+- Iteration 67 primary priority crop: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-67-primary-module-priority-concept-state-crop.png`
+- Final iteration 68 concept crop: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-68-primary-sprite-grounding-concept-state-crop.png`
+- Final iteration 68 real-start global: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-68-primary-sprite-grounding-real-start-global.png`
+- Final metrics: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-68-primary-sprite-grounding-metrics.json`
+
+What is closer to the concept art and the playable game:
+- The selected region now uses a primary-and-satellite composition instead of rendering too many equivalent modules.
+- The visible structure estimate is reduced to 10 in concept-state, closer to the concept's lower map clutter.
+- The active primary selection favors datacenter/research/major infrastructure instead of allowing flatter utility assets to become the selected-region hero.
+- Atlas sprites no longer get an additional procedural iso base, so the dark pad effect is reduced.
+
+What still differs visibly:
+- The primary module is still generated isometric art, not a bespoke painted Netherlands module from the concept.
+- Some satellite pads remain darker and flatter than the concept's painted structures.
+
+What was changed:
+- Reduced selected-region strategic structure cap from 6 to 4.
+- Added selected primary selection and visual priority helpers in `EGridMapScene`.
+- Removed the extra procedural base when `building-map-atlas` sprite rendering succeeds.
+- Added a primary sprite emphasis path for scale/glow/detail lift.
+
+What should be tried next:
+- If module fidelity remains the main target, create a more map-integrated atlas or paint-over variant; generic scale tuning is nearing diminishing returns.
+
+Regressions introduced:
+- Iteration 66/67 briefly made the selected primary read like a dark pad; iteration 68 corrected this by removing the duplicate base and brightening the primary sprite.
+
+## Iteration 69 - Compact heatmap switch and rich hover detail
+
+Screenshots and metrics:
+- Final concept global: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-69-compact-heatmap-concept-state-global.png`
+- Final concept crop: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-69-compact-heatmap-concept-state-crop.png`
+- Tooltip global: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-69-compact-heatmap-tooltip-global.png`
+- Final real-start global: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-69-compact-heatmap-real-start-global.png`
+- Final metrics: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-69-compact-heatmap-metrics.json`
+
+What is closer to the concept art and the playable game:
+- The heatmap switch no longer occupies a long textual band over the map; it is now a compact 294x40 command strip in the desktop capture.
+- Heatmap controls now use short tactical codes and six rich hover tooltips, matching the user's request for richer hover detail while keeping the visual weight low.
+- Real-start capture remains clean with no starting building sprites.
+
+What still differs visibly:
+- The heatmap switch remains a gameplay control absent from the static concept art.
+- The central map still has generated asset differences and live route topology differences.
+
+What was changed:
+- Added `heatmapTooltip()` and rich tooltip attributes to heatmap buttons in `GameHud`.
+- Replaced long visible labels with compact codes: `PWR`, `CLD`, `NET`, `CPU`, `CO2`, `OFF`.
+- Tightened desktop CSS for the heatmap switch and added a Playwright regression for compact labels, width and tooltip presence.
+
+What should be tried next:
+- Continue component-by-component with central map asset fidelity or route curation.
+- Keep heatmap controls compact unless a future gameplay requirement justifies expanding them.
+
+Regressions introduced:
+- None observed in iteration 69 captures or metrics.
+- Final validation passed `pnpm lint`, the targeted Playwright visual subset for desktop/map-state/concept-central-map, and `pnpm build`.
+- `pnpm build` still emits the existing Vite chunk-size warning for the large bundled game chunk.
+
+## Iteration 70 - Geographic route curation
+
+Screenshots and metrics:
+- Before concept crop: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-69-compact-heatmap-concept-state-crop.png`
+- Final concept global: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-70-route-geography-curation-concept-state-global.png`
+- Final concept crop: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-70-route-geography-curation-concept-state-crop.png`
+- Final real-start global: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-70-route-geography-curation-real-start-global.png`
+- Final metrics: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-70-route-geography-curation-metrics.json`
+
+What is closer to the concept art and the playable game:
+- The central map no longer shows three long orange congestion routes running from Scandinavia into eastern/southern Europe.
+- Strategic concept rendering now selects 10 routes maximum, with 8 routes attached to the selected Benelux region and two local Nordic links in the current concept-state capture.
+- The route layer now reads more like a local tactical mesh around the selected region, closer to the concept's Netherlands/Germany/France network density.
+- The route selection still comes from live `summary.network_flows`; no static route background or baked topology was introduced.
+- Real-start capture still reports zero map building textures before construction.
+
+What still differs visibly:
+- The concept art includes carefully painted warning accents; the current curated route set avoids misleading long congestion accents and therefore has fewer orange route strokes.
+- Route endpoints and exact curvature still differ because they remain simulation-derived.
+
+What was changed:
+- Reworked `EGridMapScene.strategicMapFlows()` to rank routes by selected-region involvement, geographic centrality, route length and local-network value.
+- Capped strategic routes at 10 and restricted non-selected long congested routes.
+- Added Playwright guards for strategic route count, selected-endpoint coverage and congestion count.
+
+What should be tried next:
+- If route fidelity remains the priority, add a data-driven warning-accent layer from actual alerts instead of coloring arbitrary routes orange.
+- Keep the central route selection data-driven and do not bake connections into the map asset.
+
+Regressions introduced:
+- None observed in iteration 70 captures or metrics.
+- Final validation passed `pnpm lint`, the targeted Playwright visual subset for desktop/map-state/concept-central-map, and `pnpm build`.
+- `pnpm build` still emits the existing Vite chunk-size warning for the large bundled game chunk.
+
+## Iteration 71 - Data-driven alert route accents
+
+Screenshots and metrics:
+- Before concept crop: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-70-route-geography-curation-concept-state-crop.png`
+- Final concept global: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-71-alert-route-accents-concept-state-global.png`
+- Final concept crop: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-71-alert-route-accents-concept-state-crop.png`
+- Final real-start global: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-71-alert-route-accents-real-start-global.png`
+- Final metrics: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-71-alert-route-accents-metrics.json`
+
+What is closer to the concept art and the playable game:
+- Orange warning detail is back on the map, but now it is tied to real `summary.alerts` instead of arbitrary hash coloring.
+- Concept-state metrics show 4 alert accents, covering the current actionable regional alerts: Italie Sud & îles, Baltique Nord, Méditerranée insulaire and Suède Sud.
+- One alert accent is attached to an actual flow endpoint, creating a short orange segment near the affected route without reintroducing full long warning arcs.
+- Real-start metrics show zero alert accents and zero building textures, so the start state stays clean.
+
+What still differs visibly:
+- The concept art's orange accents are more editorial and route-like; the current version favors small alert beacons and short route stubs to avoid misleading topology.
+- Some alert regions are outside the main selected Benelux cluster, so their accents sit at map edges rather than in the concept's central warning paths.
+
+What was changed:
+- Added `MapAlertAccent`, `strategicAlertAccents()`, `drawAlertAccents()` and `drawQuadraticSegment()` in `EGridMapScene`.
+- Alert accents are capped to the first four regional alerts by priority.
+- Added Playwright guards for alert accent count and at least one flow-backed accent in the concept central-map test.
+
+What should be tried next:
+- If alert-route fidelity remains important, derive route-like warning accents from alert cause categories and nearby real flows, but keep them short and clearly state-backed.
+- Continue avoiding static connections in any map background or asset.
+
+Regressions introduced:
+- None observed in iteration 71 captures or metrics.
+- Final validation passed `pnpm lint`, the targeted Playwright visual subset for desktop/map-state/concept-central-map, and `pnpm build`.
+- `pnpm build` still emits the existing Vite chunk-size warning for the large bundled game chunk.
+
+## Tracking update - Mini GRID OVERVIEW background accepted
+
+User feedback:
+- The current map-only overview asset is good and should no longer be an active visual target.
+
+Tracking consequence:
+- Keep `grid-overview-europe-map-only-v1.png` as the accepted geography-only raster.
+- Do not generate or swap another mini overview background while working on unrelated visual gaps.
+- Preserve the existing regression guards: no static route/orbit SVG paths and no baked network connections in the background.
+- Next iterations should focus on other differences, primarily central map module fidelity, alert-route semantics, or component-level HUD polish.
+
+## Iteration 73 - Central map module ground blend
+
+Screenshots and metrics:
+- Before concept canvas: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-72-current-audit-concept-state-canvas.png`
+- Final concept global: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-73-module-ground-blend-concept-state-global.png`
+- Final concept canvas: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-73-module-ground-blend-concept-state-canvas.png`
+- Final real-start global: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-73-module-ground-blend-real-start-global.png`
+- Final construction canvas: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-73-module-ground-blend-construction-canvas.png`
+- Final concept metrics: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-73-module-ground-blend-concept-state-metrics.json`
+- Final real-start metrics: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-73-module-ground-blend-real-start-metrics.json`
+- Final construction metrics: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-73-module-ground-blend-construction-metrics.json`
+
+What is closer to the concept art and the playable game:
+- Built map modules are slightly smaller, lower on the terrain and less cyan-glow dominant.
+- Non-primary modules are lightly desaturated and lower-alpha, so they read less like bright atlas stickers.
+- A small foreground terrain skirt now crosses the sprite foot, making the modules feel more embedded in the map.
+- Metrics preserve the important state invariants: concept-state has `buildingTextureCount: 40`, real-start has `buildingTextureCount: 0`, and construction has one queued building with `buildingTextureCount: 0`.
+
+What still differs visibly:
+- The sprites are still generated isometric assets. This pass improves grounding, but does not replace a true tiny painted map-marker atlas.
+- The central map is still darker and more texture-heavy than the concept, and route/alert composition remains simulation-derived.
+
+What was changed:
+- Tuned `drawModuleSprite()` display size, vertical anchor, alpha, tint, shadow and glow in `EGridMapScene`.
+- Added `drawModuleTerrainSkirt()` to overlay a subtle terrain-colored foot mask on enhanced map sprites.
+- Reused the iteration-72 audit capture script with a new prefix for iteration-73 artifacts.
+
+What should be tried next:
+- If continuing central-map fidelity, decide between a new tiny marker atlas and a selected-region composition pass; generic scale/glow tuning is now lower return.
+- Add scroll hotspot regression coverage before more panel layout work.
+
+Regressions introduced:
+- None observed in iteration-73 screenshots or metrics.
+- Final validation passed `pnpm lint`, targeted Playwright `initial desktop|map structures reflect|concept central map`, and `pnpm build`.
+- `pnpm build` still emits only the existing Vite chunk-size warning for the large bundled game chunk.

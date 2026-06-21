@@ -1,0 +1,283 @@
+{
+  "overview": {
+    "activeTab": "Overview",
+    "overflowY": 0,
+    "statusCount": 3,
+    "icons": [
+      {
+        "beforeContent": "\"\"",
+        "beforeWidth": 9,
+        "beforeHeight": 16,
+        "afterContent": "\"\"",
+        "afterWidth": 12,
+        "afterHeight": 14
+      },
+      {
+        "beforeContent": "\"\"",
+        "beforeWidth": 17,
+        "beforeHeight": 17,
+        "afterContent": "\"\"",
+        "afterWidth": 17,
+        "afterHeight": 17
+      },
+      {
+        "beforeContent": "\"\"",
+        "beforeWidth": 13,
+        "beforeHeight": 13,
+        "afterContent": "\"\"",
+        "afterWidth": 3,
+        "afterHeight": 3
+      }
+    ],
+    "builtCount": 10,
+    "visibleBuiltCount": 6,
+    "built": [
+      {
+        "display": "grid",
+        "overflow": 0,
+        "pipContent": "\"\"",
+        "pipWidth": 34,
+        "artBadgeContent": "\"\"",
+        "artBadgeWidth": 11
+      },
+      {
+        "display": "grid",
+        "overflow": 0,
+        "pipContent": "\"\"",
+        "pipWidth": 34,
+        "artBadgeContent": "\"\"",
+        "artBadgeWidth": 11
+      },
+      {
+        "display": "grid",
+        "overflow": 0,
+        "pipContent": "\"\"",
+        "pipWidth": 34,
+        "artBadgeContent": "\"\"",
+        "artBadgeWidth": 11
+      },
+      {
+        "display": "grid",
+        "overflow": 0,
+        "pipContent": "\"\"",
+        "pipWidth": 34,
+        "artBadgeContent": "\"\"",
+        "artBadgeWidth": 11
+      },
+      {
+        "display": "grid",
+        "overflow": 0,
+        "pipContent": "\"\"",
+        "pipWidth": 34,
+        "artBadgeContent": "\"\"",
+        "artBadgeWidth": 11
+      },
+      {
+        "display": "grid",
+        "overflow": 0,
+        "pipContent": "\"\"",
+        "pipWidth": 34,
+        "artBadgeContent": "\"\"",
+        "artBadgeWidth": 11
+      },
+      {
+        "display": "none",
+        "overflow": 0,
+        "pipContent": "\"\"",
+        "pipWidth": 34,
+        "artBadgeContent": "\"\"",
+        "artBadgeWidth": 11
+      },
+      {
+        "display": "none",
+        "overflow": 0,
+        "pipContent": "\"\"",
+        "pipWidth": 34,
+        "artBadgeContent": "\"\"",
+        "artBadgeWidth": 11
+      },
+      {
+        "display": "none",
+        "overflow": 0,
+        "pipContent": "\"\"",
+        "pipWidth": 34,
+        "artBadgeContent": "\"\"",
+        "artBadgeWidth": 11
+      },
+      {
+        "display": "none",
+        "overflow": 0,
+        "pipContent": "\"\"",
+        "pipWidth": 34,
+        "artBadgeContent": "\"\"",
+        "artBadgeWidth": 11
+      }
+    ],
+    "lockCount": 2,
+    "visibleLockCount": 2,
+    "locks": [
+      {
+        "display": "grid",
+        "frameContent": "\"\"",
+        "frameWidth": 64.5,
+        "keyholeContent": "\"\"",
+        "keyholeHeight": 9
+      },
+      {
+        "display": "grid",
+        "frameContent": "\"\"",
+        "frameWidth": 64.5,
+        "keyholeContent": "\"\"",
+        "keyholeHeight": 9
+      }
+    ],
+    "tooltipVisible": false
+  },
+  "buildings": {
+    "activeTab": "Buildings",
+    "overflowY": 0,
+    "statusCount": 0,
+    "icons": [],
+    "builtCount": 10,
+    "visibleBuiltCount": 6,
+    "built": [
+      {
+        "display": "grid",
+        "overflow": 0,
+        "pipContent": "\"\"",
+        "pipWidth": 34,
+        "artBadgeContent": "\"\"",
+        "artBadgeWidth": 11
+      },
+      {
+        "display": "grid",
+        "overflow": 0,
+        "pipContent": "\"\"",
+        "pipWidth": 34,
+        "artBadgeContent": "\"\"",
+        "artBadgeWidth": 11
+      },
+      {
+        "display": "grid",
+        "overflow": 0,
+        "pipContent": "\"\"",
+        "pipWidth": 34,
+        "artBadgeContent": "\"\"",
+        "artBadgeWidth": 11
+      },
+      {
+        "display": "grid",
+        "overflow": 0,
+        "pipContent": "\"\"",
+        "pipWidth": 34,
+        "artBadgeContent": "\"\"",
+        "artBadgeWidth": 11
+      },
+      {
+        "display": "grid",
+        "overflow": 0,
+        "pipContent": "\"\"",
+        "pipWidth": 34,
+        "artBadgeContent": "\"\"",
+        "artBadgeWidth": 11
+      },
+      {
+        "display": "grid",
+        "overflow": 0,
+        "pipContent": "\"\"",
+        "pipWidth": 34,
+        "artBadgeContent": "\"\"",
+        "artBadgeWidth": 11
+      },
+      {
+        "display": "none",
+        "overflow": 0,
+        "pipContent": "\"\"",
+        "pipWidth": 34,
+        "artBadgeContent": "\"\"",
+        "artBadgeWidth": 11
+      },
+      {
+        "display": "none",
+        "overflow": 0,
+        "pipContent": "\"\"",
+        "pipWidth": 34,
+        "artBadgeContent": "\"\"",
+        "artBadgeWidth": 11
+      },
+      {
+        "display": "none",
+        "overflow": 0,
+        "pipContent": "\"\"",
+        "pipWidth": 34,
+        "artBadgeContent": "\"\"",
+        "artBadgeWidth": 11
+      },
+      {
+        "display": "none",
+        "overflow": 0,
+        "pipContent": "\"\"",
+        "pipWidth": 34,
+        "artBadgeContent": "\"\"",
+        "artBadgeWidth": 11
+      }
+    ],
+    "lockCount": 2,
+    "visibleLockCount": 2,
+    "locks": [
+      {
+        "display": "grid",
+        "frameContent": "\"\"",
+        "frameWidth": 64.5,
+        "keyholeContent": "\"\"",
+        "keyholeHeight": 9
+      },
+      {
+        "display": "grid",
+        "frameContent": "\"\"",
+        "frameWidth": 64.5,
+        "keyholeContent": "\"\"",
+        "keyholeHeight": 9
+      }
+    ],
+    "tooltipVisible": false
+  },
+  "stats": {
+    "activeTab": "Stats",
+    "overflowY": 0,
+    "statusCount": 3,
+    "icons": [
+      {
+        "beforeContent": "\"\"",
+        "beforeWidth": 9,
+        "beforeHeight": 16,
+        "afterContent": "\"\"",
+        "afterWidth": 12,
+        "afterHeight": 14
+      },
+      {
+        "beforeContent": "\"\"",
+        "beforeWidth": 17,
+        "beforeHeight": 17,
+        "afterContent": "\"\"",
+        "afterWidth": 17,
+        "afterHeight": 17
+      },
+      {
+        "beforeContent": "\"\"",
+        "beforeWidth": 13,
+        "beforeHeight": 13,
+        "afterContent": "\"\"",
+        "afterWidth": 3,
+        "afterHeight": 3
+      }
+    ],
+    "builtCount": 0,
+    "visibleBuiltCount": 0,
+    "built": [],
+    "lockCount": 0,
+    "visibleLockCount": 0,
+    "locks": [],
+    "tooltipVisible": false
+  }
+}

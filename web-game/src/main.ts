@@ -48,7 +48,7 @@ document.documentElement.style.setProperty(
 );
 document.documentElement.style.setProperty(
   "--grid-overview-map",
-  cssUrlForPageAsset("assets/generated/grid-overview-europe-neon-v1.png")
+  cssUrlForPageAsset("assets/generated/grid-overview-europe-map-only-v1.png")
 );
 document.documentElement.style.setProperty(
   "--panel-chrome-texture",

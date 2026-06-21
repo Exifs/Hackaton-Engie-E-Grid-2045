@@ -1,0 +1,38 @@
+{
+  "states": [
+    {
+      "name": "real-start",
+      "cardWidth": 282,
+      "cardHeight": 160,
+      "cardOverflowY": 0,
+      "mapWidth": 157,
+      "mapHeight": 111,
+      "mapOverflowY": 0,
+      "graphLineCount": 18,
+      "hubLineCount": 10,
+      "strongHubLineCount": 4,
+      "powerLineCount": 4,
+      "congestionLineCount": 0,
+      "nodeCount": 20,
+      "selectedNodeCount": 1,
+      "staticThreadCount": 0
+    },
+    {
+      "name": "concept-state",
+      "cardWidth": 282,
+      "cardHeight": 160,
+      "cardOverflowY": 0,
+      "mapWidth": 157,
+      "mapHeight": 111,
+      "mapOverflowY": 0,
+      "graphLineCount": 18,
+      "hubLineCount": 10,
+      "strongHubLineCount": 4,
+      "powerLineCount": 14,
+      "congestionLineCount": 0,
+      "nodeCount": 20,
+      "selectedNodeCount": 1,
+      "staticThreadCount": 0
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "expandText": "",
+  "expandRect": {
+    "x": 265,
+    "y": 758,
+    "width": 24,
+    "height": 20,
+    "bottom": 778,
+    "right": 289
+  },
+  "cardOverflowY": 0,
+  "cardRect": {
+    "x": 19,
+    "y": 747,
+    "width": 282,
+    "height": 160,
+    "bottom": 907,
+    "right": 301
+  },
+  "expandComputed": {
+    "backgroundImage": "linear-gradient(90deg, rgb(183, 216, 226) 0px, rgb(183, 216, 226) 5px, rgba(0, 0, 0, 0) 5px, rgba(0, 0, 0, 0) calc(100% - 5px), rgb(183, 216, 226) calc(100% - 5px), rgb(183, 216, 226) 100%), linear-gradient(90deg, rgb(183, 216, 226) 0px, rgb(183, 216, 226) 5px, rgba(0, 0, 0, 0) 5px, rgba(0, 0, 0, 0) calc(100% - 5px), rgb(183, 216, 226) calc(100% - 5px), rgb(183, 216, 226) 100%), linear-gradient(rgb(183, 216, 226) 0px, rgb(183, 216, 226) 5px, rgba(0, 0, 0, 0) 5px, rgba(0, 0, 0, 0) calc(100% - 5px), rgb(183, 216, 226) calc(100% - 5px), rgb(183, 216, 226) 100%), linear-gradient(rgb(183, 216, 226) 0px, rgb(183, 216, 226) 5px, rgba(0, 0, 0, 0) 5px, rgba(0, 0, 0, 0) calc(100% - 5px), rgb(183, 216, 226) calc(100% - 5px), rgb(183, 216, 226) 100%), linear-gradient(rgba(137, 234, 255, 0.08), rgba(2, 10, 17, 0.32))",
+    "boxShadow": "rgba(83, 231, 255, 0.08) 0px 0px 7px 0px inset, rgba(83, 231, 255, 0.06) 0px 0px 6px 0px",
+    "border": "1px solid rgba(137, 234, 255, 0.22)",
+    "color": "rgb(217, 245, 255)"
+  }
+}

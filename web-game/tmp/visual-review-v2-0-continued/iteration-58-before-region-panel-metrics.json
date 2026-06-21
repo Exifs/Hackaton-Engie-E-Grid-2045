@@ -1,0 +1,80 @@
+{
+  "real": {
+    "overflowY": 0,
+    "builtCards": 0,
+    "visibleBuiltCards": 0,
+    "artCount": 0,
+    "lockCards": 0,
+    "statusCount": 3,
+    "icons": [
+      {
+        "className": "region-status region-status-energy ",
+        "beforeContent": "\"\"",
+        "beforeWidth": 9,
+        "beforeHeight": 16,
+        "afterContent": "\"\"",
+        "afterWidth": 0,
+        "afterHeight": 0
+      },
+      {
+        "className": "region-status region-status-cooling ",
+        "beforeContent": "\"\"",
+        "beforeWidth": 16,
+        "beforeHeight": 2,
+        "afterContent": "\"\"",
+        "afterWidth": 16,
+        "afterHeight": 2
+      },
+      {
+        "className": "region-status region-status-compute ",
+        "beforeContent": "\"\"",
+        "beforeWidth": 13,
+        "beforeHeight": 13,
+        "afterContent": "\"\"",
+        "afterWidth": 0,
+        "afterHeight": 0
+      }
+    ],
+    "cardMetrics": [],
+    "activeTab": "Stats"
+  },
+  "concept": {
+    "overflowY": 0,
+    "builtCards": 0,
+    "visibleBuiltCards": 0,
+    "artCount": 0,
+    "lockCards": 0,
+    "statusCount": 3,
+    "icons": [
+      {
+        "className": "region-status region-status-energy ",
+        "beforeContent": "\"\"",
+        "beforeWidth": 9,
+        "beforeHeight": 16,
+        "afterContent": "\"\"",
+        "afterWidth": 0,
+        "afterHeight": 0
+      },
+      {
+        "className": "region-status region-status-cooling ",
+        "beforeContent": "\"\"",
+        "beforeWidth": 16,
+        "beforeHeight": 2,
+        "afterContent": "\"\"",
+        "afterWidth": 16,
+        "afterHeight": 2
+      },
+      {
+        "className": "region-status region-status-compute ",
+        "beforeContent": "\"\"",
+        "beforeWidth": 13,
+        "beforeHeight": 13,
+        "afterContent": "\"\"",
+        "afterWidth": 0,
+        "afterHeight": 0
+      }
+    ],
+    "cardMetrics": [],
+    "activeTab": "Stats"
+  }
+}

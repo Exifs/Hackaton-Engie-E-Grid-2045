@@ -1,0 +1,28 @@
+{
+  "states": [
+    {
+      "name": "real-start",
+      "selected": "fr_nord",
+      "selectedBuildings": 0,
+      "selectedQueue": 0,
+      "selectedSlotsUsed": 0,
+      "canvasWidth": 1600,
+      "canvasHeight": 900,
+      "buildingTextureCount": 0,
+      "networkFlowCount": 4,
+      "alertCount": 0
+    },
+    {
+      "name": "concept-state",
+      "selected": "benelux",
+      "selectedBuildings": 10,
+      "selectedQueue": 0,
+      "selectedSlotsUsed": 16,
+      "canvasWidth": 1600,
+      "canvasHeight": 900,
+      "buildingTextureCount": 45,
+      "networkFlowCount": 21,
+      "alertCount": 5
+    }
+  ]
+}

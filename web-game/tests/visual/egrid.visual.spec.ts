@@ -52,6 +52,80 @@ test.describe("E-Grid 2045 web game visuals", () => {
     await expect(page.locator(".top-kpi")).toBeVisible();
     const panelBackground = await page.locator(".top-kpi").evaluate((element) => getComputedStyle(element).backgroundImage);
     expect(panelBackground).toContain("panel-chrome-texture-v1");
+    const chromeLayerMetrics = await page.evaluate(() =>
+      [".top-kpi", ".build-palette", ".region-panel", ".alerts-panel", ".grid-overview-card"].map((selector) => {
+        const element = document.querySelector<HTMLElement>(selector);
+        const style = element ? getComputedStyle(element) : undefined;
+        return {
+          selector,
+          hasTexture: style?.backgroundImage.includes("panel-chrome-texture-v1") ?? false,
+          linearGradientLayers: style?.backgroundImage.match(/linear-gradient/g)?.length ?? 0,
+          radialGradientLayers: style?.backgroundImage.match(/radial-gradient/g)?.length ?? 0,
+          overflowX: element ? Math.max(0, element.scrollWidth - element.clientWidth) : 999,
+          overflowY: element ? Math.max(0, element.scrollHeight - element.clientHeight) : 999
+        };
+      })
+    );
+    expect(chromeLayerMetrics.every((metric) => metric.hasTexture)).toBe(true);
+    expect(chromeLayerMetrics.every((metric) => metric.linearGradientLayers >= 8)).toBe(true);
+    expect(chromeLayerMetrics.every((metric) => metric.radialGradientLayers >= 4)).toBe(true);
+    expect(chromeLayerMetrics.every((metric) => metric.overflowX === 0 && metric.overflowY === 0)).toBe(true);
+    const heatmapMetrics = await page.locator(".heatmap-switch").evaluate((element) => {
+      const rect = element.getBoundingClientRect();
+      const buttons = [...element.querySelectorAll<HTMLElement>(".heatmap-button")];
+      return {
+        width: rect.width,
+        height: rect.height,
+        compactLabels: buttons.every((button) => (button.textContent?.trim().length ?? 0) <= 3),
+        richTooltipCount: buttons.filter((button) => button.dataset.richTooltip === "1").length
+      };
+    });
+    expect(heatmapMetrics.width).toBeLessThanOrEqual(320);
+    expect(heatmapMetrics.height).toBeLessThanOrEqual(44);
+    expect(heatmapMetrics.compactLabels).toBe(true);
+    expect(heatmapMetrics.richTooltipCount).toBe(6);
+    const mapAtlas = await page.request.get("/assets/generated/building-map-atlas-v4.png");
+    expect(mapAtlas.ok()).toBe(true);
+    await expect(page.locator(".grid-overview-card")).toBeVisible();
+    await expect(page.locator(".grid-overview-expand")).toHaveText("");
+    const agiRingBackground = await page
+      .locator(".agi-ring")
+      .first()
+      .evaluate((element) => getComputedStyle(element).backgroundImage);
+    expect(agiRingBackground).toBe("none");
+    const overviewBackground = await page
+      .locator(".grid-overview-map")
+      .evaluate((element) => getComputedStyle(element).backgroundImage);
+    expect(overviewBackground).toContain("grid-overview-europe-map-only-v1");
+    expect(overviewBackground).not.toContain("grid-overview-europe-neon");
+    const expandBackground = await page
+      .locator(".grid-overview-expand")
+      .evaluate((element) => getComputedStyle(element).backgroundImage);
+    expect(expandBackground).not.toBe("none");
+    const miniOverviewMetrics = await page.locator(".grid-overview-card").evaluate((card) => ({
+      hubLineCount: card.querySelectorAll(".mini-flow-hub").length,
+      nodeCount: card.querySelectorAll(".grid-overview-node").length,
+      staticThreadCount: card.querySelectorAll(".mini-overview-thread, .mini-overview-orbit").length,
+      relayNodeCount: card.querySelectorAll(".grid-overview-node.is-relay").length,
+      flowNodeCount: card.querySelectorAll(".grid-overview-node.is-flow").length,
+      dynamicNodeCount: card.querySelectorAll(
+        ".grid-overview-node.is-relay, .grid-overview-node.is-flow, .grid-overview-node.is-congested"
+      ).length,
+      flowHaloOpacity: Number.parseFloat(
+        getComputedStyle(card.querySelector(".grid-overview-node.is-flow:not(.is-selected)") ?? card, "::before").opacity
+      ),
+      selectedHaloOpacity: Number.parseFloat(
+        getComputedStyle(card.querySelector(".grid-overview-node.is-selected") ?? card, "::before").opacity
+      )
+    }));
+    expect(miniOverviewMetrics.hubLineCount).toBeGreaterThanOrEqual(8);
+    expect(miniOverviewMetrics.nodeCount).toBeGreaterThanOrEqual(18);
+    expect(miniOverviewMetrics.staticThreadCount).toBe(0);
+    expect(miniOverviewMetrics.relayNodeCount).toBeGreaterThanOrEqual(1);
+    expect(miniOverviewMetrics.flowNodeCount).toBeGreaterThanOrEqual(2);
+    expect(miniOverviewMetrics.dynamicNodeCount).toBeGreaterThanOrEqual(6);
+    expect(miniOverviewMetrics.flowHaloOpacity).toBeGreaterThan(0);
+    expect(miniOverviewMetrics.selectedHaloOpacity).toBeGreaterThan(0);
     await page.screenshot({ path: testInfo.outputPath("initial-desktop-1600x900.png"), fullPage: true });
   });
 
@@ -87,8 +161,37 @@ test.describe("E-Grid 2045 web game visuals", () => {
       window.__EGRID__?.hud.render();
     });
     await expect(page.locator(".region-panel")).toContainText("France Nord");
+    await expect(page.locator(".region-tabs button")).toHaveCount(3);
+    await expect(page.locator('[data-region-tab="overview"]')).toHaveAttribute("aria-selected", "true");
+    await expect(page.locator(".region-tab-overview")).toBeVisible();
+
+    await page.locator('[data-region-tab="buildings"]').click();
+    await page.waitForTimeout(250);
+    await expect(page.locator('[data-region-tab="buildings"]')).toHaveAttribute("aria-selected", "true");
+    await expect(page.locator(".region-tab-buildings .region-buildings")).toBeVisible();
+    await expect(page.locator(".region-tab-buildings .region-queue")).toBeVisible();
+    await expect(page.locator(".region-tab-buildings .region-status-stack")).toHaveCount(0);
+    await expect(page.locator(".rich-tooltip.is-visible")).toHaveCount(0);
+
+    await page.locator('[data-region-tab="stats"]').click();
+    await page.waitForTimeout(250);
+    await expect(page.locator('[data-region-tab="stats"]')).toHaveAttribute("aria-selected", "true");
+    await expect(page.locator(".region-tab-stats .region-stat-tile")).toHaveCount(6);
+    await expect(page.locator(".region-tab-stats .region-status-stack")).toBeVisible();
+    await expect(page.locator(".rich-tooltip.is-visible")).toHaveCount(0);
+
+    const tabMetrics = await page.locator(".region-panel").evaluate((panel) => ({
+      overflowY: Math.max(0, panel.scrollHeight - panel.clientHeight),
+      activeTabs: [...panel.querySelectorAll(".region-tabs button.is-active")].map((element) => element.textContent?.trim())
+    }));
+    expect(tabMetrics.overflowY).toBeLessThanOrEqual(1);
+    expect(tabMetrics.activeTabs).toEqual(["Stats"]);
+
+    await page.waitForTimeout(550);
+    await page.locator('[data-region-tab="overview"]').hover();
+    await expect(page.locator(".rich-tooltip.is-visible")).toContainText("Vue synthese");
     await expectCanvasNonBlank(page);
-    await page.screenshot({ path: testInfo.outputPath("france-nord-region-panel.png"), fullPage: true });
+    await page.screenshot({ path: testInfo.outputPath("france-nord-region-panel-tabs.png"), fullPage: true });
   });
 
   test("construction palette is open with one generated art image per card", async ({ page }, testInfo) => {
@@ -151,6 +254,93 @@ test.describe("E-Grid 2045 web game visuals", () => {
     expect(franceNordState).toEqual({ built: 1, constructing: 0 });
     expect(await countMapBuildingSprites(page)).toBeGreaterThan(0);
     await page.screenshot({ path: testInfo.outputPath("map-building-icon-after-built-building.png"), fullPage: true });
+  });
+
+  test("concept central map keeps strategic labels and built modules uncluttered", async ({ page }, testInfo) => {
+    await openConceptGame(page, 1600, 900);
+    const metrics = await page.evaluate(() => {
+      const scene = window.__EGRID__?.scene as unknown as {
+        children?: {
+          list?: unknown[];
+        };
+        strategicMapFlows?: (
+          flows: Array<{ source_region_id: string; target_region_id: string; is_congested: boolean }>,
+          selectedRegionId: string,
+          regions: Record<string, unknown>
+        ) => Array<{ source_region_id: string; target_region_id: string; is_congested: boolean }>;
+        strategicAlertAccents?: (
+          summary: unknown,
+          regions: Record<string, unknown>,
+          strategicFlows: Array<{ source_region_id: string; target_region_id: string; is_congested: boolean }>
+        ) => Array<{ regionId: string; flow?: unknown }>;
+      };
+      const summary = window.__EGRID__?.simulation.getSummary();
+      const regions = window.__EGRID__?.simulation.getRegionsSnapshot() ?? {};
+      const selectedRegionId = summary?.selected_region_id ?? "";
+      const strategicFlows = scene.strategicMapFlows?.(summary?.network_flows ?? [], selectedRegionId, regions) ?? [];
+      const alertAccents = scene.strategicAlertAccents?.(summary, regions, strategicFlows) ?? [];
+      const collectLabels = (items: unknown[]): string[] =>
+        items.flatMap((item) => {
+          const child = item as {
+            text?: string;
+            list?: unknown[];
+          };
+          const ownText = typeof child.text === "string" ? [child.text] : [];
+          return [...ownText, ...(Array.isArray(child.list) ? collectLabels(child.list) : [])];
+        });
+      const labels = collectLabels(scene.children?.list ?? []).map((label) => label.replace(/\s+/g, " ").trim());
+      const forbiddenInternalLabels = [
+        "FRANCE NORD",
+        "ALLEMAGNE OUEST",
+        "SUEDE SUD",
+        "BALTIQUE NORD",
+        "MEDITERRANEE INSULAIRE"
+      ];
+      return {
+        buildingTextureCount: countSceneBuildingTextures(scene.children?.list ?? []),
+        visibleStructureEstimate: Math.round(countSceneBuildingTextures(scene.children?.list ?? []) / 4),
+        forbiddenVisibleLabels: forbiddenInternalLabels.filter((label) => labels.includes(label)),
+        hasBeneluxLabel: labels.includes("BENELUX"),
+        hasGermanyLabel: labels.includes("GERMANY"),
+        strategicFlowCount: strategicFlows.length,
+        strategicCongestedCount: strategicFlows.filter((flow) => flow.is_congested).length,
+        strategicSelectedEndpointCount: strategicFlows.filter(
+          (flow) => flow.source_region_id === selectedRegionId || flow.target_region_id === selectedRegionId
+        ).length,
+        alertAccentCount: alertAccents.length,
+        alertAccentFlowCount: alertAccents.filter((accent) => Boolean(accent.flow)).length,
+        onboardingVisible: Boolean(document.querySelector(".onboarding-coach"))
+      };
+
+      function countSceneBuildingTextures(items: unknown[]): number {
+        return items.reduce((total, item) => {
+          const child = item as {
+            texture?: { key?: string };
+            list?: unknown[];
+          };
+          const ownTexture =
+            child.texture?.key === "building-icon-atlas" || child.texture?.key === "building-map-atlas" ? 1 : 0;
+          const nestedTextures = Array.isArray(child.list) ? countSceneBuildingTextures(child.list) : 0;
+          return total + ownTexture + nestedTextures;
+        }, 0);
+      }
+    });
+    expect(metrics.onboardingVisible).toBe(false);
+    expect(metrics.hasBeneluxLabel).toBe(true);
+    expect(metrics.hasGermanyLabel).toBe(true);
+    expect(metrics.forbiddenVisibleLabels).toEqual([]);
+    expect(metrics.buildingTextureCount).toBeGreaterThanOrEqual(40);
+    expect(metrics.visibleStructureEstimate).toBeGreaterThanOrEqual(9);
+    expect(metrics.visibleStructureEstimate).toBeLessThanOrEqual(11);
+    expect(metrics.strategicFlowCount).toBeGreaterThanOrEqual(8);
+    expect(metrics.strategicFlowCount).toBeLessThanOrEqual(10);
+    expect(metrics.strategicCongestedCount).toBeLessThanOrEqual(1);
+    expect(metrics.strategicSelectedEndpointCount).toBeGreaterThanOrEqual(6);
+    expect(metrics.alertAccentCount).toBeGreaterThanOrEqual(3);
+    expect(metrics.alertAccentFlowCount).toBeGreaterThanOrEqual(1);
+    await expectCanvasNonBlank(page);
+    await expectHudNoMajorOverlap(page);
+    await page.screenshot({ path: testInfo.outputPath("concept-central-map-strategic-labels.png"), fullPage: true });
   });
 
   test("construction accordion keeps one category active without vertical scroll", async ({ page }, testInfo) => {
@@ -263,8 +453,13 @@ test.describe("E-Grid 2045 web game visuals", () => {
       }
       const metrics = await page.locator(".build-card").first().evaluate((element) => {
         const style = getComputedStyle(element);
-        const visual = element.querySelector<HTMLElement>(".build-visual")?.getBoundingClientRect();
+        const visualElement = element.querySelector<HTMLElement>(".build-visual");
+        const artElement = element.querySelector<HTMLElement>(".building-art");
+        const visual = visualElement?.getBoundingClientRect();
+        const art = artElement?.getBoundingClientRect();
         const rect = element.getBoundingClientRect();
+        const artBefore = artElement ? getComputedStyle(artElement, "::before") : null;
+        const artAfter = artElement ? getComputedStyle(artElement, "::after") : null;
         return {
           height: rect.height,
           width: rect.width,
@@ -272,16 +467,36 @@ test.describe("E-Grid 2045 web game visuals", () => {
           paddingRight: parseFloat(style.paddingRight),
           alignSelf: style.alignSelf,
           visualWidth: visual?.width ?? 0,
-          visualHeight: visual?.height ?? 0
+          visualHeight: visual?.height ?? 0,
+          artWidth: art?.width ?? 0,
+          artHeight: art?.height ?? 0,
+          overflowY: Math.max(0, element.scrollHeight - element.clientHeight),
+          visualBeforeContent: visualElement ? getComputedStyle(visualElement, "::before").content : "none",
+          visualAfterContent: visualElement ? getComputedStyle(visualElement, "::after").content : "none",
+          artBeforeContent: artBefore?.content ?? "none",
+          artAfterContent: artAfter?.content ?? "none",
+          artBeforeBorderColor: artBefore?.borderColor ?? "",
+          artAfterBackground: artAfter?.backgroundImage ?? ""
         };
       });
       expect(metrics.height).toBeLessThanOrEqual(width < 720 ? 96 : 88);
       expect(metrics.width).toBeLessThanOrEqual(width < 720 ? 214 : 226);
-      expect(metrics.paddingTop).toBe(4);
-      expect(metrics.paddingRight).toBe(4);
+      expect(metrics.paddingTop).toBe(width >= 1180 ? 3 : 4);
+      expect(metrics.paddingRight).toBe(width >= 1180 ? 3 : 4);
       expect(metrics.alignSelf).toBe("flex-start");
-      expect(metrics.visualWidth).toBe(52);
-      expect(metrics.visualHeight).toBe(48);
+      expect(metrics.visualWidth).toBe(width >= 1180 ? 42 : 52);
+      expect(metrics.visualHeight).toBe(width >= 1180 ? 38 : 48);
+      expect(metrics.overflowY).toBe(0);
+      if (width >= 1180) {
+        expect(metrics.artWidth).toBeLessThan(metrics.visualWidth);
+        expect(metrics.artHeight).toBeLessThan(metrics.visualHeight);
+        expect(metrics.visualBeforeContent).toBe('""');
+        expect(metrics.visualAfterContent).toBe('""');
+        expect(metrics.artBeforeContent).toBe('""');
+        expect(metrics.artAfterContent).toBe('""');
+        expect(metrics.artBeforeBorderColor).not.toBe("rgba(0, 0, 0, 0)");
+        expect(metrics.artAfterBackground).not.toBe("none");
+      }
       await expectHudNoMajorOverlap(page);
     }
     await page.screenshot({ path: testInfo.outputPath("construction-card-compact-responsive.png"), fullPage: true });
@@ -318,7 +533,7 @@ test.describe("E-Grid 2045 web game visuals", () => {
       const overviewBackground = await page
         .locator(".grid-overview-map")
         .evaluate((element) => getComputedStyle(element).backgroundImage);
-      expect(overviewBackground).toContain("grid-overview-europe-neon-v1");
+      expect(overviewBackground).toContain("grid-overview-europe-map-only-v1");
       await expect(page.locator(".dock-resize-handle")).toBeHidden();
     }
 
@@ -361,6 +576,69 @@ test.describe("E-Grid 2045 web game visuals", () => {
     await expect(page.locator(".built-card").first()).toBeVisible();
     const artBackground = await page.locator(".built-card .building-art").first().evaluate((element) => getComputedStyle(element).backgroundImage);
     expect(artBackground).toContain("building-card-art-atlas");
+    const regionSlotMetrics = await page.locator(".region-panel").evaluate((panel) => {
+      const statusIcons = [...panel.querySelectorAll<HTMLElement>(".region-status-icon")].map((icon) => {
+        const before = getComputedStyle(icon, "::before");
+        const after = getComputedStyle(icon, "::after");
+        return {
+          beforeContent: before.content,
+          beforeWidth: Number.parseFloat(before.width),
+          beforeHeight: Number.parseFloat(before.height),
+          afterContent: after.content,
+          afterWidth: Number.parseFloat(after.width),
+          afterHeight: Number.parseFloat(after.height)
+        };
+      });
+      const builtCards = [...panel.querySelectorAll<HTMLElement>(".built-card")].map((card) => {
+        const cardAfter = getComputedStyle(card, "::after");
+        const art = card.querySelector<HTMLElement>(".building-art");
+        const artBefore = art ? getComputedStyle(art, "::before") : undefined;
+        const artAfter = art ? getComputedStyle(art, "::after") : undefined;
+        return {
+          cardOverflow: Math.max(0, card.scrollWidth - card.clientWidth, card.scrollHeight - card.clientHeight),
+          cardAfterContent: cardAfter.content,
+          cardAfterWidth: Number.parseFloat(cardAfter.width),
+          artBeforeContent: artBefore?.content ?? "",
+          artAfterContent: artAfter?.content ?? "",
+          artAfterWidth: artAfter ? Number.parseFloat(artAfter.width) : 0
+        };
+      });
+      const lockCards = [...panel.querySelectorAll<HTMLElement>(".locked-slot-card")].map((lock) => {
+        const before = getComputedStyle(lock, "::before");
+        const lockBody = lock.querySelector<HTMLElement>("i");
+        const keyhole = lockBody ? getComputedStyle(lockBody, "::after") : undefined;
+        return {
+          beforeContent: before.content,
+          beforeWidth: Number.parseFloat(before.width),
+          keyholeContent: keyhole?.content ?? "",
+          keyholeHeight: keyhole ? Number.parseFloat(keyhole.height) : 0
+        };
+      });
+      return { statusIcons, builtCards, lockCards };
+    });
+    expect(regionSlotMetrics.statusIcons).toHaveLength(3);
+    expect(regionSlotMetrics.statusIcons.every((icon) =>
+      icon.beforeContent === '""' &&
+      icon.afterContent === '""' &&
+      icon.beforeWidth > 0 &&
+      icon.beforeHeight > 0 &&
+      icon.afterWidth > 0 &&
+      icon.afterHeight > 0
+    )).toBe(true);
+    expect(regionSlotMetrics.builtCards.every((card) =>
+      card.cardOverflow === 0 &&
+      card.cardAfterContent === '""' &&
+      card.cardAfterWidth > 0 &&
+      card.artBeforeContent === '""' &&
+      card.artAfterContent === '""' &&
+      card.artAfterWidth > 0
+    )).toBe(true);
+    expect(regionSlotMetrics.lockCards.every((lock) =>
+      lock.beforeContent === '""' &&
+      lock.beforeWidth > 0 &&
+      lock.keyholeContent === '""' &&
+      lock.keyholeHeight > 0
+    )).toBe(true);
     await expectHudNoMajorOverlap(page);
 
     await page.screenshot({ path: testInfo.outputPath("p0-built-building-cards.png"), fullPage: true });
@@ -383,6 +661,28 @@ test.describe("E-Grid 2045 web game visuals", () => {
 
     await expect(page.locator(".alert-item").first()).toBeVisible();
     await expect(page.locator(".region-panel")).toContainText("Irlande");
+    const alertTextMetrics = await page.locator(".alerts-panel .alert-item").evaluateAll((cards) =>
+      cards.map((card) => {
+        const main = card.querySelector(".alert-main");
+        const title = card.querySelector("strong");
+        const icon = card.querySelector(".alert-icon");
+        const iconBefore = icon ? getComputedStyle(icon, "::before") : undefined;
+        const iconAfter = icon ? getComputedStyle(icon, "::after") : undefined;
+        return {
+          mainWidthRatio: main ? main.getBoundingClientRect().width / card.getBoundingClientRect().width : 0,
+          titleOverflowX: title ? Math.max(0, title.scrollWidth - title.clientWidth) : 0,
+          cardOverflowY: Math.max(0, card.scrollHeight - card.clientHeight),
+          iconBeforeContent: iconBefore?.content ?? "",
+          iconBeforeWidth: iconBefore ? Number.parseFloat(iconBefore.width) : 0,
+          iconAfterWidth: iconAfter ? Number.parseFloat(iconAfter.width) : 0
+        };
+      })
+    );
+    expect(alertTextMetrics.every((metric) => metric.mainWidthRatio >= 0.66)).toBe(true);
+    expect(alertTextMetrics.every((metric) => metric.titleOverflowX === 0)).toBe(true);
+    expect(alertTextMetrics.every((metric) => metric.cardOverflowY === 0)).toBe(true);
+    expect(alertTextMetrics.every((metric) => !/[!*#]/.test(metric.iconBeforeContent))).toBe(true);
+    expect(alertTextMetrics.every((metric) => metric.iconBeforeWidth > 0 && metric.iconAfterWidth > 0)).toBe(true);
     await expectCanvasNonBlank(page);
     await expectHudNoMajorOverlap(page);
     await page.screenshot({ path: testInfo.outputPath("flows-and-alerts.png"), fullPage: true });
@@ -498,6 +798,39 @@ test.describe("E-Grid 2045 web game visuals", () => {
     const result = await page.evaluate(() => window.__EGRID__?.simulation.startResearch("batteries"));
     expect(result).toMatchObject({ ok: false, reason: "Requires an active Centre recherche energie." });
     await page.screenshot({ path: testInfo.outputPath("research-blocked-no-building.png"), fullPage: true });
+  });
+
+  test("research tab keeps compact cards readable and scrolls from card surfaces", async ({ page }, testInfo) => {
+    await openGame(page, 1600, 900);
+    await page.locator('[data-palette-tab="research"]').click();
+    await expect(page.locator(".grid-overview-card")).toBeVisible();
+
+    const defaultMetrics = await researchCardReadabilityMetrics(page);
+    expect(defaultMetrics.bodyOverflowY).toBe(0);
+    expect(defaultMetrics.overviewVisibleInPalette).toBe(true);
+    expect(defaultMetrics.cardCount).toBeGreaterThanOrEqual(4);
+    expect(defaultMetrics.titleOverflowMax).toBe(0);
+    expect(defaultMetrics.cardOverflowMax).toBe(0);
+    expect(defaultMetrics.glyphsWithPseudo).toBe(defaultMetrics.cardCount);
+
+    await page.locator('[data-filter-toggle="unavailable-research"]').click();
+    await expect(page.locator('[data-research="batteries"]')).toBeVisible();
+    const expandedMetrics = await researchCardReadabilityMetrics(page);
+    expect(expandedMetrics.bodyOverflowY).toBeGreaterThan(0);
+    expect(expandedMetrics.titleOverflowMax).toBe(0);
+    expect(expandedMetrics.cardOverflowMax).toBe(0);
+    expect(expandedMetrics.glyphsWithPseudo).toBe(expandedMetrics.cardCount);
+
+    await page.locator(".palette-body-research").evaluate((element) => {
+      element.scrollTop = 0;
+    });
+    await page.locator(".research-card").first().hover();
+    await page.mouse.wheel(0, 260);
+    await page.waitForTimeout(80);
+    const scrolledFromCardSurface = await page.locator(".palette-body-research").evaluate((element) => element.scrollTop);
+    expect(scrolledFromCardSurface).toBeGreaterThan(0);
+
+    await page.screenshot({ path: testInfo.outputPath("research-compact-readable-scroll.png"), fullPage: true });
   });
 
   test("active research displays progress background and throughput details", async ({ page }, testInfo) => {
@@ -889,6 +1222,18 @@ async function openLiveGame(page: Page, width: number, height: number): Promise<
   await page.waitForTimeout(150);
 }
 
+async function openConceptGame(page: Page, width: number, height: number): Promise<void> {
+  await page.setViewportSize({ width, height });
+  await page.goto("/?testMode=1&seed=p0&scenario=concept&onboarding=0");
+  await page.waitForFunction(() => Boolean(window.__EGRID__));
+  await page.locator("#game-canvas canvas").waitFor({ state: "visible" });
+  await page.evaluate(() => {
+    window.__EGRID__?.hud.render();
+    window.__EGRID__?.scene.renderState();
+  });
+  await page.waitForTimeout(150);
+}
+
 async function openGameWithOnboarding(page: Page, width: number, height: number): Promise<void> {
   await page.setViewportSize({ width, height });
   await page.goto("/?testMode=1&seed=onboarding&onboarding=1");
@@ -969,6 +1314,56 @@ async function regionPanelMetrics(page: Page): Promise<{ tagHeight: number; sect
     return {
       tagHeight: tag?.height ?? 0,
       sectionGap
+    };
+  });
+}
+
+async function researchCardReadabilityMetrics(page: Page): Promise<{
+  bodyOverflowY: number;
+  cardCount: number;
+  cardOverflowMax: number;
+  copyOverflowMax: number;
+  glyphsWithPseudo: number;
+  overviewVisibleInPalette: boolean;
+  titleOverflowMax: number;
+}> {
+  return page.evaluate(() => {
+    const body = document.querySelector<HTMLElement>(".palette-body-research");
+    const palette = document.querySelector<HTMLElement>(".build-palette");
+    const overview = document.querySelector<HTMLElement>(".grid-overview-card");
+    const paletteRect = palette?.getBoundingClientRect();
+    const overviewRect = overview?.getBoundingClientRect();
+    const cards = [...document.querySelectorAll<HTMLElement>(".research-card")];
+    const cardMetrics = cards.map((card) => {
+      const title = card.querySelector<HTMLElement>("strong");
+      const copy = card.querySelector<HTMLElement>(".research-copy");
+      const glyph = card.querySelector<HTMLElement>(".research-card-glyph");
+      const glyphBefore = glyph ? getComputedStyle(glyph, "::before") : undefined;
+      const glyphAfter = glyph ? getComputedStyle(glyph, "::after") : undefined;
+      return {
+        cardOverflow: Math.max(0, card.scrollWidth - card.clientWidth, card.scrollHeight - card.clientHeight),
+        copyOverflow: copy ? Math.max(0, copy.scrollHeight - copy.clientHeight) : 0,
+        glyphHasPseudo:
+          glyphBefore?.content === '""' &&
+          glyphAfter?.content === '""' &&
+          Number.parseFloat(glyphBefore.width) > 0 &&
+          Number.parseFloat(glyphAfter.width) > 0,
+        titleOverflow: title ? Math.max(0, title.scrollWidth - title.clientWidth) : 0
+      };
+    });
+    return {
+      bodyOverflowY: body ? Math.max(0, body.scrollHeight - body.clientHeight) : 0,
+      cardCount: cards.length,
+      cardOverflowMax: Math.max(0, ...cardMetrics.map((metric) => metric.cardOverflow)),
+      copyOverflowMax: Math.max(0, ...cardMetrics.map((metric) => metric.copyOverflow)),
+      glyphsWithPseudo: cardMetrics.filter((metric) => metric.glyphHasPseudo).length,
+      overviewVisibleInPalette: Boolean(
+        overviewRect &&
+        paletteRect &&
+        overviewRect.top >= paletteRect.top &&
+        overviewRect.bottom <= paletteRect.bottom + 1
+      ),
+      titleOverflowMax: Math.max(0, ...cardMetrics.map((metric) => metric.titleOverflow))
     };
   });
 }

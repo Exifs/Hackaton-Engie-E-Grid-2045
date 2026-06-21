@@ -1,0 +1,78 @@
+{
+  "real": {
+    "overflowY": 0,
+    "activeTab": "Stats",
+    "statusCount": 3,
+    "icons": [
+      {
+        "className": "region-status region-status-energy ",
+        "beforeContent": "\"\"",
+        "beforeWidth": 9,
+        "beforeHeight": 16,
+        "afterContent": "\"\"",
+        "afterWidth": 12,
+        "afterHeight": 14
+      },
+      {
+        "className": "region-status region-status-cooling ",
+        "beforeContent": "\"\"",
+        "beforeWidth": 17,
+        "beforeHeight": 17,
+        "afterContent": "\"\"",
+        "afterWidth": 17,
+        "afterHeight": 17
+      },
+      {
+        "className": "region-status region-status-compute ",
+        "beforeContent": "\"\"",
+        "beforeWidth": 13,
+        "beforeHeight": 13,
+        "afterContent": "\"\"",
+        "afterWidth": 3,
+        "afterHeight": 3
+      }
+    ],
+    "builtCount": 0,
+    "builtPseudo": [],
+    "locks": [],
+    "tooltipVisible": false
+  },
+  "concept": {
+    "overflowY": 0,
+    "activeTab": "Stats",
+    "statusCount": 3,
+    "icons": [
+      {
+        "className": "region-status region-status-energy ",
+        "beforeContent": "\"\"",
+        "beforeWidth": 9,
+        "beforeHeight": 16,
+        "afterContent": "\"\"",
+        "afterWidth": 12,
+        "afterHeight": 14
+      },
+      {
+        "className": "region-status region-status-cooling ",
+        "beforeContent": "\"\"",
+        "beforeWidth": 17,
+        "beforeHeight": 17,
+        "afterContent": "\"\"",
+        "afterWidth": 17,
+        "afterHeight": 17
+      },
+      {
+        "className": "region-status region-status-compute ",
+        "beforeContent": "\"\"",
+        "beforeWidth": 13,
+        "beforeHeight": 13,
+        "afterContent": "\"\"",
+        "afterWidth": 3,
+        "afterHeight": 3
+      }
+    ],
+    "builtCount": 0,
+    "builtPseudo": [],
+    "locks": [],
+    "tooltipVisible": false
+  }
+}

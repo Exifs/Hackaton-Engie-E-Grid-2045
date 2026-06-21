@@ -37,6 +37,13 @@ interface MapStructureCandidate {
   score: number;
 }
 
+interface MapAlertAccent {
+  regionId: string;
+  state: string;
+  priority: number;
+  flow?: GameSummary["network_flows"][number];
+}
+
 const HEATMAP_COLORS = {
   stable: 0x49e7b8,
   energy: 0x53e7ff,
@@ -118,7 +125,7 @@ export class EGridMapScene extends Phaser.Scene {
     );
     this.load.image(
       "building-map-atlas",
-      `${import.meta.env.BASE_URL}assets/generated/building-map-atlas-v2.png`
+      `${import.meta.env.BASE_URL}assets/generated/building-map-atlas-v4.png`
     );
   }
 
@@ -283,10 +290,18 @@ export class EGridMapScene extends Phaser.Scene {
     const graph = this.simulation.getNetworkGraph();
     const drawnEdges = new Set<string>();
     const useStrategicRouteRendering = window.innerWidth >= 1180 || document.documentElement.dataset.conceptScenario === "1";
+    const strategicFlows = useStrategicRouteRendering
+      ? this.strategicMapFlows(summary.network_flows, summary.selected_region_id, regions)
+      : summary.network_flows;
     const activeConceptEdges = new Set(
-      summary.network_flows
-        .slice(0, 16)
+      strategicFlows
         .map((flow) => [flow.source_region_id, flow.target_region_id].sort().join(":"))
+    );
+    const activeConceptEdgeColors = new Map<string, number>(
+      strategicFlows.map((flow) => [
+        [flow.source_region_id, flow.target_region_id].sort().join(":"),
+        flow.is_congested ? HEATMAP_COLORS.warning : HEATMAP_COLORS.energy
+      ] as [string, number])
     );
 
     for (const [sourceId, targets] of Object.entries(graph)) {
@@ -308,8 +323,10 @@ export class EGridMapScene extends Phaser.Scene {
 
         const targetPoint = this.regionPoint(rect, target.layout as RegionLayout);
         const hash = hashString(edgeKey);
-        const color = hash % 4 === 0 ? HEATMAP_COLORS.compute : hash % 5 === 0 ? HEATMAP_COLORS.warning : HEATMAP_COLORS.energy;
         const isActiveConceptEdge = activeConceptEdges.has(edgeKey);
+        const color = useStrategicRouteRendering
+          ? activeConceptEdgeColors.get(edgeKey) ?? (hash % 4 === 0 ? HEATMAP_COLORS.compute : HEATMAP_COLORS.energy)
+          : hash % 4 === 0 ? HEATMAP_COLORS.compute : hash % 5 === 0 ? HEATMAP_COLORS.warning : HEATMAP_COLORS.energy;
         if (useStrategicRouteRendering) {
           if (!isActiveConceptEdge && hash % 5 !== 0) {
             continue;
@@ -320,15 +337,15 @@ export class EGridMapScene extends Phaser.Scene {
             targetPoint,
             hash,
             color,
-            isActiveConceptEdge ? 1.15 : 0.72,
-            isActiveConceptEdge ? 0.18 : 0.08
+            isActiveConceptEdge ? 0.92 : 0.52,
+            isActiveConceptEdge ? 0.14 : 0.055
           );
           if (isActiveConceptEdge || hash % 10 === 0) {
             const nodeRatio = 0.32 + (hash % 30) / 90;
             const control = this.conceptRouteControl(sourcePoint, targetPoint, hash);
             const node = quadraticPoint(sourcePoint, control, targetPoint, nodeRatio);
-            graphics.fillStyle(color, isActiveConceptEdge ? 0.5 : 0.26);
-            graphics.fillCircle(node.x, node.y, isActiveConceptEdge ? 2.6 : 1.8);
+            graphics.fillStyle(color, isActiveConceptEdge ? 0.42 : 0.18);
+            graphics.fillCircle(node.x, node.y, isActiveConceptEdge ? 1.9 : 1.2);
           }
           continue;
         }
@@ -350,7 +367,7 @@ export class EGridMapScene extends Phaser.Scene {
       }
     }
 
-    for (const flow of summary.network_flows) {
+    for (const flow of strategicFlows) {
       const source = regions[flow.source_region_id];
       const target = regions[flow.target_region_id];
       if (!source || !target) {
@@ -363,17 +380,18 @@ export class EGridMapScene extends Phaser.Scene {
       if (useStrategicRouteRendering) {
         const hash = hashString(`${flow.source_region_id}:${flow.target_region_id}`);
         const control = this.conceptRouteControl(sourcePoint, targetPoint, hash);
-        graphics.lineStyle(width + 4.5, 0x03131b, 0.58);
+        const strategicWidth = flow.is_congested ? Math.max(0.95, width * 0.58) : Math.max(1.05, width * 0.66);
+        graphics.lineStyle(strategicWidth + 3.2, 0x03131b, 0.46);
         this.drawQuadraticRoute(graphics, sourcePoint, control, targetPoint);
-        graphics.lineStyle(Math.max(1.2, width * 0.86), color, flow.is_congested ? 0.82 : 0.64);
+        graphics.lineStyle(strategicWidth, color, flow.is_congested ? 0.5 : 0.56);
         this.drawQuadraticRoute(graphics, sourcePoint, control, targetPoint);
-        graphics.lineStyle(0.8, 0xd8fbff, flow.is_congested ? 0.2 : 0.12);
+        graphics.lineStyle(0.55, 0xd8fbff, flow.is_congested ? 0.1 : 0.095);
         this.drawQuadraticRoute(graphics, sourcePoint, control, targetPoint);
 
         const pulse = this.testMode ? 0.58 : (this.animationTime * 0.22 + flow.intensity_normalized) % 1;
         const point = quadraticPoint(sourcePoint, control, targetPoint, pulse);
-        graphics.fillStyle(color, 0.82);
-        graphics.fillCircle(point.x, point.y, 2.4 + flow.intensity_normalized * 2.6);
+        graphics.fillStyle(color, flow.is_congested ? 0.58 : 0.7);
+        graphics.fillCircle(point.x, point.y, (flow.is_congested ? 1.5 : 1.7) + flow.intensity_normalized * 1.55);
         continue;
       }
       graphics.lineStyle(width + 4, 0x062431, 0.55);
@@ -393,6 +411,199 @@ export class EGridMapScene extends Phaser.Scene {
       graphics.fillStyle(color, 0.78);
       graphics.fillCircle(px, py, 2 + flow.intensity_normalized * 3);
     }
+
+    if (useStrategicRouteRendering) {
+      this.drawAlertAccents(graphics, rect, summary, regions, strategicFlows);
+    }
+  }
+
+  private drawAlertAccents(
+    graphics: Phaser.GameObjects.Graphics,
+    rect: MapRect,
+    summary: GameSummary,
+    regions: Record<string, RegionSnapshot>,
+    strategicFlows: GameSummary["network_flows"]
+  ): void {
+    const accents = this.strategicAlertAccents(summary, regions, strategicFlows);
+    for (const accent of accents) {
+      const region = regions[accent.regionId];
+      const layout = region?.layout as RegionLayout | undefined;
+      if (!layout || layout.x === undefined || layout.y === undefined) {
+        continue;
+      }
+      const point = this.regionPoint(rect, layout);
+      const color = accent.state === "critical" ? HEATMAP_COLORS.critical : HEATMAP_COLORS.warning;
+      const pulse = this.testMode ? 0.55 : (Math.sin(this.animationTime * 4.2 + point.x * 0.011) + 1) * 0.5;
+      const radius = Math.max(5.5, layout.hitbox_radius * Math.min(rect.width, rect.height) * 0.17);
+
+      if (accent.flow) {
+        const source = regions[accent.flow.source_region_id];
+        const target = regions[accent.flow.target_region_id];
+        if (source?.layout && target?.layout) {
+          const sourcePoint = this.regionPoint(rect, source.layout as RegionLayout);
+          const targetPoint = this.regionPoint(rect, target.layout as RegionLayout);
+          const hash = hashString(`${accent.flow.source_region_id}:${accent.flow.target_region_id}:alert`);
+          const control = this.conceptRouteControl(sourcePoint, targetPoint, hash);
+          const nearTarget = accent.flow.target_region_id === accent.regionId;
+          const start = nearTarget ? 0.72 : 0.14;
+          const end = nearTarget ? 0.91 : 0.33;
+          graphics.lineStyle(4, 0x050b0d, 0.34);
+          this.drawQuadraticSegment(graphics, sourcePoint, control, targetPoint, start, end, 8);
+          graphics.lineStyle(1.45, color, 0.58);
+          this.drawQuadraticSegment(graphics, sourcePoint, control, targetPoint, start, end, 8);
+          graphics.lineStyle(0.75, 0xffe2a6, 0.22);
+          this.drawQuadraticSegment(graphics, sourcePoint, control, targetPoint, start + 0.025, end - 0.02, 6);
+        }
+      }
+
+      graphics.lineStyle(1.2, color, 0.5 + pulse * 0.18);
+      graphics.strokeCircle(point.x, point.y, radius * (1.55 + pulse * 0.18));
+      graphics.lineStyle(1.1, 0xffe2a6, 0.28);
+      graphics.strokeCircle(point.x, point.y, radius * 0.82);
+      graphics.fillStyle(color, 0.34);
+      graphics.fillCircle(point.x, point.y, Math.max(1.8, radius * 0.24));
+
+      const tickRadius = radius * 1.95;
+      const tickLength = radius * 0.74;
+      for (const angle of [-52, 38, 137]) {
+        const radians = Phaser.Math.DegToRad(angle + (accent.priority % 2) * 8);
+        const startX = point.x + Math.cos(radians) * tickRadius;
+        const startY = point.y + Math.sin(radians) * tickRadius;
+        const endX = point.x + Math.cos(radians) * (tickRadius + tickLength);
+        const endY = point.y + Math.sin(radians) * (tickRadius + tickLength);
+        graphics.lineStyle(1.05, color, 0.48);
+        graphics.lineBetween(startX, startY, endX, endY);
+      }
+    }
+  }
+
+  private strategicAlertAccents(
+    summary: GameSummary,
+    regions: Record<string, RegionSnapshot>,
+    strategicFlows: GameSummary["network_flows"]
+  ): MapAlertAccent[] {
+    const flowKey = (flow: GameSummary["network_flows"][number]): string =>
+      [flow.source_region_id, flow.target_region_id].sort().join(":");
+    const strategicKeys = new Set(strategicFlows.map(flowKey));
+    return summary.alerts
+      .filter((alert) => alert.region_id && regions[alert.region_id])
+      .sort((left, right) => left.priority - right.priority)
+      .slice(0, 4)
+      .map((alert) => {
+        const touchingStrategic = strategicFlows.find(
+          (flow) => flow.source_region_id === alert.region_id || flow.target_region_id === alert.region_id
+        );
+        const touchingCongested = summary.network_flows.find(
+          (flow) =>
+            flow.is_congested &&
+            (flow.source_region_id === alert.region_id || flow.target_region_id === alert.region_id)
+        );
+        const touchingAny = summary.network_flows.find(
+          (flow) => flow.source_region_id === alert.region_id || flow.target_region_id === alert.region_id
+        );
+        const flow = touchingStrategic ?? touchingCongested ?? touchingAny;
+        return {
+          regionId: alert.region_id,
+          state: alert.state,
+          priority: alert.priority,
+          flow: flow && (strategicKeys.has(flowKey(flow)) || flow.is_congested) ? flow : undefined
+        };
+      });
+  }
+
+  private strategicMapFlows(
+    flows: GameSummary["network_flows"],
+    selectedRegionId: string,
+    regions: Record<string, RegionSnapshot>
+  ): GameSummary["network_flows"] {
+    type StrategicFlow = GameSummary["network_flows"][number];
+    type RankedFlow = {
+      flow: StrategicFlow;
+      hasSelectedEndpoint: boolean;
+      isLocal: boolean;
+      length: number;
+      score: number;
+    };
+
+    const ranked = flows
+      .map((flow): RankedFlow | undefined => {
+        const source = regions[flow.source_region_id];
+        const target = regions[flow.target_region_id];
+        const sourceLayout = source?.layout as RegionLayout | undefined;
+        const targetLayout = target?.layout as RegionLayout | undefined;
+        if (
+          !sourceLayout ||
+          !targetLayout ||
+          sourceLayout.x === undefined ||
+          sourceLayout.y === undefined ||
+          targetLayout.x === undefined ||
+          targetLayout.y === undefined
+        ) {
+          return undefined;
+        }
+        const dx = targetLayout.x - sourceLayout.x;
+        const dy = targetLayout.y - sourceLayout.y;
+        const length = Math.hypot(dx, dy);
+        const midX = (sourceLayout.x + targetLayout.x) / 2;
+        const midY = (sourceLayout.y + targetLayout.y) / 2;
+        const centralityPenalty = Math.abs(midX - 0.52) + Math.abs(midY - 0.5);
+        const hasSelectedEndpoint =
+          flow.source_region_id === selectedRegionId || flow.target_region_id === selectedRegionId;
+        const isLocal = length <= 0.25;
+        const score =
+          flow.intensity_normalized * 9 +
+          (hasSelectedEndpoint ? 3.2 : 0) +
+          (isLocal ? 1.1 : 0) -
+          centralityPenalty * 1.6 -
+          Math.max(0, length - 0.32) * 4 -
+          (flow.is_congested && !hasSelectedEndpoint ? 1.2 : 0);
+        return { flow, hasSelectedEndpoint, isLocal, length, score };
+      })
+      .filter((entry): entry is RankedFlow => Boolean(entry));
+
+    const result: StrategicFlow[] = [];
+    const used = new Set<string>();
+    const addFlow = (entry: RankedFlow | undefined): void => {
+      if (!entry) {
+        return;
+      }
+      const key = [entry.flow.source_region_id, entry.flow.target_region_id].sort().join(":");
+      if (used.has(key)) {
+        return;
+      }
+      result.push(entry.flow);
+      used.add(key);
+    };
+    const byScore = (left: RankedFlow, right: RankedFlow): number => right.score - left.score;
+
+    ranked
+      .filter((entry) => entry.hasSelectedEndpoint && !entry.flow.is_congested)
+      .sort(byScore)
+      .slice(0, 8)
+      .forEach(addFlow);
+
+    ranked
+      .filter((entry) => !entry.hasSelectedEndpoint && !entry.flow.is_congested && entry.isLocal)
+      .sort(byScore)
+      .slice(0, 2)
+      .forEach(addFlow);
+
+    ranked
+      .filter((entry) => entry.flow.is_congested && entry.length <= 0.5)
+      .sort((left, right) => left.length - right.length || byScore(left, right))
+      .slice(0, 1)
+      .forEach(addFlow);
+
+    ranked
+      .filter((entry) => !entry.flow.is_congested)
+      .sort(byScore)
+      .forEach((entry) => {
+        if (result.length < 10) {
+          addFlow(entry);
+        }
+      });
+
+    return result.slice(0, 10);
   }
 
   private strokeConceptRoute(
@@ -405,7 +616,7 @@ export class EGridMapScene extends Phaser.Scene {
     alpha: number
   ): void {
     const control = this.conceptRouteControl(sourcePoint, targetPoint, hash);
-    graphics.lineStyle(width + 2.4, 0x02090f, alpha * 1.5);
+    graphics.lineStyle(width + 1.8, 0x02090f, alpha * 1.35);
     this.drawQuadraticRoute(graphics, sourcePoint, control, targetPoint, 10);
     graphics.lineStyle(width, color, alpha);
     this.drawQuadraticRoute(graphics, sourcePoint, control, targetPoint, 10);
@@ -437,6 +648,32 @@ export class EGridMapScene extends Phaser.Scene {
     graphics.moveTo(sourcePoint.x, sourcePoint.y);
     for (let step = 1; step <= steps; step += 1) {
       const point = quadraticPoint(sourcePoint, controlPoint, targetPoint, step / steps);
+      graphics.lineTo(point.x, point.y);
+    }
+    graphics.strokePath();
+  }
+
+  private drawQuadraticSegment(
+    graphics: Phaser.GameObjects.Graphics,
+    sourcePoint: { x: number; y: number },
+    controlPoint: { x: number; y: number },
+    targetPoint: { x: number; y: number },
+    start: number,
+    end: number,
+    steps = 8
+  ): void {
+    const clampedStart = Phaser.Math.Clamp(start, 0, 1);
+    const clampedEnd = Phaser.Math.Clamp(end, clampedStart, 1);
+    graphics.beginPath();
+    const first = quadraticPoint(sourcePoint, controlPoint, targetPoint, clampedStart);
+    graphics.moveTo(first.x, first.y);
+    for (let step = 1; step <= steps; step += 1) {
+      const point = quadraticPoint(
+        sourcePoint,
+        controlPoint,
+        targetPoint,
+        Phaser.Math.Linear(clampedStart, clampedEnd, step / steps)
+      );
       graphics.lineTo(point.x, point.y);
     }
     graphics.strokePath();
@@ -506,27 +743,107 @@ export class EGridMapScene extends Phaser.Scene {
     }
 
     const maxVisibleStructures = useStrategicStructureCap ? 15 : 22;
-    const visibleCandidates = candidates
-      .sort((left, right) => right.score - left.score)
-      .slice(0, maxVisibleStructures)
-      .sort((left, right) => left.point.y - right.point.y);
+    const rankedCandidates = candidates.sort((left, right) => right.score - left.score);
+    const visibleCandidates = useStrategicStructureCap
+      ? this.strategicStructureCandidates(rankedCandidates, selectedRegionId, maxVisibleStructures)
+      : rankedCandidates.slice(0, maxVisibleStructures);
+    const selectedPrimary = useStrategicStructureCap
+      ? this.selectedPrimaryStructure(visibleCandidates, selectedRegionId)
+      : undefined;
+    visibleCandidates.sort((left, right) => left.point.y - right.point.y);
 
     for (const candidate of visibleCandidates) {
       const { region, point, hash, buildingId, state, index } = candidate;
       const accent = hash % 5 === 0 ? HEATMAP_COLORS.compute : hash % 4 === 0 ? HEATMAP_COLORS.cooling : HEATMAP_COLORS.energy;
-      const offset = this.structureOffset(region, buildingId, index, scale);
+      const isPrimarySelected = candidate === selectedPrimary;
+      const renderScale = isPrimarySelected ? scale * 1.12 : region.id === selectedRegionId && useStrategicStructureCap ? scale * 0.84 : scale;
+      const offset = isPrimarySelected && !this.isOffshoreMapBuilding(buildingId)
+        ? { x: 0, y: -13 * scale }
+        : this.structureOffset(region, buildingId, index, renderScale);
       const moduleX = point.x + offset.x;
       const moduleY = point.y + offset.y;
       if (state === "construction") {
-        this.drawConstructionPlaceholder(graphics, moduleX, moduleY, scale);
+        this.drawConstructionPlaceholder(graphics, moduleX, moduleY, renderScale);
         continue;
       }
-      this.drawModuleGroundIntegration(graphics, point, moduleX, moduleY, scale, accent, hash);
-      this.drawIsoBase(graphics, moduleX, moduleY + 12 * scale, 42 * scale, 25 * scale, accent);
-      if (!this.drawModuleSprite(moduleX, moduleY, scale, this.moduleIconIndex(buildingId, hash), accent)) {
-        this.drawModuleMarker(graphics, moduleX, moduleY, scale, accent, hash);
+      this.drawModuleGroundIntegration(graphics, point, moduleX, moduleY, renderScale, accent, hash);
+      if (!this.drawModuleSprite(moduleX, moduleY, renderScale, this.moduleIconIndex(buildingId, hash), accent, isPrimarySelected)) {
+        this.drawIsoBase(graphics, moduleX, moduleY + 12 * renderScale, 34 * renderScale, 20 * renderScale, accent);
+        this.drawModuleMarker(graphics, moduleX, moduleY, renderScale, accent, hash);
       }
     }
+  }
+
+  private strategicStructureCandidates(
+    candidates: MapStructureCandidate[],
+    selectedRegionId: string,
+    maxVisibleStructures: number
+  ): MapStructureCandidate[] {
+    const result: MapStructureCandidate[] = [];
+    const visibleByRegion = new Map<string, number>();
+    for (const candidate of candidates) {
+      const regionId = candidate.region.id;
+      const currentCount = visibleByRegion.get(regionId) ?? 0;
+      const perRegionLimit = regionId === selectedRegionId ? 4 : 2;
+      if (currentCount >= perRegionLimit) {
+        continue;
+      }
+      result.push(candidate);
+      visibleByRegion.set(regionId, currentCount + 1);
+      if (result.length >= maxVisibleStructures) {
+        break;
+      }
+    }
+    return result;
+  }
+
+  private selectedPrimaryStructure(
+    candidates: MapStructureCandidate[],
+    selectedRegionId: string
+  ): MapStructureCandidate | undefined {
+    const selectedBuilt = candidates
+      .filter((candidate) =>
+        candidate.region.id === selectedRegionId &&
+        candidate.state === "built" &&
+        !this.isOffshoreMapBuilding(candidate.buildingId)
+      )
+      .sort((left, right) =>
+        this.mapPrimaryStructurePriority(right.buildingId) - this.mapPrimaryStructurePriority(left.buildingId) ||
+        right.score - left.score
+      );
+    return (
+      selectedBuilt[0] ??
+      candidates.find((candidate) => candidate.region.id === selectedRegionId && candidate.state === "built") ??
+      candidates.find((candidate) => candidate.region.id === selectedRegionId)
+    );
+  }
+
+  private mapPrimaryStructurePriority(buildingId: string): number {
+    if (buildingId.includes("datacenter")) {
+      return 90;
+    }
+    if (buildingId.includes("ai_research")) {
+      return 80;
+    }
+    if (buildingId.includes("research")) {
+      return 70;
+    }
+    if (buildingId.includes("university")) {
+      return 60;
+    }
+    if (buildingId.includes("nuclear")) {
+      return 50;
+    }
+    if (buildingId.includes("gas")) {
+      return 40;
+    }
+    if (buildingId.includes("grid") || buildingId.includes("supergrid")) {
+      return 30;
+    }
+    if (buildingId.includes("wind") || buildingId.includes("solar") || buildingId.includes("hydro")) {
+      return 20;
+    }
+    return 10;
   }
 
   private isStrategicMapBuilding(buildingId: string): boolean {
@@ -619,7 +936,14 @@ export class EGridMapScene extends Phaser.Scene {
     return { x: 0, y: 1 };
   }
 
-  private drawModuleSprite(x: number, y: number, scale: number, iconIndex: number, accent: number): boolean {
+  private drawModuleSprite(
+    x: number,
+    y: number,
+    scale: number,
+    iconIndex: number,
+    accent: number,
+    primary = false
+  ): boolean {
     const container = this.structureSpriteLayer;
     const textureKey = this.textures.exists("building-map-atlas") ? "building-map-atlas" : "building-icon-atlas";
     if (!container || !this.textures.exists(textureKey)) {
@@ -639,17 +963,26 @@ export class EGridMapScene extends Phaser.Scene {
     const cropX = (clampedIndex % columns) * cellWidth;
     const cropY = Math.floor(clampedIndex / columns) * cellHeight;
     const useEnhancedMapSprites = window.innerWidth >= 1180 || document.documentElement.dataset.conceptScenario === "1";
-    const displaySize = (useEnhancedMapSprites ? 58 : 50) * scale;
+    const displaySize = (useEnhancedMapSprites ? (primary ? 60 : 50) : 50) * scale;
     const spriteScale = displaySize / cellWidth;
-    const spriteY = y - (useEnhancedMapSprites ? 9 : 7) * scale;
+    const spriteY = y - (useEnhancedMapSprites ? (primary ? 6 : 5) : 7) * scale;
     if (useEnhancedMapSprites) {
+      const shadow = this.add
+        .image(x + 1.5 * scale, spriteY + 8 * scale, textureKey)
+        .setOrigin(0.5, 0.74)
+        .setCrop(cropX, cropY, cellWidth, cellHeight)
+        .setScale(spriteScale * (primary ? 1.12 : 1.08))
+        .setTint(0x02070b)
+        .setAlpha(primary ? 0.34 : 0.28);
+      container.add(shadow);
+
       const glow = this.add
         .image(x, spriteY + 2 * scale, textureKey)
         .setOrigin(0.5, 0.74)
         .setCrop(cropX, cropY, cellWidth, cellHeight)
-        .setScale(spriteScale * 1.14)
+        .setScale(spriteScale * (primary ? 1.1 : 1.04))
         .setTint(accent)
-        .setAlpha(0.16)
+        .setAlpha(primary ? 0.14 : 0.075)
         .setBlendMode(Phaser.BlendModes.ADD);
       container.add(glow);
     }
@@ -658,9 +991,45 @@ export class EGridMapScene extends Phaser.Scene {
       .setOrigin(0.5, 0.74)
       .setCrop(cropX, cropY, cellWidth, cellHeight)
       .setScale(spriteScale)
-      .setAlpha(useEnhancedMapSprites ? 1 : 0.94);
+      .setTint(useEnhancedMapSprites ? (primary ? 0xf4fbff : 0xc9d7d9) : 0xffffff)
+      .setAlpha(primary ? 0.98 : useEnhancedMapSprites ? 0.9 : 0.94);
     container.add(image);
+    if (useEnhancedMapSprites) {
+      const detailLift = this.add
+        .image(x, spriteY - 1 * scale, textureKey)
+        .setOrigin(0.5, 0.74)
+        .setCrop(cropX, cropY, cellWidth, cellHeight)
+        .setScale(spriteScale * 0.98)
+        .setTint(0xd8fbff)
+        .setAlpha(primary ? 0.09 : 0.04)
+        .setBlendMode(Phaser.BlendModes.ADD);
+      container.add(detailLift);
+      this.drawModuleTerrainSkirt(container, x, spriteY + displaySize * 0.24, displaySize, scale, accent, primary);
+    }
     return true;
+  }
+
+  private drawModuleTerrainSkirt(
+    container: Phaser.GameObjects.Container,
+    x: number,
+    y: number,
+    displaySize: number,
+    scale: number,
+    accent: number,
+    primary: boolean
+  ): void {
+    const skirt = this.add.graphics();
+    skirt.fillStyle(0x07141b, primary ? 0.34 : 0.3);
+    skirt.fillEllipse(x, y, displaySize * 0.76, displaySize * 0.18);
+    skirt.fillStyle(0x24434c, primary ? 0.12 : 0.095);
+    skirt.fillEllipse(x - 1.5 * scale, y - 1.2 * scale, displaySize * 0.54, displaySize * 0.11);
+    skirt.lineStyle(0.75, accent, primary ? 0.14 : 0.09);
+    skirt.beginPath();
+    skirt.moveTo(x - displaySize * 0.28, y - displaySize * 0.01);
+    skirt.lineTo(x, y + displaySize * 0.07);
+    skirt.lineTo(x + displaySize * 0.28, y - displaySize * 0.01);
+    skirt.strokePath();
+    container.add(skirt);
   }
 
   private moduleIconIndex(buildingId: string, variant: number): number {
@@ -800,12 +1169,14 @@ export class EGridMapScene extends Phaser.Scene {
     graphics.lineStyle(1.1 * scale, accent, connectorAlpha);
     graphics.lineBetween(regionPoint.x, regionPoint.y, x, baseY);
 
-    graphics.fillStyle(0x02070b, 0.5);
-    graphics.fillEllipse(x, baseY + 5 * scale, padWidth * 1.08, padDepth * 0.64);
-    graphics.fillStyle(accent, 0.065);
-    graphics.fillEllipse(x, baseY + 1 * scale, padWidth * 0.96, padDepth * 0.5);
+    graphics.fillStyle(0x02070b, 0.42);
+    graphics.fillEllipse(x, baseY + 7 * scale, padWidth * 1.22, padDepth * 0.72);
+    graphics.fillStyle(0x020c12, 0.2);
+    graphics.fillEllipse(x + 1.5 * scale, baseY + 2 * scale, padWidth * 0.92, padDepth * 0.46);
+    graphics.fillStyle(accent, 0.07);
+    graphics.fillEllipse(x, baseY + 1 * scale, padWidth * 0.98, padDepth * 0.52);
 
-    this.fillPoly(graphics, 0x061722, 0.52, [
+    this.fillPoly(graphics, 0x061722, 0.34, [
       [x, baseY - halfD],
       [x + halfW, baseY],
       [x, baseY + halfD],
@@ -823,6 +1194,9 @@ export class EGridMapScene extends Phaser.Scene {
     graphics.lineStyle(0.8, 0xd8fbff, 0.09);
     graphics.lineBetween(x - halfW * 0.62, baseY, x, baseY + halfD * 0.58);
     graphics.lineBetween(x + halfW * 0.62, baseY, x, baseY + halfD * 0.58);
+    graphics.lineStyle(1.1 * scale, 0x02080d, 0.34);
+    graphics.lineBetween(x - halfW * 0.74, baseY + halfD * 0.1, x - halfW * 0.38, baseY + halfD * 0.34);
+    graphics.lineBetween(x + halfW * 0.74, baseY + halfD * 0.1, x + halfW * 0.38, baseY + halfD * 0.34);
 
     const nodeCount = 3 + (variant % 2);
     graphics.fillStyle(accent, 0.34);
@@ -834,6 +1208,11 @@ export class EGridMapScene extends Phaser.Scene {
       graphics.lineStyle(0.8, accent, 0.18);
       graphics.strokeCircle(nodeX, nodeY, 3.4 * scale);
     }
+
+    graphics.fillStyle(0xd8fbff, 0.18);
+    graphics.fillCircle(x - halfW * 0.82, baseY, 1.2 * scale);
+    graphics.fillCircle(x + halfW * 0.82, baseY, 1.2 * scale);
+    graphics.fillCircle(x, baseY + halfD * 0.78, 1.1 * scale);
   }
 
   private drawIsoBase(
@@ -846,36 +1225,36 @@ export class EGridMapScene extends Phaser.Scene {
   ): void {
     const halfW = width / 2;
     const halfD = depth / 2;
-    graphics.fillStyle(0x02080d, 0.58);
+    graphics.fillStyle(0x02080d, 0.42);
     graphics.fillEllipse(x, y + halfD + 3, width * 1.08, depth * 0.72);
 
-    this.fillPoly(graphics, 0x132b37, 0.96, [
+    this.fillPoly(graphics, 0x132b37, 0.78, [
       [x, y - halfD],
       [x + halfW, y],
       [x, y + halfD],
       [x - halfW, y]
     ]);
-    this.fillPoly(graphics, 0x081923, 0.9, [
+    this.fillPoly(graphics, 0x081923, 0.72, [
       [x - halfW, y],
       [x, y + halfD],
       [x, y + halfD + 7],
       [x - halfW, y + 7]
     ]);
-    this.fillPoly(graphics, 0x0d202c, 0.92, [
+    this.fillPoly(graphics, 0x0d202c, 0.74, [
       [x + halfW, y],
       [x, y + halfD],
       [x, y + halfD + 7],
       [x + halfW, y + 7]
     ]);
 
-    graphics.lineStyle(1, accent, 0.42);
+    graphics.lineStyle(0.9, accent, 0.32);
     this.strokePoly(graphics, [
       [x, y - halfD],
       [x + halfW, y],
       [x, y + halfD],
       [x - halfW, y]
     ]);
-    graphics.fillStyle(accent, 0.16);
+    graphics.fillStyle(accent, 0.1);
     graphics.fillEllipse(x, y - halfD * 0.04, width * 0.56, depth * 0.34);
     graphics.lineStyle(1, 0xd9fbff, 0.13);
     graphics.lineBetween(x - halfW, y, x, y + halfD + 7);
@@ -1040,30 +1419,46 @@ export class EGridMapScene extends Phaser.Scene {
         continue;
       }
       const point = this.regionPoint(rect, layout);
-      const radius = Math.max(5.5, layout.hitbox_radius * Math.min(rect.width, rect.height) * 0.24);
+      const baseRadius = Math.max(5.5, layout.hitbox_radius * Math.min(rect.width, rect.height) * 0.24);
       const color = this.regionColor(region, summary, maxCompute);
       const isSelected = regionId === selectedId;
       const alert = summary.alerts.find((item) => item.region_id === regionId);
       const pulse = this.testMode ? 0.6 : (Math.sin(this.animationTime * 3.6 + point.x * 0.01) + 1) * 0.5;
+      const radius = useGeographicLabelLayer
+        ? isSelected
+          ? Math.max(6.2, baseRadius * 0.9)
+          : Math.max(3.2, baseRadius * 0.5)
+        : baseRadius;
 
       if (alert) {
         const alertColor = alert.state === "critical" ? HEATMAP_COLORS.critical : HEATMAP_COLORS.warning;
-        graphics.lineStyle(2.5, alertColor, 0.35 + pulse * 0.34);
-        graphics.strokeCircle(point.x, point.y, radius * (1.8 + pulse * 0.25));
+        graphics.lineStyle(useGeographicLabelLayer ? 1.35 : 2.5, alertColor, useGeographicLabelLayer ? 0.24 + pulse * 0.18 : 0.35 + pulse * 0.34);
+        graphics.strokeCircle(point.x, point.y, radius * (useGeographicLabelLayer ? 2.4 + pulse * 0.18 : 1.8 + pulse * 0.25));
       }
 
-      const haloAlpha = isSelected ? 0.46 : 0.1;
-      graphics.fillStyle(color, haloAlpha);
-      graphics.fillCircle(point.x, point.y, radius * (isSelected ? 2.5 : 1.65));
-      graphics.lineStyle(isSelected ? 2.5 : 1, isSelected ? 0xf5fbff : color, isSelected ? 0.9 : 0.45);
-      graphics.fillStyle(color, isSelected ? 0.82 : 0.42);
-      graphics.fillCircle(point.x, point.y, radius);
-      graphics.strokeCircle(point.x, point.y, radius);
-      graphics.fillStyle(0xf7fbff, isSelected ? 0.95 : 0.55);
-      graphics.fillCircle(point.x, point.y, Math.max(1.6, radius * 0.2));
+      if (useGeographicLabelLayer && !isSelected) {
+        graphics.fillStyle(color, 0.055);
+        graphics.fillCircle(point.x, point.y, radius * 1.75);
+        graphics.lineStyle(1, color, 0.28);
+        graphics.strokeCircle(point.x, point.y, radius * 1.35);
+        graphics.fillStyle(color, 0.44);
+        graphics.fillCircle(point.x, point.y, radius * 0.72);
+        graphics.fillStyle(0xf7fbff, 0.42);
+        graphics.fillCircle(point.x, point.y, Math.max(1, radius * 0.24));
+      } else {
+        const haloAlpha = useGeographicLabelLayer ? 0.34 : isSelected ? 0.46 : 0.1;
+        graphics.fillStyle(color, haloAlpha);
+        graphics.fillCircle(point.x, point.y, radius * (isSelected ? 2.35 : 1.65));
+        graphics.lineStyle(isSelected ? (useGeographicLabelLayer ? 2 : 2.5) : 1, isSelected ? 0xf5fbff : color, isSelected ? 0.86 : 0.45);
+        graphics.fillStyle(color, isSelected ? 0.74 : 0.42);
+        graphics.fillCircle(point.x, point.y, radius);
+        graphics.strokeCircle(point.x, point.y, radius);
+        graphics.fillStyle(0xf7fbff, isSelected ? 0.9 : 0.55);
+        graphics.fillCircle(point.x, point.y, Math.max(1.4, radius * 0.2));
+      }
 
       const shouldDrawRegionLabel = useGeographicLabelLayer
-        ? isSelected || (region.cached.problems?.length ?? 0) > 0
+        ? isSelected
         : isSelected || (region.cached.problems?.length ?? 0) > 0 || hashString(regionId) % 2 === 0;
       if (shouldDrawRegionLabel) {
         const text = this.add
@@ -1122,8 +1517,8 @@ export class EGridMapScene extends Phaser.Scene {
     const rows = Math.max(layout.slot_grid_rows ?? 4, 1);
     const hasVisibleStructures = region.buildings.length + region.construction_queue.length > 0;
     const baseSlotSize = Math.max(6, Math.min(rect.width, rect.height) * 0.0085);
-    const slotSize = hasVisibleStructures ? baseSlotSize * 0.72 : baseSlotSize;
-    const gap = Math.max(hasVisibleStructures ? 1.5 : 2, slotSize * (hasVisibleStructures ? 0.32 : 0.38));
+    const slotSize = hasVisibleStructures ? baseSlotSize * 0.36 : baseSlotSize;
+    const gap = Math.max(hasVisibleStructures ? 1 : 2, slotSize * (hasVisibleStructures ? 0.26 : 0.38));
     const total = cols * rows;
     const width = cols * slotSize + (cols - 1) * gap;
     const height = rows * slotSize + (rows - 1) * gap;
@@ -1140,17 +1535,17 @@ export class EGridMapScene extends Phaser.Scene {
       const x = startX + (index % cols) * (slotSize + gap);
       const y = startY + Math.floor(index / cols) * (slotSize + gap);
       let color = 0x183848;
-      let alpha = hasVisibleStructures ? 0.12 : 0.42;
+      let alpha = hasVisibleStructures ? 0.012 : 0.42;
       if (index < occupied - constructingSlots) {
         color = 0x5df4c5;
-        alpha = hasVisibleStructures ? 0.38 : 0.72;
+        alpha = hasVisibleStructures ? 0.075 : 0.72;
       } else if (index < occupied) {
         color = 0xffc15f;
-        alpha = hasVisibleStructures ? 0.48 : 0.78;
+        alpha = hasVisibleStructures ? 0.14 : 0.78;
       }
       graphics.fillStyle(color, alpha);
       graphics.fillRoundedRect(x, y, slotSize, slotSize, Math.max(2, slotSize * 0.25));
-      graphics.lineStyle(1, 0xd8f8ff, hasVisibleStructures ? 0.07 : 0.15);
+      graphics.lineStyle(1, 0xd8f8ff, hasVisibleStructures ? 0.012 : 0.15);
       graphics.strokeRoundedRect(x, y, slotSize, slotSize, Math.max(2, slotSize * 0.25));
     }
   }

@@ -1,0 +1,24 @@
+{
+  "states": [
+    {
+      "name": "real-start",
+      "selectedRegionId": "fr_nord",
+      "selectedRegionBuildings": 0,
+      "buildingTextureCount": 0,
+      "inferredVisibleStructureCount": 0,
+      "mapAtlasLoaded": true,
+      "networkFlowCount": 4,
+      "onboardingVisible": false
+    },
+    {
+      "name": "concept-state",
+      "selectedRegionId": "benelux",
+      "selectedRegionBuildings": 10,
+      "buildingTextureCount": 48,
+      "inferredVisibleStructureCount": 12,
+      "mapAtlasLoaded": true,
+      "networkFlowCount": 23,
+      "onboardingVisible": false
+    }
+  ]
+}

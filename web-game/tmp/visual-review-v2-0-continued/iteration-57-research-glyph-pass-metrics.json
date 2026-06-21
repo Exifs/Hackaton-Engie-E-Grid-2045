@@ -1,0 +1,167 @@
+{
+  "real": {
+    "body": {
+      "clientHeight": 414,
+      "scrollHeight": 414,
+      "overflowY": 0,
+      "computedOverflowY": "auto"
+    },
+    "paletteOverflowY": 0,
+    "overviewVisible": false,
+    "visibleCards": 4,
+    "cards": [
+      {
+        "text": "Optimisation modèles ai T1 Requires an active Centre recherche IA.",
+        "height": 100.84375,
+        "overflowX": 0,
+        "overflowY": 0,
+        "titleOverflowX": 0,
+        "titleWhiteSpace": "normal",
+        "titleDisplay": "flow-root",
+        "copyOverflowY": 1,
+        "glyphBefore": "\"\"",
+        "glyphBeforeWidth": 22,
+        "glyphAfter": "\"\"",
+        "glyphAfterWidth": 16,
+        "disabled": true
+      },
+      {
+        "text": "Batteries energy T1 Requires an active Centre recherche energie.",
+        "height": 100.84375,
+        "overflowX": 0,
+        "overflowY": 0,
+        "titleOverflowX": 0,
+        "titleWhiteSpace": "normal",
+        "titleDisplay": "flow-root",
+        "copyOverflowY": 0,
+        "glyphBefore": "\"\"",
+        "glyphBeforeWidth": 22,
+        "glyphAfter": "\"\"",
+        "glyphAfterWidth": 16,
+        "disabled": true
+      },
+      {
+        "text": "Éolien offshore industriel energy T1 Requires an active Centre recherche energie",
+        "height": 100.84375,
+        "overflowX": 0,
+        "overflowY": 0,
+        "titleOverflowX": 0,
+        "titleWhiteSpace": "normal",
+        "titleDisplay": "flow-root",
+        "copyOverflowY": 1,
+        "glyphBefore": "\"\"",
+        "glyphBeforeWidth": 22,
+        "glyphAfter": "\"\"",
+        "glyphAfterWidth": 16,
+        "disabled": true
+      },
+      {
+        "text": "Efficacité énergétique infrastructure T1 Requires Réseaux intelligents.",
+        "height": 100.84375,
+        "overflowX": 0,
+        "overflowY": 0,
+        "titleOverflowX": 0,
+        "titleWhiteSpace": "normal",
+        "titleDisplay": "flow-root",
+        "copyOverflowY": 0,
+        "glyphBefore": "\"\"",
+        "glyphBeforeWidth": 22,
+        "glyphAfter": "\"\"",
+        "glyphAfterWidth": 14,
+        "disabled": true
+      }
+    ],
+    "tooltipVisible": true,
+    "tooltipText": "Optimisation modèlesRequires an active Centre recherche IA.ai T1 - 300 pts"
+  },
+  "concept": {
+    "body": {
+      "clientHeight": 414,
+      "scrollHeight": 423,
+      "overflowY": 9,
+      "computedOverflowY": "auto"
+    },
+    "paletteOverflowY": 0,
+    "overviewVisible": false,
+    "visibleCards": 5,
+    "cards": [
+      {
+        "text": "Batteries energy T1 · 180 pts · 19m Pret a lancer. Debloque Batterie battery_sto",
+        "height": 88,
+        "overflowX": 0,
+        "overflowY": 0,
+        "titleOverflowX": 0,
+        "titleWhiteSpace": "normal",
+        "titleDisplay": "flow-root",
+        "copyOverflowY": 0,
+        "glyphBefore": "\"\"",
+        "glyphBeforeWidth": 22,
+        "glyphAfter": "\"\"",
+        "glyphAfterWidth": 16,
+        "disabled": false
+      },
+      {
+        "text": "Éolien offshore industriel energy T1 · 220 pts · 23m Pret a lancer. Debloque Éol",
+        "height": 88,
+        "overflowX": 0,
+        "overflowY": 0,
+        "titleOverflowX": 0,
+        "titleWhiteSpace": "normal",
+        "titleDisplay": "flow-root",
+        "copyOverflowY": 0,
+        "glyphBefore": "\"\"",
+        "glyphBeforeWidth": 22,
+        "glyphAfter": "\"\"",
+        "glyphAfterWidth": 16,
+        "disabled": false
+      },
+      {
+        "text": "Réseaux intelligents infrastructure T1 · 260 pts · 27m Pret a lancer. +5% distan",
+        "height": 88,
+        "overflowX": 0,
+        "overflowY": 0,
+        "titleOverflowX": 0,
+        "titleWhiteSpace": "normal",
+        "titleDisplay": "flow-root",
+        "copyOverflowY": 0,
+        "glyphBefore": "\"\"",
+        "glyphBeforeWidth": 22,
+        "glyphAfter": "\"\"",
+        "glyphAfterWidth": 14,
+        "disabled": false
+      },
+      {
+        "text": "Optimisation modèles ai T1 · 300 pts · 31m Pret a lancer. +15% ai_efficiency_bon",
+        "height": 88,
+        "overflowX": 0,
+        "overflowY": 0,
+        "titleOverflowX": 0,
+        "titleWhiteSpace": "normal",
+        "titleDisplay": "flow-root",
+        "copyOverflowY": 0,
+        "glyphBefore": "\"\"",
+        "glyphBeforeWidth": 22,
+        "glyphAfter": "\"\"",
+        "glyphAfterWidth": 16,
+        "disabled": false
+      },
+      {
+        "text": "Refroidissement avancé infrastructure T2 · 330 pts · 34m Pret a lancer. cooling_",
+        "height": 88,
+        "overflowX": 0,
+        "overflowY": 0,
+        "titleOverflowX": 0,
+        "titleWhiteSpace": "normal",
+        "titleDisplay": "flow-root",
+        "copyOverflowY": 0,
+        "glyphBefore": "\"\"",
+        "glyphBeforeWidth": 22,
+        "glyphAfter": "\"\"",
+        "glyphAfterWidth": 14,
+        "disabled": false
+      }
+    ],
+    "tooltipVisible": true,
+    "tooltipText": "BatteriesPret a lancer. | Debloque: Batterieenergy T1 - 180 pts"
+  }
+}

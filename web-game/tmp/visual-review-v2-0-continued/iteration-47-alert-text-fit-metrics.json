@@ -1,0 +1,303 @@
+{
+  "panelRect": {
+    "x": 8,
+    "y": 932,
+    "width": 1776,
+    "height": 84,
+    "bottom": 1016,
+    "right": 1784
+  },
+  "panelOverflowY": 0,
+  "cards": [
+    {
+      "index": 0,
+      "title": "Energy deficit - Italie Sud & îles",
+      "body": "imports too weak or distant -> build nearby surplus",
+      "cardRect": {
+        "x": 17,
+        "y": 941,
+        "width": 334,
+        "height": 66,
+        "bottom": 1007,
+        "right": 351
+      },
+      "mainRect": {
+        "x": 60,
+        "y": 949,
+        "width": 229,
+        "height": 50,
+        "bottom": 999,
+        "right": 289
+      },
+      "titleRect": {
+        "x": 60,
+        "y": 954.3,
+        "width": 229,
+        "height": 11.9,
+        "bottom": 966.1,
+        "right": 289
+      },
+      "bodyRect": {
+        "x": 60,
+        "y": 969.1,
+        "width": 229,
+        "height": 24.6,
+        "bottom": 993.8,
+        "right": 289
+      },
+      "actionRect": {
+        "x": 295,
+        "y": 974,
+        "width": 48,
+        "height": 25,
+        "bottom": 999,
+        "right": 343
+      },
+      "iconRect": {
+        "x": 25,
+        "y": 960,
+        "width": 28,
+        "height": 28,
+        "bottom": 988,
+        "right": 53
+      },
+      "titleOverflowX": 0,
+      "titleOverflowY": 1,
+      "bodyOverflowY": 0,
+      "cardOverflowY": 0,
+      "mainWidthRatio": 0.686
+    },
+    {
+      "index": 1,
+      "title": "Energy deficit - Baltique Nord",
+      "body": "imports too weak or distant -> build nearby surplus",
+      "cardRect": {
+        "x": 359,
+        "y": 941,
+        "width": 334,
+        "height": 66,
+        "bottom": 1007,
+        "right": 693
+      },
+      "mainRect": {
+        "x": 402,
+        "y": 949,
+        "width": 229,
+        "height": 50,
+        "bottom": 999,
+        "right": 631
+      },
+      "titleRect": {
+        "x": 402,
+        "y": 954.3,
+        "width": 229,
+        "height": 11.9,
+        "bottom": 966.1,
+        "right": 631
+      },
+      "bodyRect": {
+        "x": 402,
+        "y": 969.1,
+        "width": 229,
+        "height": 24.6,
+        "bottom": 993.8,
+        "right": 631
+      },
+      "actionRect": {
+        "x": 637,
+        "y": 974,
+        "width": 48,
+        "height": 25,
+        "bottom": 999,
+        "right": 685
+      },
+      "iconRect": {
+        "x": 367,
+        "y": 960,
+        "width": 28,
+        "height": 28,
+        "bottom": 988,
+        "right": 395
+      },
+      "titleOverflowX": 0,
+      "titleOverflowY": 1,
+      "bodyOverflowY": 0,
+      "cardOverflowY": 0,
+      "mainWidthRatio": 0.686
+    },
+    {
+      "index": 2,
+      "title": "Energy deficit - Méditerranée insulaire",
+      "body": "imports too weak or distant -> build nearby surplus",
+      "cardRect": {
+        "x": 701,
+        "y": 941,
+        "width": 334,
+        "height": 66,
+        "bottom": 1007,
+        "right": 1035
+      },
+      "mainRect": {
+        "x": 744,
+        "y": 949,
+        "width": 229,
+        "height": 51.4,
+        "bottom": 1000.4,
+        "right": 973
+      },
+      "titleRect": {
+        "x": 744,
+        "y": 949,
+        "width": 229,
+        "height": 23.8,
+        "bottom": 972.8,
+        "right": 973
+      },
+      "bodyRect": {
+        "x": 744,
+        "y": 975.8,
+        "width": 229,
+        "height": 24.6,
+        "bottom": 1000.4,
+        "right": 973
+      },
+      "actionRect": {
+        "x": 979,
+        "y": 975.4,
+        "width": 48,
+        "height": 25,
+        "bottom": 1000.4,
+        "right": 1027
+      },
+      "iconRect": {
+        "x": 709,
+        "y": 960.7,
+        "width": 28,
+        "height": 28,
+        "bottom": 988.7,
+        "right": 737
+      },
+      "titleOverflowX": 0,
+      "titleOverflowY": 1,
+      "bodyOverflowY": 0,
+      "cardOverflowY": 1,
+      "mainWidthRatio": 0.686
+    },
+    {
+      "index": 3,
+      "title": "Researchers insufficient - Europe",
+      "body": "needs exceed capacity -> build universities",
+      "cardRect": {
+        "x": 1043,
+        "y": 941,
+        "width": 334,
+        "height": 66,
+        "bottom": 1007,
+        "right": 1377
+      },
+      "mainRect": {
+        "x": 1086,
+        "y": 949,
+        "width": 229,
+        "height": 50,
+        "bottom": 999,
+        "right": 1315
+      },
+      "titleRect": {
+        "x": 1086,
+        "y": 960.4,
+        "width": 229,
+        "height": 11.9,
+        "bottom": 972.3,
+        "right": 1315
+      },
+      "bodyRect": {
+        "x": 1086,
+        "y": 975.3,
+        "width": 229,
+        "height": 12.3,
+        "bottom": 987.6,
+        "right": 1315
+      },
+      "actionRect": {
+        "x": 1321,
+        "y": 974,
+        "width": 48,
+        "height": 25,
+        "bottom": 999,
+        "right": 1369
+      },
+      "iconRect": {
+        "x": 1051,
+        "y": 960,
+        "width": 28,
+        "height": 28,
+        "bottom": 988,
+        "right": 1079
+      },
+      "titleOverflowX": 0,
+      "titleOverflowY": 1,
+      "bodyOverflowY": 1,
+      "cardOverflowY": 0,
+      "mainWidthRatio": 0.686
+    },
+    {
+      "index": 4,
+      "title": "Network saturated - Suède Sud",
+      "body": "high-loss power flows -> spread production or unlock supergrid",
+      "cardRect": {
+        "x": 1385,
+        "y": 941,
+        "width": 334,
+        "height": 66,
+        "bottom": 1007,
+        "right": 1719
+      },
+      "mainRect": {
+        "x": 1428,
+        "y": 949,
+        "width": 229,
+        "height": 50,
+        "bottom": 999,
+        "right": 1657
+      },
+      "titleRect": {
+        "x": 1428,
+        "y": 954.3,
+        "width": 229,
+        "height": 11.9,
+        "bottom": 966.1,
+        "right": 1657
+      },
+      "bodyRect": {
+        "x": 1428,
+        "y": 969.1,
+        "width": 229,
+        "height": 24.6,
+        "bottom": 993.8,
+        "right": 1657
+      },
+      "actionRect": {
+        "x": 1663,
+        "y": 974,
+        "width": 48,
+        "height": 25,
+        "bottom": 999,
+        "right": 1711
+      },
+      "iconRect": {
+        "x": 1393,
+        "y": 960,
+        "width": 28,
+        "height": 28,
+        "bottom": 988,
+        "right": 1421
+      },
+      "titleOverflowX": 0,
+      "titleOverflowY": 1,
+      "bodyOverflowY": 0,
+      "cardOverflowY": 0,
+      "mainWidthRatio": 0.686
+    }
+  ]
+}
