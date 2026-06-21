@@ -1,16 +1,16 @@
 # Component diagnostics - E-Grid 2045 v2.0 convergence
 
-Current audit screenshot: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-73-module-ground-blend-concept-state-global.png`
+Current audit screenshot: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-74-priority-audit-concept-state-global.png`
 
 Current targeted component captures:
-- Top bar: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-73-module-ground-blend-concept-state-topbar.png`
-- Left rail: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-72-current-audit-concept-state-left-rail.png`
-- Right panel: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-72-current-audit-concept-state-right-panel.png`
-- Alerts: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-72-current-audit-concept-state-alerts.png`
-- Mini overview: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-72-current-audit-concept-state-grid-overview.png`
-- Real start: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-73-module-ground-blend-real-start-global.png`
-- Construction state: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-73-module-ground-blend-construction-canvas.png`
-- Recherche state: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-73-module-ground-blend-research-left-rail.png`
+- Top bar: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-74-priority-audit-concept-state-topbar.png`
+- Left rail: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-74-priority-audit-concept-state-left-rail.png`
+- Right panel: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-74-priority-audit-concept-state-right-panel.png`
+- Alerts: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-74-priority-audit-concept-state-alerts.png`
+- Mini overview: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-74-priority-audit-concept-state-grid-overview.png`
+- Real start: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-74-priority-audit-real-start-global.png`
+- Construction state: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-74-priority-audit-construction-canvas.png`
+- Recherche state: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-74-priority-audit-research-left-rail.png`
 
 Reference: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\reference-v2-0.png`
 
@@ -18,38 +18,86 @@ Component reference crop: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-ga
 
 Central map reference crop: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\reference-v2-0-central-map-crop.png`
 
-## Current priority audit - Iterations 72-73
+## Current priority audit - Iteration 74
 
 Fresh evidence:
-- Concept-state global: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-72-current-audit-concept-state-global.png`
-- Concept-state metrics: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-72-current-audit-concept-state-metrics.json`
-- Real-start global: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-72-current-audit-real-start-global.png`
-- Real-start metrics: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-72-current-audit-real-start-metrics.json`
-- Construction metrics: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-72-current-audit-construction-metrics.json`
-- Recherche metrics: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-72-current-audit-research-metrics.json`
-- Iteration 73 concept-state canvas: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-73-module-ground-blend-concept-state-canvas.png`
-- Iteration 73 metrics: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-73-module-ground-blend-concept-state-metrics.json`
+- Concept-state global: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-74-priority-audit-concept-state-global.png`
+- Concept-state metrics: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-74-priority-audit-concept-state-metrics.json`
+- Real-start global: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-74-priority-audit-real-start-global.png`
+- Real-start metrics: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-74-priority-audit-real-start-metrics.json`
+- Construction canvas: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-74-priority-audit-construction-canvas.png`
+- Construction metrics: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-74-priority-audit-construction-metrics.json`
+- Recherche crop: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-74-priority-audit-research-left-rail.png`
+- Recherche metrics: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-74-priority-audit-research-metrics.json`
 
 Stable / accepted:
-- Main screen composition is stable. The top bar, BUILD rail, right panel, alert dock and GRID OVERVIEW all report zero measured overflow in the fresh concept-state and real-start metrics.
+- Main screen composition is stable. The top bar, BUILD rail, right panel, alert dock and GRID OVERVIEW all report zero measured overflow in the iteration-74 concept-state and real-start metrics.
 - The mini GRID OVERVIEW background is accepted by user feedback. Keep `grid-overview-europe-map-only-v1.png`; do not iterate on that background asset unless a regression appears.
 - AGI rings are ticks-only and should stay that way.
 - Construction state is protected: real start reports `buildingTextureCount: 0`; queued construction reports one construction item, zero built items and `buildingTextureCount: 0`.
 - Recherche default real-start view has no body/card/title overflow and keeps the mini GRID OVERVIEW visible.
-- Iteration 73 reduces the central-map sprite sticker effect through lower/smaller/desaturated built sprites and a foreground terrain skirt. This is now the current code-side grounding state.
+- Targeted scroll validation passes for construction accordion, construction all-mode card-surface scroll and recherche card-surface scroll.
+- Iteration 73's central-map sprite grounding remains the current code-side state: lower/smaller/desaturated built sprites with a foreground terrain skirt.
 
 Updated priority list:
-1. Central map module and terrain fidelity - High. Iteration 73 improved grounding, but the map still carries the most visible remaining gap: generated isometric module props, darker texture, and simulation-shaped route/alert composition. Further generic glow/scale tuning is lower return; the next map pass should be a true tiny map-marker atlas or a selected-region composition pass. Any next map pass must preserve the no-start-sprite / grey-construction-cube / final-built-sprite invariant.
+1. Central map module and terrain fidelity - High. The map still carries the most visible remaining gap: generated isometric module props, darker relief texture, and state-shaped route/alert composition. Further generic glow/scale tuning is lower return; the next map pass should be a true tiny map-marker atlas or a selected-region composition pass. Any next map pass must preserve the no-start-sprite / grey-construction-cube / final-built-sprite invariant.
 2. Right region panel slot treatment - Medium to high. The panel is stable and useful, but building slots still read as blue UI thumbnails rather than concept-like technical building tiles.
-3. Scroll hotspot regression coverage - Medium to high. Recherche card-surface scrolling is covered, but construction, right-panel tabs and alert dock need targeted scroll checks because the user reported inconsistent panel scrolling by cursor location.
-4. BUILD rail icon/card fidelity - Medium. The layout now fits, but card art and glyphs remain darker and more abstract than the concept's stronger category icon grid.
-5. Bottom alerts polish - Medium. Alert text now fits and occupies the cards, but live copy rhythm and CSS glyphs remain less bespoke than the concept.
-6. Top bar chrome micro-detail - Low to medium. Structure is close enough that further work should wait until higher-impact map/panel issues are handled.
+3. BUILD rail icon/card fidelity - Medium. The layout now fits and the mini overview remains visible, but card art and glyphs are darker and more abstract than the concept's stronger pictogram grid.
+4. Bottom alerts polish - Medium. Alert text now fits and occupies the cards, but live copy rhythm and CSS glyphs remain less bespoke than the concept.
+5. Scroll hotspot regression coverage - Medium / guard. Construction and recherche card-surface scroll are validated; add right-panel and alert-dock hotspot tests before major panel layout work, especially if those panels become scrollable again.
+6. Top bar chrome micro-detail - Low. Structure is close enough that further work should wait until higher-impact map/panel issues are handled.
 
 Deprecated priority notes:
 - Any note asking to regenerate the mini GRID OVERVIEW background is superseded by user acceptance after iteration 71/72.
 - Any note treating the old `grid-overview-europe-neon-v1.png` as current is obsolete.
 - Any note that assumes map buildings exist at real game start is incorrect; current real-start metrics verify zero building textures.
+
+## Component-by-component status snapshot - Iteration 74
+
+Global frame:
+- Status: stable / regression guard.
+- Evidence: iteration-74 metrics show zero measured overflow on top bar, BUILD rail, right panel, alert dock and GRID OVERVIEW in concept-state and real-start.
+- Next action: do not resize global panels unless a future screenshot shows clipping, incomplete fill or content cut-off.
+
+Top bar:
+- Status: stable / regression guard.
+- Evidence: crop shows the expected brand, ticks-only AGI duel, budget/date, speed controls and command block.
+- Next action: keep AGI ticks-only; only tune top-bar micro-detail after higher-value map/panel work.
+
+Central map:
+- Status: active high priority.
+- Evidence: playable state rules hold, but the concept-state crop still differs strongly in asset style and terrain mood.
+- Next action: choose between a tiny painted map-marker atlas and selected-region composition, not more generic glow/scale tweaking.
+
+BUILD rail:
+- Status: medium priority.
+- Evidence: layout fits, tabs work, mini overview remains visible, but the construction card art is dark and more abstract than the concept's clear pictogram grid.
+- Next action: refine BUILD card/glyph readability if not working on the map or right panel.
+
+Recherche tab:
+- Status: functional guard, not a concept-copy target.
+- Evidence: default real-start view has 4 readable cards, no measured title/card/body overflow and the mini overview stays visible.
+- Next action: keep it visually consistent with BUILD, but do not force a fake concept match because no reference exists.
+
+Mini GRID OVERVIEW:
+- Status: accepted / regression guard.
+- Evidence: current background is `grid-overview-europe-map-only-v1.png`; metrics report `staticThreadCount: 0`, 10 dynamic hub lines and 20 nodes.
+- Next action: preserve the accepted map-only raster and dynamic topology separation.
+
+Right region panel:
+- Status: medium-high priority.
+- Evidence: no overflow and readable status blocks, but building slots still read as dark blue UI thumbnails rather than painted technical tiles.
+- Next action: run a slot tile/glyph treatment pass before spending more time on top-bar chrome.
+
+Bottom alerts:
+- Status: medium priority.
+- Evidence: alert text now occupies the cards in the iteration-74 crop; no overflow is measured on the alert dock.
+- Next action: polish bespoke alert glyphs and copy rhythm only after map/right-panel work, unless text overflow reappears.
+
+Scroll hotspots:
+- Status: medium guard.
+- Evidence: targeted Playwright tests pass for construction accordion, construction all-mode card-surface scroll and recherche card-surface scroll.
+- Next action: add right-panel/alert-dock hotspot coverage before future panel layout changes or after any reproduced cursor-location failure.
 
 ## 1. Global frame and composition
 

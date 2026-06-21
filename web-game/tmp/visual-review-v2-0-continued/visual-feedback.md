@@ -2,22 +2,23 @@
 
 Reference: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\reference-v2-0.png`
 
-Current audit after iteration 73:
-- Fresh global and component captures were regenerated in `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-72-current-audit-*`, then the central-map module pass was captured as `iteration-73-module-ground-blend-*`.
-- The main panels now fill their screen zones without measured overflow: top bar, BUILD rail, right region panel, alert dock and GRID OVERVIEW all report `overflowX: 0` and `overflowY: 0` in both concept-state and real-start captures.
+Current audit after iteration 74:
+- A new priority reset capture was generated as `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-74-priority-audit-*` after the long run of actions, so the top of this file is no longer relying on iteration 72/73 as current truth.
+- The main panels still fill their screen zones without measured overflow: top bar, BUILD rail, right region panel, alert dock and GRID OVERVIEW all report `overflowX: 0` and `overflowY: 0` in both concept-state and real-start captures.
 - Real-start state is still correct: `buildingTextureCount: 0`; no final building sprite appears before construction.
 - Construction state is still correct: one queued building renders as a grey construction placeholder and reports `buildingTextureCount: 0`.
-- The accepted mini GRID OVERVIEW background remains `grid-overview-europe-map-only-v1.png`; it has `staticThreadCount: 0`, 10 dynamic hub lines and 20 dynamic nodes.
-- Recherche now has fresh evidence: no body/card/title overflow, 4 readable cards in the default real-start view, and the mini GRID OVERVIEW remains visible in the rail.
-- Iteration 73 adds a small central-map module integration pass: built atlas sprites are slightly smaller/lower, less glowy, lightly desaturated and receive a foreground terrain skirt. The effect is deliberately subtle and preserves the gameplay state rules.
+- The accepted mini GRID OVERVIEW background remains `grid-overview-europe-map-only-v1.png`; it has `staticThreadCount: 0`, 10 dynamic hub lines and 20 dynamic nodes. Do not iterate on this asset unless it regresses.
+- Recherche has fresh evidence: no body/card/title overflow, 4 readable cards in the default real-start view, and the mini GRID OVERVIEW remains visible in the rail.
+- Targeted scroll regression checks now pass for construction accordion, construction all-mode card-surface scroll and recherche card-surface scroll. The remaining scroll task is broader hotspot coverage for right panel and alert dock if those panels become scrollable after future layout work.
+- Visual review of the iteration-74 crops shows that the largest remaining differences are art/fidelity problems, not broken layout: central map module art, right-panel slot art, BUILD rail glyph readability, and bottom-alert bespoke icon/copy rhythm.
 
 Current priority order:
-1. Central map visual identity: modules are better grounded after iteration 73 but still read as generated isometric atlas props. Next high-return map work is a true tiny map-marker atlas or a more deliberate selected-region composition, while preserving no-start-sprite/construction-cube/final-built-sprite rules.
-2. Right region panel visual polish: functionally stable, but slot cards are much more blue thumbnail/UI-grid than the concept's painted building-slot tiles. A slot/glyph treatment pass would be higher value than more top-bar tuning.
-3. Scroll interaction audit: Recherche card-surface scroll is covered, but the user's reported inconsistent scrolling across panels should be tested across construction, Recherche, right panel tabs and alert dock before more layout changes.
-4. BUILD rail card/glyph fidelity: layout is stable and visible, but the category art remains darker and more abstract than the concept's pictogram grid.
-5. Bottom alerts polish: text now fits, but alert cards still use live copy rhythm and CSS glyphs rather than bespoke concept-like warning assets.
-6. Top bar and mini GRID OVERVIEW are currently regression-guard items, not active targets. AGI rings must remain ticks-only; mini overview background is accepted and must stay map-only.
+1. Central map module and terrain fidelity - High. The map is now stable and gameplay-correct, but it remains the largest concept gap: generated isometric props, darker terrain, and state-derived route composition. The next useful pass should be either a true tiny painted map-marker atlas or a selected-region composition pass, while preserving no-start-sprite / grey-construction-cube / final-built-sprite rules.
+2. Right region panel slot treatment - Medium to high. The panel is stable, readable and filled, but the building slots still read as blue UI thumbnails rather than the concept's technical painted tiles.
+3. BUILD rail icon/card fidelity - Medium. The rail fits and the mini overview is visible, but the card art is dark and abstract compared with the concept's bold pictogram grid. This is now a higher visual priority than scroll unless a new scroll bug is reproduced.
+4. Bottom alerts polish - Medium. Alert text now occupies its cards and passes the previous overflow concern, but the cards still feel like live game notifications rather than the bespoke concept alert strip.
+5. Scroll hotspot regression coverage - Medium/guard. Existing focused tests pass for construction and recherche card surfaces; add right-panel/alert-dock hotspot tests only when those panels contain scrollable overflow again or before major layout changes.
+6. Top bar and mini GRID OVERVIEW - Regression guard only. AGI rings must remain ticks-only, and the accepted mini overview background must stay map-only with dynamic topology layered separately.
 
 Standing constraints superseding older notes:
 - The mini GRID OVERVIEW is now a real, visible component in the playable game and in `scenario=concept`.
@@ -2083,3 +2084,45 @@ Regressions introduced:
 - None observed in iteration-73 screenshots or metrics.
 - Final validation passed `pnpm lint`, targeted Playwright `initial desktop|map structures reflect|concept central map`, and `pnpm build`.
 - `pnpm build` still emits only the existing Vite chunk-size warning for the large bundled game chunk.
+
+## Iteration 74 - Priority audit reset
+
+Screenshots and metrics:
+- Concept global: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-74-priority-audit-concept-state-global.png`
+- Concept top bar: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-74-priority-audit-concept-state-topbar.png`
+- Concept left rail: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-74-priority-audit-concept-state-left-rail.png`
+- Concept right panel: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-74-priority-audit-concept-state-right-panel.png`
+- Concept alerts: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-74-priority-audit-concept-state-alerts.png`
+- Concept mini overview: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-74-priority-audit-concept-state-grid-overview.png`
+- Real-start global: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-74-priority-audit-real-start-global.png`
+- Construction canvas: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-74-priority-audit-construction-canvas.png`
+- Recherche rail: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-74-priority-audit-research-left-rail.png`
+- Concept metrics: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-74-priority-audit-concept-state-metrics.json`
+- Real-start metrics: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-74-priority-audit-real-start-metrics.json`
+- Construction metrics: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-74-priority-audit-construction-metrics.json`
+- Recherche metrics: `C:\Users\cleme\Documents\Hackaton Energie 2026\web-game\tmp\visual-review-v2-0-continued\iteration-74-priority-audit-research-metrics.json`
+
+What is closer to the concept art and the playable game:
+- The actual playable state remains aligned with the user constraints: empty start has no built building sprites, construction shows only the grey placeholder cube, and completed/module sprites appear only in the concept/built state.
+- Major panels still fill the desktop viewport without measured overflow or incomplete zones.
+- AGI rings remain ticks-only, and the mini GRID OVERVIEW keeps the accepted map-only raster with dynamic topology over it.
+- Bottom alert text now occupies each alert card; this is no longer a blocking layout problem.
+
+What still differs visibly:
+- The central map remains the largest art gap: the terrain is darker/grittier, modules are generated isometric props, and route/alert topology is state-derived rather than hand-composed like the concept.
+- The right region panel is stable but still uses dark blue thumbnail slot cards instead of concept-like painted technical tiles.
+- The BUILD rail is usable but visually more abstract and darker than the concept's strong icon grid.
+- The Recherche tab has no direct concept reference and remains in the right spirit, but should be protected as a functional panel rather than overfitted to the BUILD reference.
+
+What was changed:
+- No UI code change in this iteration. This was a state reset and tracking cleanup after the long visual pass.
+- Updated this feedback file and `component-diagnostics.md` to point at iteration-74 artifacts and to revise priority order.
+
+What should be tried next:
+- Work next on central-map asset/composition fidelity or right-panel slot tile treatment; those are now the highest-return visual gaps.
+- Keep mini GRID OVERVIEW and top-bar work to regression guard unless a new screenshot shows a concrete issue.
+- Add broader scroll hotspot tests only before touching panel layout again or if the user reproduces cursor-location scroll failure in a current build.
+
+Regressions introduced:
+- None observed in iteration-74 screenshots or metrics.
+- Targeted Playwright validation passed: `construction accordion|construction all mode|research tab keeps compact`.
