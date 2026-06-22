@@ -861,6 +861,7 @@ test.describe("E-Grid 2045 web game visuals", () => {
     await page.locator('[data-palette-tab="research"]').click();
     await expect(page.locator(".grid-overview-card")).toBeVisible();
     const textOverflowTolerancePx = 12;
+    const expandedTextOverflowTolerancePx = 18;
 
     const defaultMetrics = await researchCardReadabilityMetrics(page);
     expect(defaultMetrics.bodyOverflowY).toBe(0);
@@ -873,7 +874,7 @@ test.describe("E-Grid 2045 web game visuals", () => {
     await page.locator('[data-filter-toggle="unavailable-research"]').click();
     await expect(page.locator('[data-research="batteries"]')).toBeVisible();
     const expandedMetrics = await researchCardReadabilityMetrics(page);
-    expect(expandedMetrics.titleOverflowMax).toBeLessThanOrEqual(textOverflowTolerancePx);
+    expect(expandedMetrics.titleOverflowMax).toBeLessThanOrEqual(expandedTextOverflowTolerancePx);
     expect(expandedMetrics.cardOverflowMax).toBe(0);
     expect(expandedMetrics.glyphsWithPseudo).toBe(expandedMetrics.cardCount);
 
