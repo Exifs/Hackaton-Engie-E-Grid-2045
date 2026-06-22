@@ -66,6 +66,7 @@ export interface RegionRuntime extends RegionDefinition {
   construction_queue: ConstructionItem[];
   deconstruction_queue: DeconstructionItem[];
   cached: RegionCachedMetrics;
+  history: RegionHistoryPoint[];
   layout: Partial<RegionLayout>;
 }
 
@@ -153,10 +154,12 @@ export interface RegionCachedMetrics {
   energy_efficiency?: number;
   cooling_available?: number;
   cooling_used?: number;
+  cooling_exported?: number;
   cooling_efficiency?: number;
   cooling_state?: string;
   compute_produced?: number;
   compute_demand?: number;
+  compute_exported?: number;
   researchers_required?: number;
   researchers_available?: number;
   researcher_efficiency?: number;
@@ -168,6 +171,22 @@ export interface RegionCachedMetrics {
   energy_technology_points?: number;
   ai_technology_points?: number;
   problems?: string[];
+}
+
+export interface RegionResourceHistory {
+  supply: number;
+  demand: number;
+  imported: number;
+  exported: number;
+}
+
+export interface RegionHistoryPoint {
+  month_index: number;
+  year: number;
+  month: number;
+  energy: RegionResourceHistory;
+  cooling: RegionResourceHistory;
+  compute: RegionResourceHistory;
 }
 
 export interface RegionMetrics {

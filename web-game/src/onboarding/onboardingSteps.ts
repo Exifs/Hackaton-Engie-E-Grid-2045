@@ -1,30 +1,30 @@
+import { t } from "../i18n";
 import { ONBOARDING_COPY } from "./onboardingCopy";
 import type { OnboardingGameStateSnapshot, OnboardingStep, OnboardingStepSnapshot } from "./types";
 
 const STARTER_ENERGY_BUILDINGS = ["gas_power_plant", "solar_farm", "wind_onshore"];
 const COOLING_BUILDINGS = ["air_cooling", "river_cooling", "sea_cooling", "geothermal_cooling"];
-const RESEARCH_BUILDINGS = ["ai_research_center", "energy_research_center"];
 
 export const ONBOARDING_STEPS: OnboardingStep[] = [
   {
     id: "mission",
     target: "kpi.agi",
     ...ONBOARDING_COPY.mission,
-    checklist: ["Comprendre la course Europe / USA"],
+    checklist: [t("onboarding.mission.checklist")],
     isCompleted: () => false
   },
   {
     id: "resources",
-    target: "kpi.energy",
+    target: "kpi.resources",
     ...ONBOARDING_COPY.resources,
-    checklist: ["Identifier les KPI critiques"],
+    checklist: [t("onboarding.resources.checklist")],
     isCompleted: () => false
   },
   {
     id: "university",
     target: "build.university",
     ...ONBOARDING_COPY.university,
-    checklist: ["Construire une universite"],
+    checklist: [t("onboarding.university.checklist")],
     enter: [
       { type: "focusRegion", regionId: "fr_nord" },
       { type: "openConstruction", category: "research" }
@@ -36,15 +36,15 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
     target: "overlay.cooling",
     preferredOverlay: "cooling",
     ...ONBOARDING_COPY.coolingOverlay,
-    checklist: ["Activer l'overlay Froid"],
+    checklist: [t("onboarding.coolingOverlay.checklist")],
     isCompleted: (state) => state.currentOverlay === "cooling"
   },
   {
     id: "starter-energy",
-    target: "build.gas_power_plant",
+    target: "build.category.energy.items",
     preferredOverlay: "energy",
     ...ONBOARDING_COPY.starterEnergy,
-    checklist: ["Construire une production electrique"],
+    checklist: [t("onboarding.starterEnergy.checklist")],
     enter: [
       { type: "selectOverlay", mode: "energy" },
       { type: "openConstruction", category: "energy" }
@@ -53,10 +53,10 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
   },
   {
     id: "cooling-build",
-    target: "build.air_cooling",
+    target: "build.category.cooling.items",
     preferredOverlay: "cooling",
     ...ONBOARDING_COPY.coolingBuild,
-    checklist: ["Construire du refroidissement"],
+    checklist: [t("onboarding.coolingBuild.checklist")],
     enter: [
       { type: "selectOverlay", mode: "cooling" },
       { type: "openConstruction", category: "cooling" }
@@ -68,7 +68,7 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
     target: "build.datacenter_standard",
     preferredOverlay: "cooling",
     ...ONBOARDING_COPY.datacenter,
-    checklist: ["Construire un datacenter standard"],
+    checklist: [t("onboarding.datacenter.checklist")],
     enter: [{ type: "openConstruction", category: "compute" }],
     isCompleted: (state) => hasAnyBuilding(state, ["datacenter_standard"])
   },
@@ -76,16 +76,24 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
     id: "research",
     target: "build.ai_research_center",
     ...ONBOARDING_COPY.research,
-    checklist: ["Construire un centre de recherche ou lancer une recherche"],
+    checklist: [t("onboarding.research.checklist")],
     enter: [{ type: "openConstruction", category: "research" }],
-    isCompleted: (state) => hasAnyBuilding(state, RESEARCH_BUILDINGS) || hasActiveOrQueuedResearch(state)
+    isCompleted: (state) => hasAnyBuilding(state, ["ai_research_center"])
+  },
+  {
+    id: "energy-research",
+    target: "build.energy_research_center",
+    ...ONBOARDING_COPY.energyResearch,
+    checklist: [t("onboarding.energyResearch.checklist")],
+    enter: [{ type: "openConstruction", category: "research" }],
+    isCompleted: (state) => hasAnyBuilding(state, ["energy_research_center"])
   },
   {
     id: "network-overlay",
     target: "overlay.network",
     preferredOverlay: "network",
     ...ONBOARDING_COPY.networkOverlay,
-    checklist: ["Activer l'overlay Reseau ou Energie"],
+    checklist: [t("onboarding.networkOverlay.checklist")],
     enter: [{ type: "selectOverlay", mode: "network" }],
     isCompleted: (state) => state.currentOverlay === "network" || state.currentOverlay === "energy"
   },
@@ -93,7 +101,7 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
     id: "complete",
     target: "alerts.panel",
     ...ONBOARDING_COPY.complete,
-    checklist: ["Continuer en autonomie"],
+    checklist: [t("onboarding.complete.checklist")],
     isCompleted: () => false
   }
 ];

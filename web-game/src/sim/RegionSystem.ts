@@ -14,6 +14,7 @@ export class RegionSystem {
         construction_queue: [],
         deconstruction_queue: [],
         cached: {},
+        history: [],
         layout: layout[regionId] ?? {}
       };
     }

@@ -1,13 +1,13 @@
 ﻿technology_id,display_name,branch,tier,cost,research_months,compute_cost,required_researchers,prereq_technology_ids,unlocks,effect_key,effect_value,effect_value_pct,notes
-batteries,Batteries,energy,1,180,6,2,12,,battery_storage,unlock_building,battery_storage,,Débloque le stockage pour lisser les renouvelables.
-offshore_wind,Éolien offshore industriel,energy,1,220,7,2,14,,wind_offshore,unlock_building,wind_offshore,,"Débloque l’éolien offshore, verrouillé au démarrage P0."
-model_optimization,Optimisation modèles,ai,1,300,8,8,20,,,ai_efficiency_bonus,,15,Bonus direct à l’efficacité compute.
-smart_grids,Réseaux intelligents,infrastructure,1,260,8,3,18,,,distance_efficiency_bonus,,5,Prépare la Supergrid; réduit légèrement les pertes.
-energy_efficiency,Efficacité énergétique,infrastructure,1,360,9,4,18,smart_grids,,monthly_income_bonus_and_energy_demand_reduction,income_bonus=30;energy_demand_pct=-10,,Améliore revenus et sobriété.
-cooling_efficiency,Refroidissement avancé,infrastructure,2,330,8,4,18,,,cooling_demand_reduction,,-10,Réduit la pression de refroidissement des datacenters.
-compute_efficiency,Efficacité compute,ai,2,450,10,12,24,model_optimization,,ai_efficiency_bonus,,25,Bonus fort à la progression AGI.
-hyperscale_datacenters,Datacenters hyperscale,infrastructure,2,520,12,12,24,cooling_efficiency,datacenter_hyperscale,unlock_building,datacenter_hyperscale,,Débloque les gros datacenters.
-geothermal_cooling,Géothermie refroidissement,energy,2,420,14,8,22,cooling_efficiency,geothermal_cooling,unlock_building,geothermal_cooling,,Froid stable avancé.
-supergrid_european,Supergrid européenne,infrastructure,3,600,16,16,30,smart_grids,,network_transfer_bonus,distance_efficiency_pct=15;volume_threshold_pct=25,,Améliore les échanges sans supprimer la contrainte géographique.
-advanced_nuclear,Nucléaire avancé,energy,3,750,18,10,32,smart_grids,,nuclear_cost_time_output_modifiers,cost_pct=-10;construction_pct=-10;output_pct=15,,Renforce le socle long terme.
-agi_sprint,Sprint AGI européen,ai,3,800,18,25,40,model_optimization;compute_efficiency,,agi_gain_multiplier,,20,Fin de partie; accélère l’Europe sans ajouter de MW.
+batteries,Batteries,energy,1,180,6,2,12,,battery_storage,unlock_building,battery_storage,,Unlocks storage to smooth renewables.
+offshore_wind,Industrial Offshore Wind,energy,1,220,7,2,14,,wind_offshore,unlock_building,wind_offshore,,"Unlocks offshore wind, locked at P0 start."
+model_optimization,Model Optimization,ai,1,300,8,8,20,,,ai_efficiency_bonus,,15,Direct bonus to compute efficiency.
+smart_grids,Smart Grids,infrastructure,1,260,8,3,18,,,distance_efficiency_bonus,,5,Prepares the Supergrid and slightly reduces losses.
+energy_efficiency,Energy Efficiency,infrastructure,1,360,9,4,18,smart_grids,,monthly_income_bonus_and_energy_demand_reduction,income_bonus=30;energy_demand_pct=-10,,Improves revenue and energy sobriety.
+cooling_efficiency,Advanced Cooling,infrastructure,2,330,8,4,18,,,cooling_demand_reduction,,-10,Reduces datacenter cooling pressure.
+compute_efficiency,Compute Efficiency,ai,2,450,10,12,24,model_optimization,,ai_efficiency_bonus,,25,Strong bonus to AGI progress.
+hyperscale_datacenters,Hyperscale Datacenters,infrastructure,2,520,12,12,24,cooling_efficiency,datacenter_hyperscale,unlock_building,datacenter_hyperscale,,Unlocks large datacenters.
+geothermal_cooling,Geothermal Cooling,energy,2,420,14,8,22,cooling_efficiency,geothermal_cooling,unlock_building,geothermal_cooling,,Stable advanced cooling.
+supergrid_european,European Supergrid,infrastructure,3,600,16,16,30,smart_grids,,network_transfer_bonus,distance_efficiency_pct=15;volume_threshold_pct=25,,Improves transfers without removing geography constraints.
+advanced_nuclear,Advanced Nuclear,energy,3,750,18,10,32,smart_grids,,nuclear_cost_time_output_modifiers,cost_pct=-10;construction_pct=-10;output_pct=15,,Strengthens the long-term power base.
+agi_sprint,European AGI Sprint,ai,3,800,18,25,40,model_optimization;compute_efficiency,,agi_gain_multiplier,,20,Late-game accelerator for Europe without adding MW.

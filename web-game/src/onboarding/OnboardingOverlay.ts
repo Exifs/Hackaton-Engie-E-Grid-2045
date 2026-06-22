@@ -33,7 +33,7 @@ export class OnboardingOverlay {
     this.view = view;
     const target = this.targetResolver.resolve(view.step.target);
     this.root.innerHTML = `
-      <div class="onboarding-layer" data-onboarding-step="${view.step.id}">
+      <div class="onboarding-layer" data-onboarding-step="${view.step.id}" data-onboarding-mode="${view.mode}">
         ${renderSpotlight(target)}
         ${renderCoachPanel(view)}
       </div>

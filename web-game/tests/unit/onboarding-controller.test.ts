@@ -122,6 +122,53 @@ describe("OnboardingController", () => {
     controller.recordGameEvent({ type: "building_queued", buildingId: "university" });
     expect(renderer.last?.step.id).toBe("next");
   });
+
+  it("renders a consequence after completing an actionable step before advancing", () => {
+    let hasBuilding = false;
+    const renderer = new FakeRenderer();
+    const controller = new OnboardingController({
+      getSnapshot: () => snapshot({ hasUniversity: hasBuilding }),
+      renderer,
+      persistence: new OnboardingPersistence(new MemoryStorage()),
+      steps: [
+        {
+          ...step("university", (state) => Object.values(state.regions).some((region) => region.buildings.includes("university"))),
+          consequence: "Researchers are available."
+        },
+        step("next", () => false)
+      ]
+    });
+
+    controller.start();
+    hasBuilding = true;
+    controller.recordGameEvent({ type: "building_queued", buildingId: "university" });
+
+    expect(renderer.last?.step.id).toBe("university");
+    expect(renderer.last?.mode).toBe("consequence");
+    expect(renderer.last?.currentComplete).toBe(true);
+
+    controller.next();
+    expect(renderer.last?.step.id).toBe("next");
+    expect(renderer.last?.mode).toBe("instruction");
+  });
+
+  it("keeps completed steps without consequence on the existing auto-advance path", () => {
+    let isDone = false;
+    const renderer = new FakeRenderer();
+    const controller = new OnboardingController({
+      getSnapshot: () => snapshot(),
+      renderer,
+      persistence: new OnboardingPersistence(new MemoryStorage()),
+      steps: [step("plain-action", () => isDone), step("next", () => false)]
+    });
+
+    controller.start();
+    isDone = true;
+    controller.recordGameEvent({ type: "game_changed" });
+
+    expect(renderer.last?.step.id).toBe("next");
+    expect(renderer.last?.mode).toBe("instruction");
+  });
 });
 
 function step(id: string, isCompleted: OnboardingStep["isCompleted"]): OnboardingStep {

@@ -5,7 +5,7 @@ describe("Build availability", () => {
     const core = await createCore("locks");
 
     expect(core.getBuildAvailability("fr_nord").battery_storage.ok).toBe(false);
-    expect(core.getBuildAvailability("fr_nord").battery_storage.reason).toContain("Locked");
+    expect(core.getBuildAvailability("fr_nord").battery_storage.reason).toBe("Research batteries.");
     expect(core.getBuildAvailability("fr_nord").battery_storage.cause).toBe("technology");
 
     core.state.completed_technologies.batteries = true;

@@ -3,32 +3,70 @@ import { expect, test, type Page } from "@playwright/test";
 type Rect = { selector: string; x: number; y: number; width: number; height: number };
 
 test.describe("E-Grid 2045 web game visuals", () => {
+  test("browser locale can switch visible HUD labels between English and French", async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 720 });
+    await page.goto("/?testMode=1&seed=i18n&onboarding=0&lng=en");
+    await page.waitForFunction(() => Boolean(window.__EGRID__));
+    await expect(page.locator(".resource-summary")).toContainText("Energy");
+    await expect(page.locator('[data-heatmap="cooling"]')).toHaveAttribute("aria-label", "Cooling");
+
+    await page.goto("/?testMode=1&seed=i18n&onboarding=0&lng=fr");
+    await page.waitForFunction(() => Boolean(window.__EGRID__));
+    await expect(page.locator(".resource-summary")).toContainText("Energie");
+    await expect(page.locator('[data-heatmap="cooling"]')).toHaveAttribute("aria-label", "Froid");
+  });
+
   test("onboarding guides the first gameplay loop and persists completion", async ({ page }, testInfo) => {
     await openGameWithOnboarding(page, 1600, 900);
-    await expect(page.locator(".onboarding-coach")).toBeVisible();
+    const avatarResponse = await page.request.get("/assets/onboarding/operations-director.png");
+    expect(avatarResponse.ok()).toBe(true);
+    await expectOnboardingStep(page, "mission", "kpi.agi");
     await expect(page.locator(".onboarding-coach")).toContainText("Mission");
+    await expect(page.locator(".onboarding-coach-avatar")).toBeVisible();
 
     await page.locator('[data-onboarding-action="next"]').click();
+    await expectOnboardingStep(page, "resources", "kpi.resources");
     await expect(page.locator(".onboarding-coach")).toContainText("Ressources cles");
     await page.locator('[data-onboarding-action="next"]').click();
+    await expectOnboardingStep(page, "university", "build.university");
     await expect(page.locator(".onboarding-coach")).toContainText("Universite");
 
     await page.locator('[data-build="university"]').click();
+    await expectConsequence(page, "university", "vivier de chercheurs");
+    await page.locator('[data-onboarding-action="next"]').click();
+    await expectOnboardingStep(page, "cooling-overlay", "overlay.cooling");
     await expect(page.locator(".onboarding-coach")).toContainText("Overlay refroidissement");
     await page.locator('[data-heatmap="cooling"]').click();
+    await expectConsequence(page, "cooling-overlay", "datacenters seront les moins couteux");
+    await page.locator('[data-onboarding-action="next"]').click();
+    await expectOnboardingStep(page, "starter-energy", "build.gas_power_plant");
     await expect(page.locator(".onboarding-coach")).toContainText("Energie de depart");
 
     await page.locator('[data-build="gas_power_plant"]').click();
+    await expectConsequence(page, "starter-energy", "marge electrique");
+    await page.locator('[data-onboarding-action="next"]').click();
+    await expectOnboardingStep(page, "cooling-build", "build.air_cooling");
     await expect(page.locator(".onboarding-coach")).toContainText("Refroidissement");
     await page.locator('[data-build="air_cooling"]').click();
+    await expectConsequence(page, "cooling-build", "froid disponible augmente");
+    await page.locator('[data-onboarding-action="next"]').click();
+    await expectOnboardingStep(page, "datacenter", "build.datacenter_standard");
     await expect(page.locator(".onboarding-coach")).toContainText("Datacenter");
 
     await page.locator('[data-build="datacenter_standard"]').click();
+    await expectConsequence(page, "datacenter", "compute augmente");
+    await page.locator('[data-onboarding-action="next"]').click();
+    await expectOnboardingStep(page, "research", "build.ai_research_center");
     await expect(page.locator(".onboarding-coach")).toContainText("Recherche");
     await page.locator('[data-build="ai_research_center"]').click();
+    await expectConsequence(page, "research", "trajectoire technologique");
+    await page.locator('[data-onboarding-action="next"]').click();
+    await expectOnboardingStep(page, "network-overlay", "overlay.network");
     await expect(page.locator(".onboarding-coach")).toContainText("Overlay reseau");
 
     await page.locator('[data-heatmap="network"]').click();
+    await expectConsequence(page, "network-overlay", "dependances aux imports");
+    await page.locator('[data-onboarding-action="next"]').click();
     await expect(page.locator(".onboarding-coach")).toContainText("Fin du guidage");
     await page.locator('[data-onboarding-action="next"]').click();
     await expect(page.locator(".onboarding-coach")).toHaveCount(0);
@@ -153,14 +191,14 @@ test.describe("E-Grid 2045 web game visuals", () => {
     await page.screenshot({ path: testInfo.outputPath("phone-build-sheet-open.png"), fullPage: true });
   });
 
-  test("France Nord selection shows the region panel", async ({ page }, testInfo) => {
+  test("Northern France selection shows the region panel", async ({ page }, testInfo) => {
     await openGame(page, 1600, 900);
     await page.evaluate(() => {
       window.__EGRID__?.simulation.selectRegion("fr_nord");
       window.__EGRID__?.scene.renderState();
       window.__EGRID__?.hud.render();
     });
-    await expect(page.locator(".region-panel")).toContainText("France Nord");
+    await expect(page.locator(".region-panel")).toContainText("Northern France");
     await expect(page.locator(".region-tabs button")).toHaveCount(3);
     await expect(page.locator('[data-region-tab="overview"]')).toHaveAttribute("aria-selected", "true");
     await expect(page.locator(".region-tab-overview")).toBeVisible();
@@ -290,11 +328,11 @@ test.describe("E-Grid 2045 web game visuals", () => {
         });
       const labels = collectLabels(scene.children?.list ?? []).map((label) => label.replace(/\s+/g, " ").trim());
       const forbiddenInternalLabels = [
-        "FRANCE NORD",
-        "ALLEMAGNE OUEST",
-        "SUEDE SUD",
-        "BALTIQUE NORD",
-        "MEDITERRANEE INSULAIRE"
+        "NORTHERN FRANCE",
+        "WESTERN GERMANY",
+        "SOUTHERN SWEDEN",
+        "NORTHERN BALTICS",
+        "MEDITERRANEAN ISLANDS"
       ];
       return {
         buildingTextureCount: countSceneBuildingTextures(scene.children?.list ?? []),
@@ -720,8 +758,8 @@ test.describe("E-Grid 2045 web game visuals", () => {
     const energyBefore = await page.evaluate(() => window.__EGRID__?.simulation.getSummary().energy_produced ?? 0);
 
     await openRegionBuildingsTab(page);
-    await page.locator(".built-card", { hasText: "Centrale gaz" }).click();
-    await expect(page.locator(".region-demolition")).toContainText("Centrale gaz");
+    await page.locator(".built-card", { hasText: "Gas Power Plant" }).click();
+    await expect(page.locator(".region-demolition")).toContainText("Gas Power Plant");
     const energyAfter = await page.evaluate(() => window.__EGRID__?.simulation.getSummary().energy_produced ?? 0);
     expect(energyAfter).toBeLessThan(energyBefore);
     await expectHudNoMajorOverlap(page);
@@ -799,9 +837,9 @@ test.describe("E-Grid 2045 web game visuals", () => {
     await page.locator('[data-filter-toggle="unavailable-research"]').click();
     await expect(batteries).toBeDisabled();
     await expect(batteries).toHaveAttribute("data-lock-cause", "building");
-    await expect(batteries).toContainText("Centre recherche energie");
+    await expect(batteries).toContainText("Energy Research Center");
     const result = await page.evaluate(() => window.__EGRID__?.simulation.startResearch("batteries"));
-    expect(result).toMatchObject({ ok: false, reason: "Requires an active Centre recherche energie." });
+    expect(result).toMatchObject({ ok: false, reason: "Requires an active Energy Research Center." });
     await page.screenshot({ path: testInfo.outputPath("research-blocked-no-building.png"), fullPage: true });
   });
 
@@ -1232,7 +1270,7 @@ test.describe("E-Grid 2045 web game visuals", () => {
 
 async function openGame(page: Page, width: number, height: number): Promise<void> {
   await page.setViewportSize({ width, height });
-  await page.goto("/?testMode=1&seed=p0");
+  await page.goto("/?testMode=1&seed=p0&lng=fr");
   await page.waitForFunction(() => Boolean(window.__EGRID__));
   await page.locator("#game-canvas canvas").waitFor({ state: "visible" });
   await page.evaluate(() => {
@@ -1244,7 +1282,7 @@ async function openGame(page: Page, width: number, height: number): Promise<void
 
 async function openLiveGame(page: Page, width: number, height: number): Promise<void> {
   await page.setViewportSize({ width, height });
-  await page.goto("/?seed=p0&onboarding=0");
+  await page.goto("/?seed=p0&onboarding=0&lng=fr");
   await page.waitForFunction(() => Boolean(window.__EGRID__));
   await page.locator("#game-canvas canvas").waitFor({ state: "visible" });
   await page.evaluate(() => {
@@ -1256,7 +1294,7 @@ async function openLiveGame(page: Page, width: number, height: number): Promise<
 
 async function openConceptGame(page: Page, width: number, height: number): Promise<void> {
   await page.setViewportSize({ width, height });
-  await page.goto("/?testMode=1&seed=p0&scenario=concept&onboarding=0");
+  await page.goto("/?testMode=1&seed=p0&scenario=concept&onboarding=0&lng=fr");
   await page.waitForFunction(() => Boolean(window.__EGRID__));
   await page.locator("#game-canvas canvas").waitFor({ state: "visible" });
   await page.evaluate(() => {
@@ -1268,7 +1306,7 @@ async function openConceptGame(page: Page, width: number, height: number): Promi
 
 async function openGameWithOnboarding(page: Page, width: number, height: number): Promise<void> {
   await page.setViewportSize({ width, height });
-  await page.goto("/?testMode=1&seed=onboarding&onboarding=1");
+  await page.goto("/?testMode=1&seed=onboarding&onboarding=1&lng=fr");
   await page.waitForFunction(() => Boolean(window.__EGRID__));
   await page.locator("#game-canvas canvas").waitFor({ state: "visible" });
   await page.evaluate(() => {
@@ -1288,6 +1326,75 @@ async function openGameWithOnboarding(page: Page, width: number, height: number)
 async function openRegionBuildingsTab(page: Page): Promise<void> {
   await page.locator('[data-region-tab="buildings"]').click();
   await expect(page.locator('[data-region-tab="buildings"]')).toHaveAttribute("aria-selected", "true");
+}
+
+async function expectOnboardingStep(page: Page, stepId: string, targetId: string): Promise<void> {
+  await expect(page.locator(`.onboarding-layer[data-onboarding-step="${stepId}"]`)).toBeVisible();
+  await expect(page.locator(`.onboarding-layer[data-onboarding-step="${stepId}"]`)).toHaveAttribute(
+    "data-onboarding-mode",
+    "instruction"
+  );
+  await expect(page.locator(".onboarding-spotlight.is-attached")).toBeVisible();
+  await expectSpotlightCoversTarget(page, targetId);
+  await expectCoachDoesNotFullyCoverTarget(page, targetId);
+}
+
+async function expectConsequence(page: Page, stepId: string, text: string): Promise<void> {
+  await expect(page.locator(`.onboarding-layer[data-onboarding-step="${stepId}"]`)).toHaveAttribute(
+    "data-onboarding-mode",
+    "consequence"
+  );
+  await expect(page.locator(".onboarding-coach")).toContainText("Consequence");
+  await expect(page.locator(".onboarding-coach")).toContainText(text);
+  await expect(page.locator('[data-onboarding-action="next"]')).toHaveText("Compris");
+}
+
+async function expectSpotlightCoversTarget(page: Page, targetId: string): Promise<void> {
+  const metrics = await page.evaluate((target) => {
+    const targetElement = document.querySelector<HTMLElement>(`[data-onboarding-target="${target}"]`);
+    const spotlight = document.querySelector<HTMLElement>(".onboarding-spotlight.is-attached");
+    if (!targetElement || !spotlight) {
+      return { ok: false, reason: "missing target or spotlight" };
+    }
+    const targetRect = targetElement.getBoundingClientRect();
+    const spotlightRect = spotlight.getBoundingClientRect();
+    const tolerance = 10;
+    return {
+      ok:
+        spotlightRect.left <= targetRect.left + tolerance &&
+        spotlightRect.top <= targetRect.top + tolerance &&
+        spotlightRect.right >= targetRect.right - tolerance &&
+        spotlightRect.bottom >= targetRect.bottom - tolerance,
+      target,
+      targetRect: { x: targetRect.x, y: targetRect.y, width: targetRect.width, height: targetRect.height },
+      spotlightRect: { x: spotlightRect.x, y: spotlightRect.y, width: spotlightRect.width, height: spotlightRect.height }
+    };
+  }, targetId);
+  expect(metrics).toMatchObject({ ok: true });
+}
+
+async function expectCoachDoesNotFullyCoverTarget(page: Page, targetId: string): Promise<void> {
+  const metrics = await page.evaluate((target) => {
+    const targetElement = document.querySelector<HTMLElement>(`[data-onboarding-target="${target}"]`);
+    const coach = document.querySelector<HTMLElement>(".onboarding-coach");
+    if (!targetElement || !coach) {
+      return { ok: false, reason: "missing target or coach" };
+    }
+    const targetRect = targetElement.getBoundingClientRect();
+    const coachRect = coach.getBoundingClientRect();
+    const horizontal = Math.max(0, Math.min(targetRect.right, coachRect.right) - Math.max(targetRect.left, coachRect.left));
+    const vertical = Math.max(0, Math.min(targetRect.bottom, coachRect.bottom) - Math.max(targetRect.top, coachRect.top));
+    const targetArea = Math.max(1, targetRect.width * targetRect.height);
+    const coveredRatio = (horizontal * vertical) / targetArea;
+    return {
+      ok: coveredRatio < 0.95,
+      coveredRatio,
+      target,
+      targetRect: { x: targetRect.x, y: targetRect.y, width: targetRect.width, height: targetRect.height },
+      coachRect: { x: coachRect.x, y: coachRect.y, width: coachRect.width, height: coachRect.height }
+    };
+  }, targetId);
+  expect(metrics).toMatchObject({ ok: true });
 }
 
 async function countRegionsWithMapStructures(page: Page): Promise<number> {
