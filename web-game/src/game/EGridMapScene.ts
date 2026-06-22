@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { t } from "../i18n";
 import type { GameSummary, RegionLayout, RegionSnapshot, SimulationCore } from "../sim";
 
 export type HeatmapMode = "none" | "energy" | "cooling" | "network" | "compute" | "co2";
@@ -19,7 +20,7 @@ interface MapRect {
 }
 
 interface ConceptMapLabel {
-  text: string;
+  key: string;
   x: number;
   y: number;
   kind: "country" | "sea";
@@ -55,32 +56,32 @@ const HEATMAP_COLORS = {
 };
 
 const CONCEPT_MAP_LABELS: ConceptMapLabel[] = [
-  { text: "IRELAND", x: 0.23, y: 0.39, kind: "country" },
-  { text: "UNITED\nKINGDOM", x: 0.34, y: 0.45, kind: "country" },
-  { text: "NORWAY", x: 0.55, y: 0.17, kind: "country" },
-  { text: "SWEDEN", x: 0.63, y: 0.19, kind: "country" },
-  { text: "FINLAND", x: 0.76, y: 0.15, kind: "country" },
-  { text: "DENMARK", x: 0.55, y: 0.34, kind: "country" },
-  { text: "BELGIUM", x: 0.43, y: 0.51, kind: "country" },
-  { text: "GERMANY", x: 0.56, y: 0.52, kind: "country" },
-  { text: "FRANCE", x: 0.37, y: 0.65, kind: "country" },
-  { text: "SPAIN", x: 0.29, y: 0.78, kind: "country" },
-  { text: "PORTUGAL", x: 0.19, y: 0.79, kind: "country" },
-  { text: "SWITZERLAND", x: 0.48, y: 0.63, kind: "country" },
-  { text: "ITALY", x: 0.58, y: 0.78, kind: "country" },
-  { text: "AUSTRIA", x: 0.62, y: 0.62, kind: "country" },
-  { text: "CZECHIA", x: 0.65, y: 0.52, kind: "country" },
-  { text: "POLAND", x: 0.72, y: 0.45, kind: "country" },
-  { text: "SLOVAKIA", x: 0.72, y: 0.57, kind: "country" },
-  { text: "HUNGARY", x: 0.73, y: 0.64, kind: "country" },
-  { text: "ROMANIA", x: 0.84, y: 0.64, kind: "country" },
-  { text: "BULGARIA", x: 0.84, y: 0.74, kind: "country" },
-  { text: "GREECE", x: 0.82, y: 0.86, kind: "country" },
-  { text: "NORTH\nSEA", x: 0.43, y: 0.27, kind: "sea", rotation: -7, size: 12 },
-  { text: "BALTIC\nSEA", x: 0.69, y: 0.32, kind: "sea", rotation: -10, size: 12 },
-  { text: "ATLANTIC\nOCEAN", x: 0.17, y: 0.56, kind: "sea", rotation: -7, size: 12 },
-  { text: "MEDITERRANEAN\nSEA", x: 0.45, y: 0.88, kind: "sea", rotation: -5, size: 11 },
-  { text: "BLACK\nSEA", x: 0.67, y: 0.78, kind: "sea", rotation: 12, size: 11 }
+  { key: "ireland", x: 0.23, y: 0.39, kind: "country" },
+  { key: "unitedKingdom", x: 0.34, y: 0.45, kind: "country" },
+  { key: "norway", x: 0.55, y: 0.17, kind: "country" },
+  { key: "sweden", x: 0.63, y: 0.19, kind: "country" },
+  { key: "finland", x: 0.76, y: 0.15, kind: "country" },
+  { key: "denmark", x: 0.55, y: 0.34, kind: "country" },
+  { key: "belgium", x: 0.43, y: 0.51, kind: "country" },
+  { key: "germany", x: 0.56, y: 0.52, kind: "country" },
+  { key: "france", x: 0.37, y: 0.65, kind: "country" },
+  { key: "spain", x: 0.29, y: 0.78, kind: "country" },
+  { key: "portugal", x: 0.19, y: 0.79, kind: "country" },
+  { key: "switzerland", x: 0.48, y: 0.63, kind: "country" },
+  { key: "italy", x: 0.58, y: 0.78, kind: "country" },
+  { key: "austria", x: 0.62, y: 0.62, kind: "country" },
+  { key: "czechia", x: 0.65, y: 0.52, kind: "country" },
+  { key: "poland", x: 0.72, y: 0.45, kind: "country" },
+  { key: "slovakia", x: 0.72, y: 0.57, kind: "country" },
+  { key: "hungary", x: 0.73, y: 0.64, kind: "country" },
+  { key: "romania", x: 0.84, y: 0.64, kind: "country" },
+  { key: "bulgaria", x: 0.84, y: 0.74, kind: "country" },
+  { key: "greece", x: 0.82, y: 0.86, kind: "country" },
+  { key: "northSea", x: 0.43, y: 0.27, kind: "sea", rotation: -7, size: 12 },
+  { key: "balticSea", x: 0.69, y: 0.32, kind: "sea", rotation: -10, size: 12 },
+  { key: "atlanticOcean", x: 0.17, y: 0.56, kind: "sea", rotation: -7, size: 12 },
+  { key: "mediterraneanSea", x: 0.45, y: 0.88, kind: "sea", rotation: -5, size: 11 },
+  { key: "blackSea", x: 0.67, y: 0.78, kind: "sea", rotation: 12, size: 11 }
 ];
 
 export class EGridMapScene extends Phaser.Scene {
@@ -1463,8 +1464,9 @@ export class EGridMapScene extends Phaser.Scene {
         ? isSelected
         : isSelected || (region.cached.problems?.length ?? 0) > 0 || hashString(regionId) % 2 === 0;
       if (shouldDrawRegionLabel) {
+        const regionName = translatedOrFallback(`content.regions.${region.id}.name`, region.display_name);
         const text = this.add
-          .text(point.x, point.y - radius - (isSelected ? 21 : 15), region.display_name.toUpperCase(), {
+          .text(point.x, point.y - radius - (isSelected ? 21 : 15), regionName.toUpperCase(), {
             fontFamily: "Inter, Segoe UI, Arial, sans-serif",
             fontSize: isSelected ? "13px" : "9px",
             color: "#eaf8ff",
@@ -1482,7 +1484,7 @@ export class EGridMapScene extends Phaser.Scene {
     for (const label of CONCEPT_MAP_LABELS) {
       const isSea = label.kind === "sea";
       const text = this.add
-        .text(rect.x + label.x * rect.width, rect.y + label.y * rect.height, label.text, {
+        .text(rect.x + label.x * rect.width, rect.y + label.y * rect.height, t(`hud.map.labels.${label.key}`), {
           align: "center",
           color: isSea ? "#4eb2c7" : "#eef7fb",
           fontFamily: "Inter, Segoe UI, Arial, sans-serif",
@@ -1797,4 +1799,9 @@ function hashString(value: string): number {
     hash = (hash * 31 + value.charCodeAt(index)) >>> 0;
   }
   return hash;
+}
+
+function translatedOrFallback(key: string, fallback: string): string {
+  const translated = t(key);
+  return translated === key ? fallback : translated;
 }

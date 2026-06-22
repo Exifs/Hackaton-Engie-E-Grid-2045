@@ -19,6 +19,7 @@ export interface OnboardingStep {
   id: string;
   title: string;
   body: string;
+  consequence?: string;
   objective: string;
   target?: string;
   preferredOverlay?: HeatmapMode;
@@ -41,6 +42,7 @@ export interface OnboardingViewModel {
   stepIndex: number;
   totalSteps: number;
   currentComplete: boolean;
+  mode: "instruction" | "consequence";
 }
 
 export interface OnboardingStepSnapshot {

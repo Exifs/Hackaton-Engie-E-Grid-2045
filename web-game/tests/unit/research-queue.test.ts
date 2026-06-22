@@ -20,18 +20,18 @@ describe("Research queue", () => {
 
     expect(core.startResearch("batteries")).toMatchObject({
       ok: false,
-      reason: "Requires an active Centre recherche energie."
+      reason: "Requires an active Energy Research Center."
     });
     expect(core.startResearch("model_optimization")).toMatchObject({
       ok: false,
-      reason: "Requires an active Centre recherche IA."
+      reason: "Requires an active AI Research Center."
     });
 
     await completeBuilding(core, "energy_research_center");
     expect(core.startResearch("batteries")).toEqual({ ok: true, reason: "" });
     expect(core.startResearch("model_optimization")).toMatchObject({
       ok: false,
-      reason: "Requires an active Centre recherche IA."
+      reason: "Requires an active AI Research Center."
     });
     expect(core.getSummary().research_queue).toEqual([]);
   });

@@ -32,7 +32,7 @@ export class BuildingSystem {
       return { ok: false, reason: "Unknown building.", cause: "unknown_building" };
     }
     if (buildingDefinition.unlock_technology && !completedTechnologies[buildingDefinition.unlock_technology]) {
-      return { ok: false, reason: `Locked: research ${buildingDefinition.unlock_technology}.`, cause: "technology" };
+      return { ok: false, reason: `Research ${buildingDefinition.unlock_technology}.`, cause: "technology" };
     }
     if (!this.regions.regionHasAnyTag(region, buildingDefinition.required_tags)) {
       return { ok: false, reason: "Region lacks required tag.", cause: "region_tag" };

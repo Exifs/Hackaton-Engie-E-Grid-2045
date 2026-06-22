@@ -20,6 +20,7 @@ import type {
   GameSummary,
   ProvisionalScore,
   RegionCachedMetrics,
+  RegionHistoryPoint,
   RegionMetrics,
   RegionRuntime,
   RegionSnapshot,
@@ -30,6 +31,7 @@ import type {
 
 const ENERGY_RESEARCH_CENTER_ID = "energy_research_center";
 const AI_RESEARCH_CENTER_ID = "ai_research_center";
+const REGION_HISTORY_LIMIT = 48;
 
 export class SimulationCore {
   readonly state = new GameState();
@@ -44,6 +46,7 @@ export class SimulationCore {
   private co2Tiers: Co2Tier[] = [];
   private tickAccumulator = 0;
   private seed = "default";
+  private previousSimulationSpeed = 1;
 
   private readonly regionSystem = new RegionSystem();
   private readonly buildingSystem = new BuildingSystem();
@@ -60,6 +63,7 @@ export class SimulationCore {
   newGame(seed = "default"): void {
     this.seed = seed;
     this.tickAccumulator = 0;
+    this.previousSimulationSpeed = 1;
     this.constants = cloneRecord(this.gameData.constants);
     this.regions = this.regionSystem.cloneRegions(this.gameData.regions, this.gameData.region_layout);
     this.buildingDefinitions = cloneRecord(this.gameData.buildings);
@@ -92,17 +96,28 @@ export class SimulationCore {
   }
 
   setSimulationSpeed(speedMultiplier: number): void {
-    this.state.simulation_speed = clamp(speedMultiplier, 0, 4);
+    const speed = clamp(speedMultiplier, 0, 4);
+    if (speed > 0) {
+      this.previousSimulationSpeed = speed;
+    }
+    this.state.simulation_speed = speed;
     this.state.paused = this.state.simulation_speed <= 0;
   }
 
   setPaused(paused: boolean): void {
     this.state.paused = paused;
     if (paused) {
+      if (this.state.simulation_speed > 0) {
+        this.previousSimulationSpeed = this.state.simulation_speed;
+      }
       this.state.simulation_speed = 0;
     } else if (this.state.simulation_speed <= 0) {
-      this.state.simulation_speed = 1;
+      this.state.simulation_speed = this.previousSimulationSpeed;
     }
+  }
+
+  togglePaused(): void {
+    this.setPaused(!this.state.paused);
   }
 
   isRunning(): boolean {
@@ -287,7 +302,7 @@ export class SimulationCore {
         const remainingPoints = Math.max(technology.cost - currentPoints, 0);
         const estimatedMonths = monthlyPoints > 0 ? Math.ceil(remainingPoints / monthlyPoints) : Number.POSITIVE_INFINITY;
         let status: ResearchOption["status"] = "available";
-        let reason = this.state.active_research_id ? "Ajouter a la file de recherche." : "Pret a lancer.";
+        let reason = this.state.active_research_id ? "Add to the research queue." : "Ready to launch.";
         let lockCause: ResearchOption["lock_cause"];
         const buildingRequirement = this.researchBuildingRequirement(technology);
         if (isCompleted) {
@@ -295,7 +310,7 @@ export class SimulationCore {
           reason = "Completed.";
         } else if (isActive) {
           status = "active";
-          reason = monthlyPoints > 0 ? "Research in progress." : `Debit 0: ${buildingRequirement.reason || "research output unavailable."}`;
+          reason = monthlyPoints > 0 ? "Research in progress." : `Rate 0: ${buildingRequirement.reason || "research output unavailable."}`;
         } else if (isQueued) {
           status = "queued";
           reason = `File #${queueIndex + 1}.`;
@@ -384,10 +399,12 @@ export class SimulationCore {
         energy_efficiency: energyEfficiency,
         cooling_available: regionMetrics.cooling_available,
         cooling_used: regionMetrics.cooling_used,
+        cooling_exported: Math.max(regionMetrics.cooling_available - regionMetrics.cooling_used, 0),
         cooling_efficiency: coolingEfficiency,
         cooling_state: cooling.cooling_state,
         compute_produced: computeProduced,
         compute_demand: regionMetrics.compute_demand,
+        compute_exported: Math.max(computeProduced - regionMetrics.compute_demand, 0),
         researchers_required: regionMetrics.researchers_required,
         researchers_available: regionMetrics.researchers_available,
         researcher_efficiency: researcherEfficiency,
@@ -420,6 +437,10 @@ export class SimulationCore {
       if (cached.blackout_state === "severe") {
         totals.severe_blackout_regions += 1;
       }
+    }
+
+    for (const region of Object.values(this.regions)) {
+      this.recordRegionHistory(region);
     }
 
     this.state.energy_produced = totals.energy_produced;
@@ -677,17 +698,17 @@ export class SimulationCore {
     if (branch === "ai") {
       return this.hasActiveBuilding(AI_RESEARCH_CENTER_ID)
         ? { ok: true, reason: "" }
-        : { ok: false, reason: "Requires an active Centre recherche IA.", cause: "building" };
+        : { ok: false, reason: "Requires an active AI Research Center.", cause: "building" };
     }
     if (branch === "energy" || branch === "infrastructure") {
       return this.hasActiveBuilding(ENERGY_RESEARCH_CENTER_ID)
         ? { ok: true, reason: "" }
-        : { ok: false, reason: "Requires an active Centre recherche energie.", cause: "building" };
+        : { ok: false, reason: "Requires an active Energy Research Center.", cause: "building" };
     }
     if (this.hasActiveBuilding(ENERGY_RESEARCH_CENTER_ID) || this.hasActiveBuilding(AI_RESEARCH_CENTER_ID)) {
       return { ok: true, reason: "" };
     }
-    return { ok: false, reason: "Requires an active Centre recherche energie or Centre recherche IA.", cause: "building" };
+    return { ok: false, reason: "Requires an active Energy Research Center or AI Research Center.", cause: "building" };
   }
 
   private hasActiveBuilding(buildingId: string): boolean {
@@ -837,5 +858,47 @@ export class SimulationCore {
       }
       return total + energyPoints + aiPoints;
     }, 0);
+  }
+
+  private recordRegionHistory(region: RegionRuntime): void {
+    const cached = region.cached;
+    const energySupply = cached.energy_production ?? 0;
+    const energyDemand = cached.energy_consumption ?? 0;
+    const coolingSupply = cached.cooling_available ?? 0;
+    const coolingDemand = cached.cooling_used ?? 0;
+    const computeSupply = cached.compute_produced ?? 0;
+    const computeDemand = cached.compute_demand ?? 0;
+    const point: RegionHistoryPoint = {
+      month_index: this.state.month_index,
+      year: this.state.year,
+      month: this.state.month,
+      energy: {
+        supply: energySupply,
+        demand: energyDemand,
+        imported: cached.energy_imported ?? 0,
+        exported: cached.energy_exported ?? 0
+      },
+      cooling: {
+        supply: coolingSupply,
+        demand: coolingDemand,
+        imported: Math.max(coolingDemand - coolingSupply, 0),
+        exported: cached.cooling_exported ?? Math.max(coolingSupply - coolingDemand, 0)
+      },
+      compute: {
+        supply: computeSupply,
+        demand: computeDemand,
+        imported: Math.max(computeDemand - computeSupply, 0),
+        exported: cached.compute_exported ?? Math.max(computeSupply - computeDemand, 0)
+      }
+    };
+    const currentIndex = region.history.findIndex((entry) => entry.month_index === point.month_index);
+    if (currentIndex >= 0) {
+      region.history[currentIndex] = point;
+    } else {
+      region.history.push(point);
+    }
+    if (region.history.length > REGION_HISTORY_LIMIT) {
+      region.history.splice(0, region.history.length - REGION_HISTORY_LIMIT);
+    }
   }
 }

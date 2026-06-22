@@ -2,6 +2,7 @@ import Phaser from "phaser";
 import { EGridMapScene, type HeatmapMode } from "./game/EGridMapScene";
 import { OnboardingController, OnboardingOverlay, TargetResolver, type OnboardingGameStateSnapshot } from "./onboarding";
 import { DataLoader, SimulationCore } from "./sim";
+import { initI18n, t } from "./i18n";
 import { cssUrlForPageAsset } from "./ui/assetUrls";
 import { GameHud } from "./ui/GameHud";
 import "./styles/game.css";
@@ -34,6 +35,11 @@ if (!hudRoot || !canvasRoot || !appRoot) {
   throw new Error("Missing E-Grid web game roots.");
 }
 
+await initI18n();
+document.title = t("app.title");
+document.querySelector<HTMLMetaElement>('meta[name="description"]')?.setAttribute("content", t("app.description"));
+canvasRoot.setAttribute("aria-label", t("app.canvasLabel"));
+
 document.documentElement.dataset.testMode = testMode ? "1" : "0";
 document.documentElement.dataset.egridSceneReady = "0";
 document.documentElement.dataset.conceptScenario = params.get("scenario") === "concept" ? "1" : "0";
@@ -59,7 +65,13 @@ for (const [name, file] of Object.entries({
   datacenter: "01_datacenter.png",
   cooling: "02_cooling.png",
   research: "03_research.png",
-  grid: "04_grid.png"
+  grid: "04_grid.png",
+  snow: "05_snow.png",
+  battery: "06_battery.png",
+  compute: "07_compute.png",
+  gas: "08_gas.png",
+  money: "09_money.png",
+  science: "10_science.png"
 })) {
   document.documentElement.style.setProperty(
     `--utility-icon-${name}`,
@@ -132,9 +144,13 @@ const hud = new GameHud(hudRoot, simulation, {
     onboarding?.recordGameEvent({ type: "game_changed" });
   },
   onSpeed: (speed) => {
-    simulation.setSimulationSpeed(speed);
-    redraw();
-    onboarding?.recordGameEvent({ type: "game_changed" });
+    if (speed === 0) {
+      toggleSimulationPause();
+    } else {
+      simulation.setSimulationSpeed(speed);
+      redraw();
+      onboarding?.recordGameEvent({ type: "game_changed" });
+    }
   },
   onSelectRegion: (regionId) => {
     simulation.selectRegion(regionId);
@@ -178,6 +194,7 @@ new Phaser.Game({
 });
 
 hud.render();
+window.addEventListener("keydown", handleGlobalKeyDown);
 
 onboarding = new OnboardingController({
   getSnapshot: onboardingSnapshot,
@@ -243,6 +260,30 @@ function redraw(renderHud = true): void {
     hud.render();
   }
   onboarding?.refreshTarget();
+}
+
+function toggleSimulationPause(): void {
+  simulation.togglePaused();
+  redraw();
+  onboarding?.recordGameEvent({ type: "game_changed" });
+}
+
+function handleGlobalKeyDown(event: KeyboardEvent): void {
+  if (event.defaultPrevented || event.repeat || event.code !== "Space") {
+    return;
+  }
+  if (isInteractiveKeyTarget(event.target)) {
+    return;
+  }
+  event.preventDefault();
+  toggleSimulationPause();
+}
+
+function isInteractiveKeyTarget(target: EventTarget | null): boolean {
+  if (!(target instanceof HTMLElement)) {
+    return false;
+  }
+  return Boolean(target.closest("button, input, select, textarea, [contenteditable='true']"));
 }
 
 function onboardingSnapshot(): OnboardingGameStateSnapshot {

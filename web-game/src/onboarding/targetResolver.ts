@@ -5,12 +5,12 @@ export interface ResolvedOnboardingTarget {
 }
 
 interface TargetResolverOptions {
-  document?: Pick<Document, "querySelector">;
+  document?: Pick<Document, "querySelector" | "querySelectorAll">;
   regionPoint?: (regionId: string) => { x: number; y: number } | undefined;
 }
 
 export class TargetResolver {
-  private readonly document?: Pick<Document, "querySelector">;
+  private readonly document?: Pick<Document, "querySelector" | "querySelectorAll">;
   private readonly regionPoint?: (regionId: string) => { x: number; y: number } | undefined;
 
   constructor(options: TargetResolverOptions = {}) {
@@ -24,15 +24,19 @@ export class TargetResolver {
     }
 
     const selector = `[data-onboarding-target="${cssEscape(target)}"]`;
-    const element = this.document?.querySelector(selector) as HTMLElement | null | undefined;
+    const element = this.findVisibleElement(selector);
     if (!element) {
       return { found: false, selector };
     }
     const rect = inflateRect(element.getBoundingClientRect(), 8);
-    if (rect.width <= 0 || rect.height <= 0) {
-      return { found: false, selector };
-    }
     return { found: true, selector, rect };
+  }
+
+  private findVisibleElement(selector: string): HTMLElement | null {
+    const elements = this.document?.querySelectorAll
+      ? Array.from(this.document.querySelectorAll(selector) as Iterable<HTMLElement>)
+      : singleElement(this.document?.querySelector(selector) as HTMLElement | null | undefined);
+    return elements.find((element) => isVisibleElement(element)) ?? null;
   }
 
   private resolveRegion(target: string): ResolvedOnboardingTarget {
@@ -48,6 +52,22 @@ export class TargetResolver {
       rect: toRect(point.x - 42, point.y - 42, 84, 84)
     };
   }
+}
+
+function singleElement(element: HTMLElement | null | undefined): HTMLElement[] {
+  return element ? [element] : [];
+}
+
+function isVisibleElement(element: HTMLElement): boolean {
+  const rect = element.getBoundingClientRect();
+  if (rect.width <= 0 || rect.height <= 0) {
+    return false;
+  }
+  if (typeof window === "undefined" || !window.getComputedStyle) {
+    return true;
+  }
+  const style = window.getComputedStyle(element);
+  return style.display !== "none" && style.visibility !== "hidden" && style.opacity !== "0";
 }
 
 function inflateRect(rect: DOMRectReadOnly, padding: number): DOMRectReadOnly {

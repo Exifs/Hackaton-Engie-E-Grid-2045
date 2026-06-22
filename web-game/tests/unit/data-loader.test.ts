@@ -6,7 +6,7 @@ describe("DataLoader", () => {
 
     expect(Object.keys(data.regions).length).toBeGreaterThanOrEqual(30);
     expect(Object.keys(data.buildings)).toContain("datacenter_standard");
-    expect(data.regions.fr_nord.display_name).toBe("France Nord");
+    expect(data.regions.fr_nord.display_name).toBe("Northern France");
     expect(data.regions.fr_nord.tags).toContain("fleuve");
     expect(data.buildings.university.produces_researchers).toBe(8);
     expect(data.region_layout.fr_nord.x).toBeGreaterThan(0);

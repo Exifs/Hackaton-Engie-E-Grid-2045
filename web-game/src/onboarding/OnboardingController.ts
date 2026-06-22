@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { ONBOARDING_STEPS } from "./onboardingSteps";
 import { OnboardingPersistence } from "./onboardingPersistence";
 import type {
@@ -39,6 +40,7 @@ export class OnboardingController {
   private readonly actions: OnboardingActions;
   private status: OnboardingStatus = "idle";
   private stepIndex = 0;
+  private mode: OnboardingViewModel["mode"] = "instruction";
 
   constructor(options: OnboardingControllerOptions) {
     this.getSnapshot = options.getSnapshot;
@@ -69,6 +71,7 @@ export class OnboardingController {
     }
     this.status = "running";
     this.stepIndex = 0;
+    this.mode = "instruction";
     this.enterCurrentStep();
   }
 
@@ -81,6 +84,7 @@ export class OnboardingController {
     this.persistence.reset();
     this.status = "idle";
     this.stepIndex = 0;
+    this.mode = "instruction";
     this.renderer.destroy();
   }
 
@@ -88,11 +92,26 @@ export class OnboardingController {
     if (this.status !== "running") {
       return;
     }
+    if (this.mode === "consequence") {
+      this.advanceStep();
+      return;
+    }
+    const step = this.steps[this.stepIndex];
+    if (step?.consequence && step.isCompleted(this.getSnapshot())) {
+      this.mode = "consequence";
+      this.render();
+      return;
+    }
+    this.advanceStep();
+  }
+
+  private advanceStep(): void {
     if (this.stepIndex >= this.steps.length - 1) {
       this.complete();
       return;
     }
     this.stepIndex += 1;
+    this.mode = "instruction";
     this.enterCurrentStep();
   }
 
@@ -101,6 +120,7 @@ export class OnboardingController {
       return;
     }
     this.stepIndex -= 1;
+    this.mode = "instruction";
     this.enterCurrentStep({ allowAlreadyCompletedAdvance: false });
   }
 
@@ -109,6 +129,7 @@ export class OnboardingController {
       return;
     }
     this.status = "skipped";
+    this.mode = "instruction";
     this.persistence.markSkipped();
     this.renderer.destroy();
   }
@@ -126,7 +147,12 @@ export class OnboardingController {
       this.complete();
       return;
     }
-    if (step.isCompleted(this.getSnapshot())) {
+    if (this.mode === "instruction" && step.consequence && step.isCompleted(this.getSnapshot())) {
+      this.mode = "consequence";
+      this.render();
+      return;
+    }
+    if (this.mode === "instruction" && step.isCompleted(this.getSnapshot())) {
       this.next();
       return;
     }
@@ -161,17 +187,20 @@ export class OnboardingController {
     if (!step || this.status !== "running") {
       return;
     }
+    const localizedStep = this.localizedStep(step);
     this.renderer.render({
       status: this.status,
-      step,
+      step: localizedStep,
       stepIndex: this.stepIndex,
       totalSteps: this.steps.length,
-      currentComplete: step.isCompleted(this.getSnapshot())
+      currentComplete: step.isCompleted(this.getSnapshot()),
+      mode: this.mode
     });
   }
 
   private complete(): void {
     this.status = "completed";
+    this.mode = "instruction";
     this.persistence.markCompleted();
     this.renderer.destroy();
   }
@@ -187,4 +216,45 @@ export class OnboardingController {
       this.actions.focusRegion?.(action);
     }
   }
+
+  private localizedStep(step: OnboardingStep): OnboardingStep {
+    const key = onboardingTranslationKey(step.id);
+    if (!key) {
+      return step;
+    }
+    const checklist = step.checklist?.map((_item, index) => {
+      const translated = t(`${key}.checklist`);
+      return translated === `${key}.checklist` && step.checklist ? step.checklist[index] : translated;
+    });
+    return {
+      ...step,
+      title: fallbackTranslated(`${key}.title`, step.title),
+      body: fallbackTranslated(`${key}.body`, step.body),
+      objective: fallbackTranslated(`${key}.objective`, step.objective),
+      consequence: step.consequence ? fallbackTranslated(`${key}.consequence`, step.consequence) : undefined,
+      checklist
+    };
+  }
+}
+
+function onboardingTranslationKey(stepId: string): string | undefined {
+  const keys: Record<string, string> = {
+    mission: "onboarding.mission",
+    resources: "onboarding.resources",
+    university: "onboarding.university",
+    "cooling-overlay": "onboarding.coolingOverlay",
+    "starter-energy": "onboarding.starterEnergy",
+    "cooling-build": "onboarding.coolingBuild",
+    datacenter: "onboarding.datacenter",
+    research: "onboarding.research",
+    "energy-research": "onboarding.energyResearch",
+    "network-overlay": "onboarding.networkOverlay",
+    complete: "onboarding.complete"
+  };
+  return keys[stepId];
+}
+
+function fallbackTranslated(key: string, fallback: string): string {
+  const translated = t(key);
+  return translated === key ? fallback : translated;
 }
