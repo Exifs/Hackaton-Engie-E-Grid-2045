@@ -1,8 +1,10 @@
 import Phaser from "phaser";
 import { t } from "../i18n";
 import type { GameSummary, RegionLayout, RegionSnapshot, SimulationCore } from "../sim";
-
-export type HeatmapMode = "none" | "energy" | "cooling" | "network" | "compute" | "co2";
+import type { HeatmapMode } from "./heatmap";
+import { MapInteractionController } from "./mapInteractionController";
+import type { MapRect, ViewportOccluder } from "./mapViewport";
+import { clampColor, hashString, mixColor, quadraticPoint } from "./mapRenderMath";
 
 interface SceneConfig {
   simulation: SimulationCore;
@@ -10,13 +12,6 @@ interface SceneConfig {
   onRegionSelected: (regionId: string) => void;
   onSimulationAdvanced: () => void;
   onSimulationProgress: () => void;
-}
-
-interface MapRect {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
 }
 
 interface ConceptMapLabel {
@@ -45,6 +40,27 @@ interface MapAlertAccent {
   flow?: GameSummary["network_flows"][number];
 }
 
+interface MapDragState {
+  pointerId: number;
+  startX: number;
+  startY: number;
+  previousX: number;
+  previousY: number;
+  moved: boolean;
+}
+
+interface SceneRenderContext {
+  summary: GameSummary;
+  regions: Record<string, RegionSnapshot>;
+  selectedRegion?: RegionSnapshot;
+  graph: Record<string, string[]>;
+  conceptGrade: boolean;
+}
+
+interface PhaserInputEvent {
+  stopPropagation?: () => void;
+}
+
 const HEATMAP_COLORS = {
   stable: 0x49e7b8,
   energy: 0x53e7ff,
@@ -54,6 +70,13 @@ const HEATMAP_COLORS = {
   critical: 0xff5f4f,
   co2: 0xc0814f
 };
+
+const MAP_DRAG_CLICK_TOLERANCE = 6;
+const MAP_WHEEL_ZOOM_INTENSITY = 0.0015;
+const MAP_ZOOM_OVERLAY_WIDTH = 154;
+const MAP_ZOOM_OVERLAY_HEIGHT = 38;
+const MAP_ZOOM_OVERLAY_MARGIN = 14;
+const MAP_ANIMATION_FRAME_MS = 80;
 
 const CONCEPT_MAP_LABELS: ConceptMapLabel[] = [
   { key: "ireland", x: 0.23, y: 0.39, kind: "country" },
@@ -90,6 +113,7 @@ export class EGridMapScene extends Phaser.Scene {
   private readonly onRegionSelected: (regionId: string) => void;
   private readonly onSimulationAdvanced: () => void;
   private readonly onSimulationProgress: () => void;
+  private readonly mapInteraction: MapInteractionController;
 
   private heatmapMode: HeatmapMode = "energy";
   private mapImage?: Phaser.GameObjects.Image;
@@ -100,11 +124,16 @@ export class EGridMapScene extends Phaser.Scene {
   private regionLayer?: Phaser.GameObjects.Graphics;
   private slotLayer?: Phaser.GameObjects.Graphics;
   private labelLayer?: Phaser.GameObjects.Container;
+  private mapZoomOverlayLayer?: Phaser.GameObjects.Container;
+  private mapZoomOverlayBackground?: Phaser.GameObjects.Graphics;
+  private mapZoomOverlayText?: Phaser.GameObjects.Text;
+  private mapZoomResetButton?: Phaser.GameObjects.Rectangle;
+  private mapZoomResetText?: Phaser.GameObjects.Text;
   private animationTime = 0;
   private hudProgressAccumulatorMs = 0;
+  private mapAnimationAccumulatorMs = 0;
   private dirty = true;
-  private currentMapRect?: MapRect;
-  private focusRegionId = "";
+  private mapDrag: MapDragState | null = null;
 
   constructor(config: SceneConfig) {
     super("EGridMapScene");
@@ -113,6 +142,16 @@ export class EGridMapScene extends Phaser.Scene {
     this.onRegionSelected = config.onRegionSelected;
     this.onSimulationAdvanced = config.onSimulationAdvanced;
     this.onSimulationProgress = config.onSimulationProgress;
+    this.mapInteraction = new MapInteractionController({
+      testMode: this.testMode,
+      viewportSize: () => ({ width: this.scale.width, height: this.scale.height }),
+      textureSize: () => {
+        const texture = this.textures.get("map-backdrop").getSourceImage() as HTMLImageElement | HTMLCanvasElement;
+        return { width: texture.width, height: texture.height };
+      },
+      focusPoint: (focusRegionId) => this.mapFocusPoint(focusRegionId),
+      occluders: () => this.mapViewportOccluders()
+    });
   }
 
   preload(): void {
@@ -139,9 +178,19 @@ export class EGridMapScene extends Phaser.Scene {
     this.regionLayer = this.add.graphics();
     this.slotLayer = this.add.graphics();
     this.labelLayer = this.add.container(0, 0);
+    this.createMapZoomOverlay();
 
-    this.input.on("pointerdown", (pointer: Phaser.Input.Pointer) => this.handlePointer(pointer));
+    this.input.on("pointerdown", (pointer: Phaser.Input.Pointer) => this.handlePointerDown(pointer));
+    this.input.on("pointermove", (pointer: Phaser.Input.Pointer) => this.handlePointerMove(pointer));
+    this.input.on("pointerup", (pointer: Phaser.Input.Pointer) => this.handlePointerUp(pointer));
+    this.input.on("pointerupoutside", (pointer: Phaser.Input.Pointer) => this.handlePointerUp(pointer, false));
+    this.input.on(
+      "wheel",
+      (pointer: Phaser.Input.Pointer, _gameObjects: unknown[], _deltaX: number, deltaY: number) =>
+        this.handleWheel(pointer, deltaY)
+    );
     this.scale.on("resize", () => {
+      this.constrainMapInteraction();
       this.dirty = true;
       this.renderState();
     });
@@ -167,8 +216,14 @@ export class EGridMapScene extends Phaser.Scene {
       }
     }
 
-    if (!this.testMode || this.dirty) {
+    if (this.dirty) {
       this.renderState();
+    } else if (!this.testMode) {
+      this.mapAnimationAccumulatorMs += delta;
+      if (this.mapAnimationAccumulatorMs >= MAP_ANIMATION_FRAME_MS) {
+        this.mapAnimationAccumulatorMs = 0;
+        this.renderState();
+      }
     }
   }
 
@@ -185,17 +240,17 @@ export class EGridMapScene extends Phaser.Scene {
   }
 
   focusRegion(regionId: string): void {
-    this.focusRegionId = regionId;
+    this.mapInteraction.focusRegion(regionId);
     this.dirty = true;
     this.renderState();
   }
 
   getRegionScreenPoint(regionId: string): { x: number; y: number } | undefined {
-    const region = this.simulation.getRegionsSnapshot()[regionId];
+    const region = this.simulation.getRegionSnapshot(regionId);
     if (!region?.layout) {
       return undefined;
     }
-    const rect = this.currentMapRect ?? this.mapRect();
+    const rect = this.mapRect();
     return this.regionPoint(rect, region.layout as RegionLayout);
   }
 
@@ -213,16 +268,35 @@ export class EGridMapScene extends Phaser.Scene {
       return;
     }
 
+    this.mapAnimationAccumulatorMs = 0;
+    this.mapInteraction.clearSafeViewportCache();
     const rect = this.mapRect();
-    const conceptMapGrade = window.innerWidth >= 1180 || document.documentElement.dataset.conceptScenario === "1";
-    this.mapImage.setPosition(rect.x, rect.y).setDisplaySize(rect.width, rect.height).setAlpha(conceptMapGrade ? 1 : 0.94);
+    const context = this.renderContext();
+    this.mapImage.setPosition(rect.x, rect.y).setDisplaySize(rect.width, rect.height).setAlpha(context.conceptGrade ? 1 : 0.94);
     this.drawBackdropVignette(rect);
     this.drawMapAtmosphere(rect);
-    this.drawFlows(rect);
-    this.drawStructures(rect);
-    this.drawRegions(rect);
-    this.drawSelectedSlots(rect);
+    this.drawFlows(rect, context);
+    this.drawStructures(rect, context);
+    this.drawRegions(rect, context);
+    this.drawSelectedSlots(rect, context);
+    this.updateMapZoomOverlay();
     this.dirty = false;
+  }
+
+  private renderContext(): SceneRenderContext {
+    const summary = this.simulation.getSummary();
+    const regions = this.simulation.getRegionsSnapshot();
+    return {
+      summary,
+      regions,
+      selectedRegion: regions[summary.selected_region_id],
+      graph: this.simulation.getNetworkGraph(),
+      conceptGrade: this.usesConceptMapGrade()
+    };
+  }
+
+  private usesConceptMapGrade(): boolean {
+    return window.innerWidth >= 1180 || document.documentElement.dataset.conceptScenario === "1";
   }
 
   private drawBackdropVignette(rect: MapRect): void {
@@ -251,7 +325,7 @@ export class EGridMapScene extends Phaser.Scene {
       return;
     }
     graphics.clear();
-    const desktopConceptGrade = window.innerWidth >= 1180 || document.documentElement.dataset.conceptScenario === "1";
+    const desktopConceptGrade = this.usesConceptMapGrade();
     const strength = desktopConceptGrade ? 1 : 0.5;
     graphics.setBlendMode(Phaser.BlendModes.ADD);
 
@@ -282,17 +356,15 @@ export class EGridMapScene extends Phaser.Scene {
     graphics.fillRect(rect.x + rect.width * 0.965, rect.y, rect.width * 0.035, rect.height);
   }
 
-  private drawFlows(rect: MapRect): void {
+  private drawFlows(rect: MapRect, context: SceneRenderContext): void {
     const graphics = this.flowLayer;
     if (!graphics) {
       return;
     }
     graphics.clear();
-    const summary = this.simulation.getSummary();
-    const regions = this.simulation.getRegionsSnapshot();
-    const graph = this.simulation.getNetworkGraph();
+    const { summary, regions, graph } = context;
     const drawnEdges = new Set<string>();
-    const useStrategicRouteRendering = window.innerWidth >= 1180 || document.documentElement.dataset.conceptScenario === "1";
+    const useStrategicRouteRendering = context.conceptGrade;
     const strategicFlows = useStrategicRouteRendering
       ? this.strategicMapFlows(summary.network_flows, summary.selected_region_id, regions)
       : summary.network_flows;
@@ -699,7 +771,7 @@ export class EGridMapScene extends Phaser.Scene {
     );
   }
 
-  private drawStructures(rect: MapRect): void {
+  private drawStructures(rect: MapRect, context: SceneRenderContext): void {
     const graphics = this.structureLayer;
     if (!graphics) {
       return;
@@ -707,9 +779,9 @@ export class EGridMapScene extends Phaser.Scene {
     graphics.clear();
     this.structureSpriteLayer?.removeAll(true);
 
-    const regions = this.simulation.getRegionsSnapshot();
-    const selectedRegionId = this.simulation.getSummary().selected_region_id;
-    const useStrategicStructureCap = window.innerWidth >= 1180 || document.documentElement.dataset.conceptScenario === "1";
+    const { regions } = context;
+    const selectedRegionId = context.summary.selected_region_id;
+    const useStrategicStructureCap = context.conceptGrade;
     const scale = Phaser.Math.Clamp(Math.min(rect.width, rect.height) / 760, 0.82, 1.35);
     const candidates: MapStructureCandidate[] = [];
 
@@ -719,7 +791,6 @@ export class EGridMapScene extends Phaser.Scene {
         continue;
       }
       const point = this.regionPoint(rect, layout);
-      const hash = hashString(regionId);
       const entries = [
         ...region.buildings.map((buildingId, index) => ({ buildingId, state: "built" as const, index })),
         ...region.construction_queue.map((item, index) => ({
@@ -965,7 +1036,7 @@ export class EGridMapScene extends Phaser.Scene {
     const clampedIndex = Phaser.Math.Clamp(Math.trunc(iconIndex), 0, columns * rows - 1);
     const cropX = (clampedIndex % columns) * cellWidth;
     const cropY = Math.floor(clampedIndex / columns) * cellHeight;
-    const useEnhancedMapSprites = window.innerWidth >= 1180 || document.documentElement.dataset.conceptScenario === "1";
+    const useEnhancedMapSprites = this.usesConceptMapGrade();
     const displaySize = (useEnhancedMapSprites ? (primary ? 62 : 47) : 50) * scale;
     const spriteScale = displaySize / cellWidth;
     const spriteY = y - (useEnhancedMapSprites ? (primary ? 6 : 5) : 7) * scale;
@@ -1397,7 +1468,7 @@ export class EGridMapScene extends Phaser.Scene {
     graphics.strokePath();
   }
 
-  private drawRegions(rect: MapRect): void {
+  private drawRegions(rect: MapRect, context: SceneRenderContext): void {
     const graphics = this.regionLayer;
     const labels = this.labelLayer;
     if (!graphics || !labels) {
@@ -1406,10 +1477,9 @@ export class EGridMapScene extends Phaser.Scene {
     graphics.clear();
     labels.removeAll(true);
 
-    const summary = this.simulation.getSummary();
-    const regions = this.simulation.getRegionsSnapshot();
+    const { summary, regions } = context;
     const selectedId = summary.selected_region_id;
-    const useGeographicLabelLayer = window.innerWidth >= 1180 || document.documentElement.dataset.conceptScenario === "1";
+    const useGeographicLabelLayer = context.conceptGrade;
     const maxCompute = Math.max(...Object.values(regions).map((region) => region.cached.compute_produced ?? 0), 1);
 
     if (useGeographicLabelLayer) {
@@ -1500,14 +1570,14 @@ export class EGridMapScene extends Phaser.Scene {
     }
   }
 
-  private drawSelectedSlots(rect: MapRect): void {
+  private drawSelectedSlots(rect: MapRect, context: SceneRenderContext): void {
     const graphics = this.slotLayer;
     if (!graphics) {
       return;
     }
     graphics.clear();
 
-    const region = this.simulation.getRegionSnapshot();
+    const region = context.selectedRegion;
     if (!region?.layout) {
       return;
     }
@@ -1604,7 +1674,161 @@ export class EGridMapScene extends Phaser.Scene {
     return HEATMAP_COLORS.stable;
   }
 
-  private handlePointer(pointer: Phaser.Input.Pointer): void {
+  private handlePointerDown(pointer: Phaser.Input.Pointer): void {
+    this.mapDrag = {
+      pointerId: pointer.id,
+      startX: pointer.x,
+      startY: pointer.y,
+      previousX: pointer.x,
+      previousY: pointer.y,
+      moved: false
+    };
+  }
+
+  private handlePointerMove(pointer: Phaser.Input.Pointer): void {
+    if (!this.mapDrag || this.mapDrag.pointerId !== pointer.id) {
+      return;
+    }
+
+    const deltaX = pointer.x - this.mapDrag.previousX;
+    const deltaY = pointer.y - this.mapDrag.previousY;
+    const totalDistance = Phaser.Math.Distance.Between(pointer.x, pointer.y, this.mapDrag.startX, this.mapDrag.startY);
+    this.mapDrag.previousX = pointer.x;
+    this.mapDrag.previousY = pointer.y;
+    if (totalDistance > MAP_DRAG_CLICK_TOLERANCE) {
+      this.mapDrag.moved = true;
+    }
+    if (!this.mapDrag.moved || (deltaX === 0 && deltaY === 0)) {
+      return;
+    }
+
+    this.mapInteraction.pan({ x: deltaX, y: deltaY });
+    this.dirty = true;
+    this.renderState();
+  }
+
+  private handlePointerUp(pointer: Phaser.Input.Pointer, allowClick = true): void {
+    if (!this.mapDrag || this.mapDrag.pointerId !== pointer.id) {
+      return;
+    }
+    const drag = this.mapDrag;
+    this.mapDrag = null;
+    const totalDistance = Phaser.Math.Distance.Between(pointer.x, pointer.y, drag.startX, drag.startY);
+    if (allowClick && !drag.moved && totalDistance <= MAP_DRAG_CLICK_TOLERANCE) {
+      this.selectRegionAtPointer(pointer);
+    }
+  }
+
+  private handleWheel(pointer: Phaser.Input.Pointer, deltaY: number): void {
+    const nextZoom = this.mapInteraction.zoom * Math.exp(-deltaY * MAP_WHEEL_ZOOM_INTENSITY);
+    this.mapInteraction.zoomAt({ x: pointer.x, y: pointer.y }, nextZoom);
+    this.dirty = true;
+    this.renderState();
+  }
+
+  private createMapZoomOverlay(): void {
+    this.mapZoomOverlayLayer = this.add.container(0, 0).setDepth(20);
+    this.mapZoomOverlayBackground = this.add.graphics();
+    this.mapZoomOverlayText = this.add
+      .text(0, 0, "", {
+        color: "#eaf8ff",
+        fontFamily: "Inter, Segoe UI, Arial, sans-serif",
+        fontSize: "11px",
+        fontStyle: "700"
+      })
+      .setOrigin(0, 0.5);
+    this.mapZoomResetButton = this.add
+      .rectangle(0, 0, 54, 24, 0x102532, 0.92)
+      .setOrigin(0, 0.5)
+      .setStrokeStyle(1, 0x53e7ff, 0.32)
+      .setInteractive({ useHandCursor: true });
+    this.mapZoomResetText = this.add
+      .text(0, 0, t("hud.map.resetZoom"), {
+        align: "center",
+        color: "#d8fbff",
+        fontFamily: "Inter, Segoe UI, Arial, sans-serif",
+        fontSize: "10px",
+        fontStyle: "700"
+      })
+      .setOrigin(0.5, 0.5);
+
+    this.mapZoomResetButton.on(
+      "pointerdown",
+      (_pointer: Phaser.Input.Pointer, _localX: number, _localY: number, event?: PhaserInputEvent) => {
+        event?.stopPropagation?.();
+        this.resetMapInteraction();
+      }
+    );
+    this.mapZoomResetButton.on(
+      "pointerup",
+      (_pointer: Phaser.Input.Pointer, _localX: number, _localY: number, event?: PhaserInputEvent) => {
+        event?.stopPropagation?.();
+      }
+    );
+
+    this.mapZoomOverlayLayer.add([
+      this.mapZoomOverlayBackground,
+      this.mapZoomOverlayText,
+      this.mapZoomResetButton,
+      this.mapZoomResetText
+    ]);
+  }
+
+  private updateMapZoomOverlay(): void {
+    if (
+      !this.mapZoomOverlayLayer ||
+      !this.mapZoomOverlayBackground ||
+      !this.mapZoomOverlayText ||
+      !this.mapZoomResetButton ||
+      !this.mapZoomResetText
+    ) {
+      return;
+    }
+
+    const safe = this.safeViewportRect();
+    const zoomPercent = Math.round(this.mapInteraction.zoom * 100);
+    if (zoomPercent === 100) {
+      this.mapZoomOverlayLayer.setVisible(false);
+      this.mapZoomResetButton.disableInteractive();
+      return;
+    }
+    this.mapZoomOverlayLayer.setVisible(true);
+    this.mapZoomResetButton.setInteractive({ useHandCursor: true });
+
+    const x = Phaser.Math.Clamp(
+      safe.x + safe.width - MAP_ZOOM_OVERLAY_WIDTH - MAP_ZOOM_OVERLAY_MARGIN,
+      safe.x + 8,
+      safe.x + safe.width - MAP_ZOOM_OVERLAY_WIDTH
+    );
+    const y = Phaser.Math.Clamp(
+      safe.y + safe.height - MAP_ZOOM_OVERLAY_HEIGHT - MAP_ZOOM_OVERLAY_MARGIN,
+      safe.y + 8,
+      safe.y + safe.height - MAP_ZOOM_OVERLAY_HEIGHT
+    );
+
+    this.mapZoomOverlayBackground.clear();
+    this.mapZoomOverlayBackground.fillStyle(0x06131d, 0.78);
+    this.mapZoomOverlayBackground.fillRoundedRect(x, y, MAP_ZOOM_OVERLAY_WIDTH, MAP_ZOOM_OVERLAY_HEIGHT, 7);
+    this.mapZoomOverlayBackground.lineStyle(1, 0x9edce2, 0.22);
+    this.mapZoomOverlayBackground.strokeRoundedRect(x, y, MAP_ZOOM_OVERLAY_WIDTH, MAP_ZOOM_OVERLAY_HEIGHT, 7);
+
+    this.mapZoomOverlayText
+      .setText(t("hud.map.zoomLevel", { value: zoomPercent }))
+      .setPosition(x + 12, y + MAP_ZOOM_OVERLAY_HEIGHT / 2);
+    this.mapZoomResetButton.setPosition(x + 92, y + MAP_ZOOM_OVERLAY_HEIGHT / 2);
+    this.mapZoomResetText
+      .setText(t("hud.map.resetZoom"))
+      .setPosition(x + 119, y + MAP_ZOOM_OVERLAY_HEIGHT / 2);
+    this.mapZoomOverlayLayer.setDepth(20);
+  }
+
+  private resetMapInteraction(): void {
+    this.mapInteraction.reset();
+    this.dirty = true;
+    this.renderState();
+  }
+
+  private selectRegionAtPointer(pointer: Phaser.Input.Pointer): void {
     const rect = this.mapRect();
     const regions = this.simulation.getRegionsSnapshot();
     let bestRegion = "";
@@ -1624,7 +1848,7 @@ export class EGridMapScene extends Phaser.Scene {
     }
     if (bestRegion) {
       this.simulation.selectRegion(bestRegion);
-      this.focusRegionId = bestRegion;
+      this.mapInteraction.focusRegion(bestRegion);
       this.onRegionSelected(bestRegion);
       this.dirty = true;
       this.renderState();
@@ -1639,82 +1863,27 @@ export class EGridMapScene extends Phaser.Scene {
   }
 
   private mapRect(): MapRect {
-    const target = this.targetMapRect();
-    if (this.testMode || !this.currentMapRect) {
-      this.currentMapRect = target;
-      return target;
-    }
-    const ratio = 0.16;
-    this.currentMapRect = {
-      x: Phaser.Math.Linear(this.currentMapRect.x, target.x, ratio),
-      y: Phaser.Math.Linear(this.currentMapRect.y, target.y, ratio),
-      width: Phaser.Math.Linear(this.currentMapRect.width, target.width, ratio),
-      height: Phaser.Math.Linear(this.currentMapRect.height, target.height, ratio)
-    };
-    return this.currentMapRect;
+    return this.mapInteraction.rect();
   }
 
-  private targetMapRect(): MapRect {
-    const width = this.scale.width;
-    const height = this.scale.height;
-    const texture = this.textures.get("map-backdrop").getSourceImage() as HTMLImageElement | HTMLCanvasElement;
-    const imageRatio = texture.width / texture.height || 16 / 9;
-    const safe = this.safeViewportRect();
-    const desktopConceptFrame = width >= 1180 && height >= 760;
-    const baseScale = desktopConceptFrame
-      ? Math.max(safe.width / texture.width, safe.height / texture.height)
-      : Math.min(safe.width / texture.width, safe.height / texture.height);
-    const focusScale = this.focusRegionId ? baseScale * (desktopConceptFrame ? 1.04 : 1.14) : baseScale;
-    const scale = Math.max(baseScale, focusScale);
-    const mapWidth = texture.width * scale;
-    const mapHeight = texture.height * scale;
-
-    let x = safe.x + (safe.width - mapWidth) / 2;
-    let y = safe.y + (safe.height - mapHeight) / 2;
-
-    const selectedRegion = this.simulation.getSummary().selected_region_id;
-    const focusRegion = this.focusRegionId === selectedRegion ? this.focusRegionId : selectedRegion;
-    const layout = focusRegion ? this.simulation.getRegionSnapshot(focusRegion)?.layout as RegionLayout | undefined : undefined;
-    if (layout?.x !== undefined && layout.y !== undefined) {
-      const margin = Math.min(84, Math.max(36, Math.min(safe.width, safe.height) * 0.12));
-      const point = { x: x + layout.x * mapWidth, y: y + layout.y * mapHeight };
-      if (point.x < safe.x + margin) {
-        x += safe.x + margin - point.x;
-      } else if (point.x > safe.x + safe.width - margin) {
-        x -= point.x - (safe.x + safe.width - margin);
-      }
-      if (point.y < safe.y + margin) {
-        y += safe.y + margin - point.y;
-      } else if (point.y > safe.y + safe.height - margin) {
-        y -= point.y - (safe.y + safe.height - margin);
-      }
-    }
-
-    if (mapWidth > safe.width) {
-      x = Phaser.Math.Clamp(x, safe.x + safe.width - mapWidth, safe.x);
-    } else {
-      x = safe.x + (safe.width - mapWidth) / 2;
-    }
-    if (mapHeight > safe.height) {
-      y = Phaser.Math.Clamp(y, safe.y + safe.height - mapHeight, safe.y);
-    } else {
-      y = safe.y + (safe.height - mapHeight) / 2;
-    }
-
-    if (mapWidth / mapHeight > imageRatio + 0.001) {
-      return { x, y, width: mapWidth, height: mapWidth / imageRatio };
-    }
-    return { x, y, width: mapWidth, height: mapHeight };
+  private constrainMapInteraction(): void {
+    this.mapInteraction.constrain();
   }
 
   private safeViewportRect(): MapRect {
-    const width = this.scale.width;
-    const height = this.scale.height;
-    let top = 0;
-    let right = 0;
-    let bottom = 0;
-    let left = 0;
+    return this.mapInteraction.safeViewportRect();
+  }
+
+  private mapFocusPoint(focusRegionId: string): { x: number; y: number } | undefined {
+    const selectedRegion = this.simulation.getSummary().selected_region_id;
+    const focusRegion = focusRegionId === selectedRegion ? focusRegionId : selectedRegion;
+    const layout = focusRegion ? this.simulation.getRegionSnapshot(focusRegion)?.layout as RegionLayout | undefined : undefined;
+    return layout?.x !== undefined && layout.y !== undefined ? { x: layout.x, y: layout.y } : undefined;
+  }
+
+  private mapViewportOccluders(): ViewportOccluder[] {
     const selectors = [".top-kpi", ".heatmap-switch", ".alerts-panel", ".region-panel", ".build-palette"];
+    const occluders: ViewportOccluder[] = [];
     for (const selector of selectors) {
       const element = document.querySelector<HTMLElement>(selector);
       if (!element) {
@@ -1725,80 +1894,10 @@ export class EGridMapScene extends Phaser.Scene {
       if (style.display === "none" || rect.width < 2 || rect.height < 2) {
         continue;
       }
-
-      const spansHorizontal = rect.width > width * 0.5;
-      const spansVertical = rect.height > height * 0.18;
-      if (spansHorizontal && rect.top < height * 0.35) {
-        top = Math.max(top, rect.bottom + 12);
-      }
-      if (spansHorizontal && rect.bottom > height * 0.58) {
-        bottom = Math.max(bottom, height - rect.top + 12);
-      }
-      if (!spansHorizontal && spansVertical && rect.left < width * 0.22) {
-        left = Math.max(left, rect.right + 12);
-      }
-      if (!spansHorizontal && spansVertical && rect.right > width * 0.78) {
-        right = Math.max(right, width - rect.left + 12);
-      }
+      occluders.push({ x: rect.left, y: rect.top, width: rect.width, height: rect.height });
     }
-
-    const minWidth = Math.max(280, width * 0.36);
-    const minHeight = Math.max(220, height * 0.32);
-    if (width - left - right < minWidth) {
-      left = 0;
-      right = 0;
-    }
-    if (height - top - bottom < minHeight) {
-      top = Math.min(top, height * 0.18);
-      bottom = Math.min(bottom, height * 0.22);
-    }
-
-    return {
-      x: left,
-      y: top,
-      width: Math.max(minWidth, width - left - right),
-      height: Math.max(minHeight, height - top - bottom)
-    };
+    return occluders;
   }
-}
-
-function clampColor(value: number): number {
-  return Math.max(0, Math.min(1, value));
-}
-
-function mixColor(start: number, end: number, ratio: number): number {
-  const r1 = (start >> 16) & 255;
-  const g1 = (start >> 8) & 255;
-  const b1 = start & 255;
-  const r2 = (end >> 16) & 255;
-  const g2 = (end >> 8) & 255;
-  const b2 = end & 255;
-  const r = Math.round(Phaser.Math.Linear(r1, r2, ratio));
-  const g = Math.round(Phaser.Math.Linear(g1, g2, ratio));
-  const b = Math.round(Phaser.Math.Linear(b1, b2, ratio));
-  return (r << 16) | (g << 8) | b;
-}
-
-function quadraticPoint(
-  sourcePoint: { x: number; y: number },
-  controlPoint: { x: number; y: number },
-  targetPoint: { x: number; y: number },
-  t: number
-): { x: number; y: number } {
-  const clamped = Math.max(0, Math.min(1, t));
-  const inverse = 1 - clamped;
-  return {
-    x: inverse * inverse * sourcePoint.x + 2 * inverse * clamped * controlPoint.x + clamped * clamped * targetPoint.x,
-    y: inverse * inverse * sourcePoint.y + 2 * inverse * clamped * controlPoint.y + clamped * clamped * targetPoint.y
-  };
-}
-
-function hashString(value: string): number {
-  let hash = 0;
-  for (let index = 0; index < value.length; index += 1) {
-    hash = (hash * 31 + value.charCodeAt(index)) >>> 0;
-  }
-  return hash;
 }
 
 function translatedOrFallback(key: string, fallback: string): string {

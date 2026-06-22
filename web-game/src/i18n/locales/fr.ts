@@ -378,6 +378,8 @@ const fr = {
       carbonPressure: "Pression carbone"
     },
     map: {
+      zoomLevel: "Zoom {{value}}%",
+      resetZoom: "Reinit.",
       labels: {
         ireland: "IRLANDE",
         unitedKingdom: "ROYAUME\nUNI",

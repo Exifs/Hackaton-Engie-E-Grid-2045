@@ -1,0 +1,271 @@
+﻿/* Lightweight onboarding overlay. */
+.onboarding-root {
+  position: absolute;
+  inset: 0;
+  z-index: 8;
+  pointer-events: none;
+}
+
+.onboarding-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.onboarding-scrim {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(2, 10, 17, 0.1), rgba(2, 10, 17, 0.28)),
+    radial-gradient(circle at 50% 46%, transparent 0, rgba(2, 10, 17, 0.14) 54%, rgba(2, 10, 17, 0.38) 100%);
+}
+
+.onboarding-spotlight {
+  position: absolute;
+  border: 2px solid rgba(93, 244, 197, 0.9);
+  border-radius: 10px;
+  box-shadow:
+    0 0 0 9999px rgba(2, 10, 17, 0.18),
+    0 0 0 6px rgba(83, 231, 255, 0.12),
+    0 0 24px rgba(93, 244, 197, 0.32);
+  transform: translateZ(0);
+  transition: left 180ms ease, top 180ms ease, width 180ms ease, height 180ms ease, opacity 180ms ease;
+  pointer-events: none;
+}
+
+.onboarding-spotlight.is-fallback {
+  border-style: dashed;
+  opacity: 0.72;
+}
+
+.onboarding-coach {
+  position: absolute;
+  top: 128px;
+  left: 18px;
+  z-index: 2;
+  display: grid;
+  gap: 10px;
+  width: min(410px, calc(100vw - 36px));
+  max-height: min(52dvh, 420px);
+  overflow: auto;
+  padding: 13px;
+  border: 1px solid rgba(137, 234, 255, 0.42);
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, rgba(28, 78, 92, 0.88), rgba(5, 18, 27, 0.96)),
+    rgba(5, 18, 27, 0.96);
+  box-shadow: 0 24px 56px rgba(0, 0, 0, 0.44), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  color: #eaf8ff;
+  pointer-events: auto;
+  scrollbar-width: thin;
+}
+
+.onboarding-coach-identity {
+  display: grid;
+  grid-template-columns: 58px minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  min-width: 0;
+}
+
+.onboarding-coach-avatar {
+  width: 58px;
+  aspect-ratio: 1;
+  border: 1px solid rgba(160, 235, 255, 0.34);
+  border-radius: 8px;
+  background:
+    linear-gradient(180deg, rgba(2, 10, 17, 0), rgba(2, 10, 17, 0.2)),
+    url("/assets/onboarding/operations-director.png") center 34% / cover no-repeat;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08), 0 10px 22px rgba(0, 0, 0, 0.28);
+}
+
+.onboarding-coach-identity strong {
+  display: block;
+  overflow: hidden;
+  font-size: 13px;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.onboarding-coach-role {
+  display: block;
+  overflow: hidden;
+  color: var(--green);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: uppercase;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.onboarding-coach-head {
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+}
+
+.onboarding-coach-head span {
+  min-width: 44px;
+  padding: 4px 7px;
+  border: 1px solid rgba(160, 235, 255, 0.24);
+  border-radius: 999px;
+  color: var(--green);
+  font-size: 11px;
+  text-align: center;
+}
+
+.onboarding-coach-head em {
+  padding: 4px 7px;
+  border: 1px solid rgba(160, 235, 255, 0.2);
+  border-radius: 999px;
+  color: #cfefff;
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.onboarding-layer[data-onboarding-mode="consequence"] .onboarding-coach-head em {
+  border-color: rgba(93, 244, 197, 0.48);
+  background: rgba(24, 91, 84, 0.48);
+  color: #eafff7;
+}
+
+.onboarding-coach-head strong {
+  overflow: hidden;
+  font-size: 15px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.onboarding-coach p {
+  margin: 0;
+  color: #cfefff;
+  font-size: 13px;
+  line-height: 1.42;
+}
+
+.onboarding-checklist {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.onboarding-checklist li {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+  min-height: 34px;
+  padding: 6px 8px;
+  border: 1px solid rgba(160, 235, 255, 0.2);
+  border-radius: 7px;
+  background: rgba(8, 30, 43, 0.74);
+}
+
+.onboarding-checklist li span {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 20px;
+  border: 1px solid rgba(160, 235, 255, 0.25);
+  border-radius: 6px;
+  color: var(--green);
+  font-size: 10px;
+}
+
+.onboarding-checklist li strong {
+  overflow: hidden;
+  font-size: 12px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.onboarding-checklist li.is-complete {
+  border-color: rgba(93, 244, 197, 0.48);
+}
+
+.onboarding-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 7px;
+  min-width: 0;
+}
+
+.onboarding-actions button {
+  min-height: 34px;
+  padding: 6px 10px;
+  border: 1px solid rgba(160, 235, 255, 0.24);
+  border-radius: 7px;
+  background: rgba(14, 37, 51, 0.88);
+  color: #eaf8ff;
+  cursor: pointer;
+}
+
+.onboarding-actions button[data-onboarding-action="next"] {
+  border-color: rgba(93, 244, 197, 0.6);
+  background: rgba(24, 91, 84, 0.92);
+}
+
+.onboarding-actions button[data-onboarding-action="skip"] {
+  color: var(--muted);
+}
+
+.onboarding-actions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.42;
+}
+
+@media (min-width: 1180px) {
+  .onboarding-layer[data-onboarding-step="university"] .onboarding-coach,
+  .onboarding-layer[data-onboarding-step="starter-energy"] .onboarding-coach,
+  .onboarding-layer[data-onboarding-step="cooling-build"] .onboarding-coach,
+  .onboarding-layer[data-onboarding-step="datacenter"] .onboarding-coach,
+  .onboarding-layer[data-onboarding-step="research"] .onboarding-coach {
+    left: clamp(330px, 22vw, 380px);
+  }
+}
+
+@media (max-width: 860px) {
+  .onboarding-coach {
+    top: auto;
+    bottom: calc(var(--dock-current-height, 56px) + 24px);
+    left: 12px;
+    width: min(420px, calc(100vw - 24px));
+    max-height: min(42dvh, 360px);
+  }
+}
+
+@media (max-width: 720px) {
+  .onboarding-coach {
+    right: 8px;
+    bottom: calc(76px + env(safe-area-inset-bottom));
+    left: 8px;
+    width: auto;
+    max-height: min(42dvh, 320px);
+    padding: 11px;
+  }
+
+  .onboarding-actions {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .onboarding-actions button {
+    padding: 6px 7px;
+    font-size: 12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .onboarding-spotlight {
+    transition: none;
+  }
+}

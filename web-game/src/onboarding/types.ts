@@ -1,4 +1,4 @@
-import type { HeatmapMode } from "../game/EGridMapScene";
+import type { HeatmapMode } from "../game/heatmap";
 import type { GameSummary, RegionSnapshot } from "../sim";
 
 export type OnboardingStatus = "idle" | "running" | "completed" | "skipped";

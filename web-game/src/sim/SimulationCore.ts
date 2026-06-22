@@ -1,14 +1,15 @@
 import { BuildingSystem } from "./BuildingSystem";
+import { generateAlerts } from "./alerts";
 import { CoolingSystem } from "./CoolingSystem";
 import { EconomySystem } from "./EconomySystem";
 import { EnergyNetworkSystem } from "./EnergyNetworkSystem";
 import { GameState } from "./GameState";
 import { clamp, cloneRecord, lerp, stableHash } from "./math";
 import { RegionSystem } from "./RegionSystem";
+import { buildResearchOptions } from "./researchOptions";
 import { ResearchSystem } from "./ResearchSystem";
 import { ScoringSystem } from "./ScoringSystem";
 import type {
-  Alert,
   BuildAvailability,
   BuildResult,
   BuildingDefinition,
@@ -18,6 +19,7 @@ import type {
   DemolishResult,
   GameData,
   GameSummary,
+  NetworkResult,
   ProvisionalScore,
   RegionCachedMetrics,
   RegionHistoryPoint,
@@ -32,6 +34,23 @@ import type {
 const ENERGY_RESEARCH_CENTER_ID = "energy_research_center";
 const AI_RESEARCH_CENTER_ID = "ai_research_center";
 const REGION_HISTORY_LIMIT = 48;
+
+interface SimulationTotals {
+  energy_produced: number;
+  energy_consumed: number;
+  cooling_available: number;
+  cooling_used: number;
+  compute_produced: number;
+  compute_demand: number;
+  co2_monthly: number;
+  technology_points: number;
+  energy_technology_points: number;
+  ai_technology_points: number;
+  ai_research_centers: number;
+  blackout_regions: number;
+  severe_blackout_regions: number;
+  network_efficiency_sum: number;
+}
 
 export class SimulationCore {
   readonly state = new GameState();
@@ -289,64 +308,12 @@ export class SimulationCore {
   }
 
   getResearchOptions(): ResearchOption[] {
-    return Object.values(this.technologies)
-      .map((technology) => {
-        const missingPrereq = technology.prereq_technology_ids.find((prereq) => !this.state.completed_technologies[prereq]);
-        const isCompleted = Boolean(this.state.completed_technologies[technology.id]);
-        const isActive = this.state.active_research_id === technology.id;
-        const queueIndex = this.state.research_queue.indexOf(technology.id);
-        const isQueued = queueIndex >= 0;
-        const currentPoints = isActive ? this.state.active_research_points : isCompleted ? technology.cost : 0;
-        const monthlyPoints = this.currentTechnologyPointRate(technology.id);
-        const progress = isActive ? clamp(currentPoints / Math.max(technology.cost, 1), 0, 1) : isCompleted ? 1 : 0;
-        const remainingPoints = Math.max(technology.cost - currentPoints, 0);
-        const estimatedMonths = monthlyPoints > 0 ? Math.ceil(remainingPoints / monthlyPoints) : Number.POSITIVE_INFINITY;
-        let status: ResearchOption["status"] = "available";
-        let reason = this.state.active_research_id ? "Add to the research queue." : "Ready to launch.";
-        let lockCause: ResearchOption["lock_cause"];
-        const buildingRequirement = this.researchBuildingRequirement(technology);
-        if (isCompleted) {
-          status = "completed";
-          reason = "Completed.";
-        } else if (isActive) {
-          status = "active";
-          reason = monthlyPoints > 0 ? "Research in progress." : `Rate 0: ${buildingRequirement.reason || "research output unavailable."}`;
-        } else if (isQueued) {
-          status = "queued";
-          reason = `File #${queueIndex + 1}.`;
-        } else if (missingPrereq) {
-          status = "locked";
-          reason = `Requires ${this.technologies[missingPrereq]?.display_name ?? missingPrereq}.`;
-          lockCause = "prerequisite";
-        } else if (!buildingRequirement.ok) {
-          status = "locked";
-          reason = buildingRequirement.reason;
-          lockCause = buildingRequirement.cause ?? "building";
-        }
-
-        return {
-          id: technology.id,
-          display_name: technology.display_name,
-          branch: technology.branch,
-          tier: technology.tier,
-          cost: technology.cost,
-          progress,
-          estimated_months_remaining: estimatedMonths,
-          prereq_technology_ids: [...technology.prereq_technology_ids],
-          unlocks: [...technology.unlocks],
-          effect_key: technology.effect_key,
-          effect_value: technology.effect_value,
-          effect_value_pct: technology.effect_value_pct,
-          notes: technology.notes,
-          status,
-          reason,
-          lock_cause: lockCause,
-          current_points: currentPoints,
-          monthly_points: monthlyPoints,
-          queue_position: isQueued ? queueIndex + 1 : 0
-        };
-      })
-      .sort((a, b) => (a.tier === b.tier ? a.cost - b.cost : a.tier - b.tier));
+    return buildResearchOptions({
+      technologies: this.technologies,
+      state: this.state,
+      currentTechnologyPointRate: (technologyId) => this.currentTechnologyPointRate(technologyId),
+      researchBuildingRequirement: (technology) => this.researchBuildingRequirement(technology)
+    });
   }
 
   getScore(): ProvisionalScore {
@@ -356,29 +323,24 @@ export class SimulationCore {
   private recalculate(applyMonthlyChanges: boolean): void {
     const metrics = this.buildRegionMetrics();
     const networkResult = this.energyNetwork.resolve(metrics, this.constants, this.hasSupergrid());
-    const networkRegions = networkResult.regions;
     this.state.network_flows = networkResult.flows;
+    const totals = this.applyNetworkAndCoolingResults(metrics, networkResult);
+    this.recordAllRegionHistory();
+    this.applyGlobalTotals(metrics, totals);
+    this.applyMonthlyResearchAndCo2(totals, applyMonthlyChanges);
+    this.updateAgiRace(totals, applyMonthlyChanges);
+    this.updateEconomy(applyMonthlyChanges);
+    this.updateAlerts();
+  }
 
-    const totals = {
-      energy_produced: 0,
-      energy_consumed: 0,
-      cooling_available: 0,
-      cooling_used: 0,
-      compute_produced: 0,
-      compute_demand: 0,
-      co2_monthly: 0,
-      technology_points: 0,
-      energy_technology_points: 0,
-      ai_technology_points: 0,
-      ai_research_centers: 0,
-      blackout_regions: 0,
-      severe_blackout_regions: 0,
-      network_efficiency_sum: 0
-    };
-
+  private applyNetworkAndCoolingResults(
+    metrics: Record<string, RegionMetrics>,
+    networkResult: NetworkResult
+  ): SimulationTotals {
+    const totals = this.emptyTotals();
     for (const [regionId, region] of Object.entries(this.regions)) {
       const regionMetrics = metrics[regionId];
-      const network = networkRegions[regionId];
+      const network = networkResult.regions[regionId];
       const cooling = this.coolingSystem.resolveRegion(regionMetrics.cooling_available, regionMetrics.cooling_used);
       const energyEfficiency = network.energy_efficiency;
       const coolingEfficiency = cooling.cooling_efficiency;
@@ -418,31 +380,64 @@ export class SimulationCore {
         problems: this.regionProblems(network, cooling, finalEfficiency)
       };
       region.cached = cached;
-
-      totals.energy_produced += cached.energy_production ?? 0;
-      totals.energy_consumed += cached.energy_consumption ?? 0;
-      totals.cooling_available += cached.cooling_available ?? 0;
-      totals.cooling_used += cached.cooling_used ?? 0;
-      totals.compute_produced += computeProduced;
-      totals.compute_demand += cached.compute_demand ?? 0;
-      totals.co2_monthly += cached.co2_monthly ?? 0;
-      totals.technology_points += technologyPoints;
-      totals.energy_technology_points += energyTechnologyPoints;
-      totals.ai_technology_points += aiTechnologyPoints;
-      totals.ai_research_centers += regionMetrics.ai_research_centers;
-      totals.network_efficiency_sum += energyEfficiency;
-      if (cached.blackout_state !== "stable") {
-        totals.blackout_regions += 1;
-      }
-      if (cached.blackout_state === "severe") {
-        totals.severe_blackout_regions += 1;
-      }
+      this.addRegionTotals(totals, regionMetrics, cached, computeProduced, technologyPoints);
     }
+    return totals;
+  }
 
+  private emptyTotals(): SimulationTotals {
+    return {
+      energy_produced: 0,
+      energy_consumed: 0,
+      cooling_available: 0,
+      cooling_used: 0,
+      compute_produced: 0,
+      compute_demand: 0,
+      co2_monthly: 0,
+      technology_points: 0,
+      energy_technology_points: 0,
+      ai_technology_points: 0,
+      ai_research_centers: 0,
+      blackout_regions: 0,
+      severe_blackout_regions: 0,
+      network_efficiency_sum: 0
+    };
+  }
+
+  private addRegionTotals(
+    totals: SimulationTotals,
+    regionMetrics: RegionMetrics,
+    cached: RegionCachedMetrics,
+    computeProduced: number,
+    technologyPoints: number
+  ): void {
+    totals.energy_produced += cached.energy_production ?? 0;
+    totals.energy_consumed += cached.energy_consumption ?? 0;
+    totals.cooling_available += cached.cooling_available ?? 0;
+    totals.cooling_used += cached.cooling_used ?? 0;
+    totals.compute_produced += computeProduced;
+    totals.compute_demand += cached.compute_demand ?? 0;
+    totals.co2_monthly += cached.co2_monthly ?? 0;
+    totals.technology_points += technologyPoints;
+    totals.energy_technology_points += cached.energy_technology_points ?? 0;
+    totals.ai_technology_points += cached.ai_technology_points ?? 0;
+    totals.ai_research_centers += regionMetrics.ai_research_centers;
+    totals.network_efficiency_sum += cached.energy_efficiency ?? 1;
+    if (cached.blackout_state !== "stable") {
+      totals.blackout_regions += 1;
+    }
+    if (cached.blackout_state === "severe") {
+      totals.severe_blackout_regions += 1;
+    }
+  }
+
+  private recordAllRegionHistory(): void {
     for (const region of Object.values(this.regions)) {
       this.recordRegionHistory(region);
     }
+  }
 
+  private applyGlobalTotals(metrics: Record<string, RegionMetrics>, totals: SimulationTotals): void {
     this.state.energy_produced = totals.energy_produced;
     this.state.energy_consumed = totals.energy_consumed;
     this.state.cooling_available = totals.cooling_available;
@@ -454,13 +449,18 @@ export class SimulationCore {
     this.state.researchers_available = this.globalResearchersAvailable(metrics);
     this.state.researchers_required = this.globalResearchersRequired(metrics);
     this.state.co2_tier = this.co2TierForValue(this.state.cumulative_co2);
+  }
 
-    if (applyMonthlyChanges) {
-      this.state.cumulative_co2 += totals.co2_monthly;
-      this.state.co2_tier = this.co2TierForValue(this.state.cumulative_co2);
-      this.advanceResearch(this.currentTechnologyPointRate(this.state.active_research_id));
+  private applyMonthlyResearchAndCo2(totals: SimulationTotals, applyMonthlyChanges: boolean): void {
+    if (!applyMonthlyChanges) {
+      return;
     }
+    this.state.cumulative_co2 += totals.co2_monthly;
+    this.state.co2_tier = this.co2TierForValue(this.state.cumulative_co2);
+    this.advanceResearch(this.currentTechnologyPointRate(this.state.active_research_id));
+  }
 
+  private updateAgiRace(totals: SimulationTotals, applyMonthlyChanges: boolean): void {
     const networkStability =
       Object.keys(this.regions).length > 0 ? clamp(totals.network_efficiency_sum / Object.keys(this.regions).length, 0, 1) : 1;
     const aiBonus = this.researchSystem.aiEfficiencyBonus(this.state.completed_technologies, this.technologies);
@@ -475,7 +475,9 @@ export class SimulationCore {
       this.state.eu_agi_progress = clamp(this.state.eu_agi_progress + agiGain, 0, 100);
     }
     this.state.usa_agi_progress = this.researchSystem.computeUsaProgress(this.state.year, this.state.month);
+  }
 
+  private updateEconomy(applyMonthlyChanges: boolean): void {
     this.state.monthly_income = this.economySystem.calculateMonthlyIncome(
       this.state.toSummary(),
       this.constants,
@@ -484,8 +486,15 @@ export class SimulationCore {
     if (applyMonthlyChanges) {
       this.state.money += this.state.monthly_income;
     }
+  }
 
-    this.state.alerts = this.generateAlerts();
+  private updateAlerts(): void {
+    this.state.alerts = generateAlerts({
+      regions: this.regions,
+      state: this.state,
+      buildingDefinitions: this.buildingDefinitions,
+      slotsFree: (region, buildings) => this.regionSystem.slotsFree(region, buildings)
+    });
   }
 
   private buildRegionMetrics(): Record<string, RegionMetrics> {
@@ -713,80 +722,6 @@ export class SimulationCore {
 
   private hasActiveBuilding(buildingId: string): boolean {
     return Object.values(this.regions).some((region) => region.buildings.includes(buildingId));
-  }
-
-  private generateAlerts(): Alert[] {
-    const alerts: Alert[] = [];
-    for (const [regionId, region] of Object.entries(this.regions)) {
-      const cached = region.cached;
-      const displayName = region.display_name || regionId;
-
-      if (cached.blackout_state === "severe") {
-        alerts.push(this.alert(1, "Blackout severe", displayName, "local energy deficit", "build local production", regionId, "critical"));
-      } else if ((cached.energy_efficiency ?? 1) < 0.94) {
-        alerts.push(
-          this.alert(2, "Energy deficit", displayName, "imports too weak or distant", "build nearby surplus", regionId, "power_warning")
-        );
-      }
-
-      if ((cached.cooling_efficiency ?? 1) < 0.92) {
-        alerts.push(
-          this.alert(3, "Cooling insufficient", displayName, "datacenters exceed cooling", "build river, sea or air cooling", regionId, "cooling_warning")
-        );
-      }
-
-      if (cached.network_congested) {
-        alerts.push(
-          this.alert(5, "Network saturated", displayName, "high-loss power flows", "spread production or unlock supergrid", regionId, "power_warning")
-        );
-      }
-
-      if (this.regionSystem.slotsFree(region, this.buildingDefinitions) <= 0 && region.buildings.length > 0) {
-        alerts.push(this.alert(6, "Slots saturated", displayName, "regional capacity is full", "choose another region", regionId, "market_info", false));
-      }
-    }
-
-    if (
-      this.state.researchers_required > 0.01 &&
-      this.state.researchers_available / this.state.researchers_required < 0.9
-    ) {
-      alerts.push(
-        this.alert(4, "Researchers insufficient", "Europe", "needs exceed capacity", "build universities", "", "power_warning")
-      );
-    }
-
-    if (["elevated", "very_high", "critical"].includes(this.state.co2_tier)) {
-      alerts.push(this.alert(5, "CO2 elevated", "Europe", "fossil dependence rising", "shift to nuclear and renewables", "", "power_warning"));
-    }
-
-    if (this.state.usa_agi_progress >= 85 && this.state.eu_agi_progress < this.state.usa_agi_progress) {
-      alerts.push(this.alert(7, "USA near AGI", "Global", "US curve is pulling ahead", "accelerate AI research", "", "critical"));
-    }
-
-    return alerts.sort((a, b) => a.priority - b.priority).slice(0, 5);
-  }
-
-  private alert(
-    priority: number,
-    problem: string,
-    regionName: string,
-    cause: string,
-    action: string,
-    regionId: string,
-    stateName: string,
-    actionable = true
-  ): Alert {
-    const id = [problem, regionId || regionName, stateName].map((part) => part.toLowerCase().replace(/[^a-z0-9]+/g, "-")).join(":");
-    return {
-      id,
-      priority,
-      title: `${problem} - ${regionName}`,
-      body: `${cause} -> ${action}`,
-      region_id: regionId,
-      state: stateName,
-      actionable,
-      autoDismissMs: actionable ? 0 : 8000
-    };
   }
 
   private regionProblems(
