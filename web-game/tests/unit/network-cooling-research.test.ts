@@ -1,4 +1,7 @@
-import { CoolingSystem, EnergyNetworkSystem, ResearchSystem, type RegionMetrics } from "../../src/sim";
+import { CoolingSystem } from "../../src/sim/CoolingSystem";
+import { EnergyNetworkSystem } from "../../src/sim/EnergyNetworkSystem";
+import { ResearchSystem } from "../../src/sim/ResearchSystem";
+import type { RegionMetrics } from "../../src/sim";
 import { loadFixtureData } from "./testData";
 
 describe("Network, cooling, and research systems", () => {

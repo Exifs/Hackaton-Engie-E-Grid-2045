@@ -1,8 +1,8 @@
 export const ONBOARDING_STORAGE_KEY = "egrid:onboarding:v1:completed";
 
-export type PersistedOnboardingStatus = "completed" | "skipped";
+type PersistedOnboardingStatus = "completed" | "skipped";
 
-export interface PersistedOnboardingState {
+interface PersistedOnboardingState {
   version: 1;
   status: PersistedOnboardingStatus;
   updatedAt: string;

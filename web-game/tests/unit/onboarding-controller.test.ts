@@ -1,7 +1,7 @@
 import { OnboardingController } from "../../src/onboarding";
 import { OnboardingPersistence } from "../../src/onboarding/onboardingPersistence";
 import type { OnboardingGameStateSnapshot, OnboardingStep, OnboardingViewModel } from "../../src/onboarding/types";
-import type { HeatmapMode } from "../../src/game/EGridMapScene";
+import type { HeatmapMode } from "../../src/game/heatmap";
 
 describe("OnboardingController", () => {
   it("transitions start -> next -> previous -> complete", () => {

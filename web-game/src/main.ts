@@ -1,5 +1,6 @@
 import Phaser from "phaser";
-import { EGridMapScene, type HeatmapMode } from "./game/EGridMapScene";
+import { EGridMapScene } from "./game/EGridMapScene";
+import type { HeatmapMode } from "./game/heatmap";
 import { OnboardingController, OnboardingOverlay, TargetResolver, type OnboardingGameStateSnapshot } from "./onboarding";
 import { DataLoader, SimulationCore } from "./sim";
 import { initI18n, t } from "./i18n";
@@ -14,9 +15,9 @@ declare global {
       scene: EGridMapScene;
       hud: GameHud;
       onboarding: OnboardingController;
-      runP0Scenario: () => void;
-      runAlertScenario: () => void;
-      runConceptScenario: () => void;
+      runP0Scenario?: () => void;
+      runAlertScenario?: () => void;
+      runConceptScenario?: () => void;
       setHeatmap: (mode: HeatmapMode) => void;
       resetOnboarding: () => void;
     };
@@ -232,14 +233,11 @@ if (params.get("onboarding") === "1" || (!testMode && params.get("onboarding") !
   onboarding.start();
 }
 
-window.__EGRID__ = {
+const debugApi: Window["__EGRID__"] = {
   simulation,
   scene,
   hud,
   onboarding,
-  runP0Scenario,
-  runAlertScenario,
-  runConceptScenario,
   setHeatmap: (mode: HeatmapMode) => {
     currentHeatmap = mode;
     scene.setHeatmapMode(mode);
@@ -250,9 +248,28 @@ window.__EGRID__ = {
   resetOnboarding: () => onboarding?.reset()
 };
 
-if (params.get("scenario") === "concept") {
-  runConceptScenario();
+if (import.meta.env.DEV || testMode || params.has("scenario")) {
+  const { createDebugScenarios } = await import("./debug/scenarios");
+  const scenarios = createDebugScenarios({
+    seed,
+    simulation,
+    scene,
+    hud,
+    getOnboarding: () => onboarding,
+    redraw,
+    setCurrentHeatmap: (mode) => {
+      currentHeatmap = mode;
+    }
+  });
+  debugApi.runP0Scenario = scenarios.runP0Scenario;
+  debugApi.runAlertScenario = scenarios.runAlertScenario;
+  debugApi.runConceptScenario = scenarios.runConceptScenario;
+  if (params.get("scenario") === "concept") {
+    scenarios.runConceptScenario();
+  }
 }
+
+window.__EGRID__ = debugApi;
 
 function redraw(renderHud = true): void {
   scene.renderState();
@@ -292,77 +309,4 @@ function onboardingSnapshot(): OnboardingGameStateSnapshot {
     regions: simulation.getRegionsSnapshot(),
     currentOverlay: currentHeatmap
   };
-}
-
-function runP0Scenario(): void {
-  simulation.newGame(seed);
-  simulation.requestBuilding("fr_nord", "university");
-  simulation.requestBuilding("fr_nord", "gas_power_plant");
-  simulation.requestBuilding("fr_nord", "air_cooling");
-  simulation.requestBuilding("fr_nord", "datacenter_standard");
-  for (let index = 0; index < 6; index += 1) {
-    simulation.advanceMonth();
-  }
-  simulation.selectRegion("fr_nord");
-  redraw();
-  onboarding?.recordGameEvent({ type: "game_changed" });
-}
-
-function runAlertScenario(): void {
-  simulation.newGame(seed);
-  simulation.selectRegion("ie");
-  simulation.requestBuilding("ie", "datacenter_standard");
-  simulation.requestBuilding("ie", "datacenter_standard");
-  for (let index = 0; index < 6; index += 1) {
-    simulation.advanceMonth();
-  }
-  simulation.selectRegion("ie");
-  scene.setHeatmapMode("cooling");
-  currentHeatmap = "cooling";
-  hud.setHeatmapMode("cooling");
-  redraw();
-  onboarding?.recordGameEvent({ type: "game_changed" });
-}
-
-function runConceptScenario(): void {
-  simulation.newGame(seed);
-  simulation.state.money = 50000;
-  const buildPlan: Array<[string, string]> = [
-    ["benelux", "university"],
-    ["benelux", "ai_research_center"],
-    ["benelux", "energy_research_center"],
-    ["benelux", "datacenter_standard"],
-    ["benelux", "datacenter_standard"],
-    ["benelux", "datacenter_standard"],
-    ["benelux", "sea_cooling"],
-    ["benelux", "sea_cooling"],
-    ["benelux", "gas_power_plant"],
-    ["benelux", "wind_onshore"],
-    ["fr_nord", "gas_power_plant"],
-    ["fr_nord", "datacenter_standard"],
-    ["de_west", "gas_power_plant"],
-    ["de_west", "datacenter_standard"],
-    ["dk", "wind_onshore"],
-    ["se_south", "sea_cooling"]
-  ];
-  for (const [regionId, buildingId] of buildPlan) {
-    simulation.requestBuilding(regionId, buildingId);
-  }
-  for (let index = 0; index < 24; index += 1) {
-    simulation.advanceMonth();
-  }
-  simulation.state.year = 2045;
-  simulation.state.month = 5;
-  simulation.state.month_index = 244;
-  simulation.state.money = 26900;
-  simulation.state.monthly_income = 1620;
-  simulation.state.eu_agi_progress = 67;
-  simulation.state.usa_agi_progress = 51;
-  simulation.selectRegion("benelux");
-  currentHeatmap = "energy";
-  scene.focusRegion("benelux");
-  scene.setHeatmapMode("energy");
-  hud.setHeatmapMode("energy");
-  redraw();
-  onboarding?.recordGameEvent({ type: "game_changed" });
 }

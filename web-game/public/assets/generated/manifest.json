@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-20",
+  "generated_at": "2026-06-23",
   "source": "Generated raster assets for the Phaser/Vite web game.",
   "assets": [
     {
@@ -21,6 +21,33 @@
       "date": "2026-06-20",
       "prompt_summary": "4x3 atlas of polished E-Grid 2045 building vignette illustrations: university, AI lab, energy research, datacenter, gas, nuclear, wind, solar, hydro, battery, cooling plant and supergrid hub.",
       "constraints_da": "2D stylized semi-diegetic strategy map concept art, dark blue-night map tiles, premium simple building silhouettes, readable at small card size, no dashboard aesthetic, no text, no numbers, no logos, no watermark."
+    },
+    {
+      "name": "building-map-atlas",
+      "file": "building-map-atlas-v4.png",
+      "usage": "Raster atlas for Phaser map building sprites.",
+      "source": "Generated raster asset selected as the current map atlas.",
+      "date": "2026-06-23",
+      "prompt_summary": "Compact map-facing building sprites for the E-Grid 2045 strategy map.",
+      "constraints_da": "Readable on the central map at small sizes; no text, no logos, no watermark."
+    },
+    {
+      "name": "grid-overview-map",
+      "file": "grid-overview-europe-map-only-v1.png",
+      "usage": "Static raster background for the HUD grid overview card.",
+      "source": "Generated raster map background.",
+      "date": "2026-06-23",
+      "prompt_summary": "Europe map-only overview image for the grid overview panel.",
+      "constraints_da": "No labels baked into the image; usable behind dynamic HUD nodes."
+    },
+    {
+      "name": "panel-chrome-texture",
+      "file": "panel-chrome-texture-v1.png",
+      "usage": "Shared panel chrome texture used by HUD panels.",
+      "source": "Generated raster texture.",
+      "date": "2026-06-23",
+      "prompt_summary": "Subtle semi-diegetic panel texture for E-Grid 2045 HUD surfaces.",
+      "constraints_da": "Low contrast, reusable, no text, no logos, no watermark."
     }
   ]
 }
