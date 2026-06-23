@@ -3,6 +3,7 @@ import { AlertVisibilityController } from "../../src/ui/hud/alertVisibility";
 import { parseHudButtonAction } from "../../src/ui/hud/actions";
 import { renderAlertsPanel } from "../../src/ui/hud/alertsPanel";
 import { renderConstructionDock } from "../../src/ui/hud/constructionDock";
+import { renderRegionPanelContent } from "../../src/ui/hud/regionPanelContent";
 import { renderRegionPanelShell } from "../../src/ui/hud/regionPanel";
 import { renderHeatmapSwitch, renderTopBar } from "../../src/ui/hud/topBar";
 import type { Alert } from "../../src/sim";
@@ -44,10 +45,33 @@ describe("HUD pure renderers", () => {
 
     expect(markup).toContain('class="top-kpi"');
     expect(markup).toContain('class="resource-summary"');
+    expect(markup).toContain('class="resource-pill resource-research');
     expect(markup).toContain('class="region-panel"');
     expect(markup).toContain('class="build-palette is-open"');
     expect(markup).toContain('data-onboarding-target="construction.menu"');
     expect(markup).toContain('data-build="gas_power_plant"');
+  });
+
+  it("renders researcher status in the region overview", async () => {
+    const core = await createCore("hud-region-researchers");
+    const region = core.getRegionSnapshot();
+    expect(region).toBeDefined();
+
+    const markup = renderRegionPanelContent({
+      region: region!,
+      buildings: core.getBuildingDefinitions(),
+      monthProgress: 0,
+      activeRegionTab: "overview",
+      activeRegionHistoryPeriod: 12,
+      activeRegionHistoryResource: "energy",
+      tooltipAttrs: (title: string, body: string, meta = "") =>
+        `data-rich-tooltip="1" data-tooltip-title="${title}" data-tooltip-body="${body}" data-tooltip-meta="${meta}"`,
+      queueCard: () => "",
+      demolitionCard: () => "",
+      builtCard: () => ""
+    });
+
+    expect(markup).toContain("region-status-research");
   });
 
   it("renders alert item data attributes from alertsPanel", () => {

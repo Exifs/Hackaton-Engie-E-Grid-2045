@@ -593,7 +593,7 @@ test.describe("E-Grid 2045 web game visuals", () => {
       });
       return { statusIcons, builtCards };
     });
-    expect(regionSlotMetrics.statusIcons).toHaveLength(3);
+    expect(regionSlotMetrics.statusIcons).toHaveLength(4);
     expect(regionSlotMetrics.statusIcons.every((icon) =>
       icon.beforeContent === '""' &&
       icon.afterContent === '""' &&

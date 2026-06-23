@@ -36,16 +36,12 @@ export class ResearchSystem {
     const progressRatio = clamp(stateSummary.month_index / totalMonths, 0, 1);
     const computeOptimal = lerp(constants.compute_optimal_start, constants.compute_optimal_end, progressRatio);
     const factorCompute = Math.sqrt(Math.max(stateSummary.compute_used, 0) / Math.max(computeOptimal, 1));
-    let factorResearchers = 1;
-    if (stateSummary.researchers_required > 0.01) {
-      factorResearchers = clamp(stateSummary.researchers_available / stateSummary.researchers_required, 0, 1);
-    }
     const factorAi = 1 + aiEfficiencyBonusPct / 100;
     let factorStability = clamp(networkStability, 0, 1);
     if (stateSummary.severe_blackout_regions > 0) {
       factorStability *= 0.8;
     }
-    return constants.base_research_monthly * factorCompute * factorResearchers * factorAi * factorStability;
+    return constants.base_research_monthly * factorCompute * factorAi * factorStability;
   }
 
   nextAvailableTechnology(

@@ -51,14 +51,15 @@ describe("simulation alerts", () => {
             blackout_state: "light",
             energy_efficiency: 0.9,
             cooling_efficiency: 0.91,
-            network_congested: true
+            network_congested: true,
+            researchers_available: 8,
+            researchers_required: 10,
+            researcher_efficiency: 0.8
           },
           { buildings: ["gas_power_plant"] }
         )
       },
       state: {
-        researchers_available: 8,
-        researchers_required: 10,
         co2_tier: "elevated",
         eu_agi_progress: 40,
         usa_agi_progress: 90
@@ -70,6 +71,7 @@ describe("simulation alerts", () => {
     expect(alerts).toHaveLength(5);
     expect(alerts.map((alert) => alert.priority)).toEqual([2, 3, 4, 5, 5]);
     expect(alerts.map((alert) => alert.id)).toContain("network-saturated:fr-nord:power-warning");
+    expect(alerts.map((alert) => alert.id)).toContain("researchers-insufficient:fr-nord:power-warning");
     expect(alerts.map((alert) => alert.id)).not.toContain("usa-near-agi:global:critical");
   });
 });

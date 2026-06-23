@@ -3,7 +3,7 @@ import type { BuildingDefinition, RegionSnapshot } from "../../sim";
 import { clampPctFloat, escapeHtml, fmt } from "./format";
 import { localizedRegionTag, localizedRegionTags, regionName } from "./localization";
 import { renderRegionHistoryChart } from "./regionHistory";
-import { localBalancePct, regionResourceStatusMetrics, renderRegionStatusBlock } from "./regionStatus";
+import { localBalancePct, regionResearcherStatusMetrics, regionResourceStatusMetrics, renderRegionStatusBlock } from "./regionStatus";
 import { type QueueProgressItem, type RegionHistoryPeriod, type RegionHistoryResource, type RegionPanelTab } from "./types";
 
 interface RegionPanelContentOptions {
@@ -81,12 +81,17 @@ class RegionPanelContentRenderer {
     const computeExported = cached.compute_exported ?? Math.max(0, computeSupply - computeDemand);
     const computeBalance = computeSupply - computeDemand;
     const computePct = localBalancePct(computeSupply, computeDemand);
+    const researchersAvailable = cached.researchers_available ?? region.starting_researchers;
+    const researchersRequired = cached.researchers_required ?? 0;
+    const researchersBalance = researchersAvailable - researchersRequired;
+    const researchersPct = localBalancePct(researchersAvailable, researchersRequired);
     const energyUnit = t("common.units.gigawatts");
     const coolingUnit = t("common.units.thermalGigawatts");
     const computeUnit = t("common.units.eflops");
     const energyStatusMetrics = regionResourceStatusMetrics(energyProduction, energyDemand, energyExported, energyBalance, energyUnit);
     const coolingStatusMetrics = regionResourceStatusMetrics(coolingAvailable, coolingUsed, coolingExported, coolingBalance, coolingUnit);
     const computeStatusMetrics = regionResourceStatusMetrics(computeSupply, computeDemand, computeExported, computeBalance, computeUnit);
+    const researcherStatusMetrics = regionResearcherStatusMetrics(researchersAvailable, researchersRequired);
     const selectedRegionName = regionName(region);
 
     const overviewContent = `
@@ -109,6 +114,7 @@ class RegionPanelContentRenderer {
         ${renderRegionStatusBlock({ tone: "energy", title: t("hud.region.energy"), pct: energyLocalPct, metrics: energyStatusMetrics, isDeficit: energyBalance < 0, tooltipAttrs: this.options.tooltipAttrs })}
         ${renderRegionStatusBlock({ tone: "cooling", title: t("hud.region.cooling"), pct: coolingLocalPct, metrics: coolingStatusMetrics, isDeficit: coolingBalance < 0, tooltipAttrs: this.options.tooltipAttrs })}
         ${renderRegionStatusBlock({ tone: "compute", title: t("hud.region.compute"), pct: computePct, metrics: computeStatusMetrics, isDeficit: computeBalance < 0, tooltipAttrs: this.options.tooltipAttrs })}
+        ${renderRegionStatusBlock({ tone: "research", title: t("hud.resources.researchers"), pct: researchersPct, metrics: researcherStatusMetrics, isDeficit: researchersBalance < 0, tooltipAttrs: this.options.tooltipAttrs })}
       </div>
     `;
     const buildingsContent = `

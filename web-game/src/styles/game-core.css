@@ -224,6 +224,14 @@ html[data-egrid-scene-ready="0"] #game-canvas canvas {
   color: var(--violet);
 }
 
+.rich-tooltip .tooltip-status-research .tooltip-status-chip {
+  border-color: rgba(83, 231, 255, 0.28);
+}
+
+.rich-tooltip .tooltip-status-research .tooltip-status-chip strong {
+  color: var(--cyan);
+}
+
 .tooltip-chip-section {
   display: grid;
   gap: 4px;
@@ -351,7 +359,7 @@ html[data-egrid-scene-ready="0"] #game-canvas canvas {
 .resource-summary {
   min-width: 0;
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 6px;
   padding: 6px;
 }
@@ -385,6 +393,7 @@ html[data-egrid-scene-ready="0"] #game-canvas canvas {
 .resource-energy { --resource-pill-icon: var(--utility-icon-energy); }
 .resource-cooling { --resource-pill-icon: var(--utility-icon-cooling); }
 .resource-compute { --resource-pill-icon: var(--utility-icon-compute); }
+.resource-research { --resource-pill-icon: var(--utility-icon-research); }
 .resource-co2 { --resource-pill-icon: var(--utility-icon-gas); }
 
 .kpi-budget {
@@ -827,6 +836,14 @@ html[data-egrid-scene-ready="0"] #game-canvas canvas {
   color: var(--violet);
 }
 
+.resource-research strong {
+  color: var(--cyan);
+}
+
+.resource-research.has-deficit strong {
+  color: var(--orange);
+}
+
 .resource-co2 strong {
   color: var(--orange);
 }
@@ -1077,6 +1094,29 @@ html[data-egrid-scene-ready="0"] #game-canvas canvas {
   opacity: 0.94;
 }
 
+.region-status-research .region-status-icon {
+  color: var(--cyan);
+  filter: drop-shadow(0 0 7px rgba(83, 231, 255, 0.42));
+}
+
+.region-status-research .region-status-icon::before {
+  width: 8px;
+  height: 8px;
+  border: 2px solid currentColor;
+  border-radius: 50%;
+  transform: translateY(-4px);
+}
+
+.region-status-research .region-status-icon::after {
+  width: 18px;
+  height: 9px;
+  border: 2px solid currentColor;
+  border-top: 0;
+  border-radius: 0 0 12px 12px;
+  transform: translateY(6px);
+  opacity: 0.9;
+}
+
 .region-status-title strong {
   color: var(--green);
   font-size: 13px;
@@ -1090,7 +1130,12 @@ html[data-egrid-scene-ready="0"] #game-canvas canvas {
   color: var(--violet);
 }
 
+.region-status-research .region-status-title strong {
+  color: var(--cyan);
+}
+
 .region-status-compute.has-deficit .region-status-title strong,
+.region-status-research.has-deficit .region-status-title strong,
 .region-status.has-deficit .region-status-metrics span:last-child b {
   color: #ff7a3d;
 }
@@ -1105,6 +1150,10 @@ html[data-egrid-scene-ready="0"] #game-canvas canvas {
 
 .region-status-compute > i::before {
   background: var(--violet);
+}
+
+.region-status-research > i::before {
+  background: var(--cyan);
 }
 
 .region-status-metrics span {

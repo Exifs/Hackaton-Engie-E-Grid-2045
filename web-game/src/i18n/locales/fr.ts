@@ -68,6 +68,7 @@ const fr = {
       energy: "Energie",
       cooling: "Froid",
       compute: "Calcul",
+      researchers: "Chercheurs",
       co2: "CO2",
       energyShort: "E",
       coolingShort: "F",
@@ -77,11 +78,15 @@ const fr = {
       produced: "produite",
       consumed: "consommee",
       available: "disponible",
+      required: "requis",
       used: "utilise",
       productionShort: "prod.",
+      optimal: "optimal",
+      missing: "-{{value}} manquants",
+      surplus: "+{{value}} marge",
       tooltip:
-        "Energie {{energyProduced}} produite pour {{energyConsumed}} consommee. Froid {{coolingAvailable}} disponible pour {{coolingUsed}} utilise. Calcul {{compute}} et statut CO2 {{co2Tier}}.",
-      meta: "Energie, froid, calcul, CO2"
+        "Energie {{energyProduced}} produite pour {{energyConsumed}} consommee. Froid {{coolingAvailable}} disponible pour {{coolingUsed}} utilise. Calcul {{compute}}. Chercheurs {{researchersAvailable}} / {{researchersRequired}}, avec {{researcherShortageRegions}} regions sous-dotees. Statut CO2 {{co2Tier}}.",
+      meta: "Energie, froid, calcul, chercheurs, CO2"
     },
     heatmaps: {
       energy: { label: "Energie", short: "PWR", body: "Affiche les zones de production, de demande et de deficit energetique.", meta: "Flux electrique" },

@@ -14,6 +14,7 @@ export class GameState {
   co2_tier = "low";
   researchers_available = 0;
   researchers_required = 0;
+  researcher_shortage_regions = 0;
   compute_produced = 0;
   compute_used = 0;
   energy_produced = 0;
@@ -45,6 +46,7 @@ export class GameState {
     this.co2_tier = "low";
     this.researchers_available = 0;
     this.researchers_required = 0;
+    this.researcher_shortage_regions = 0;
     this.compute_produced = 0;
     this.compute_used = 0;
     this.energy_produced = 0;
@@ -92,6 +94,7 @@ export class GameState {
       co2_tier: this.co2_tier,
       researchers_available: this.researchers_available,
       researchers_required: this.researchers_required,
+      researcher_shortage_regions: this.researcher_shortage_regions,
       compute_produced: this.compute_produced,
       compute_used: this.compute_used,
       energy_produced: this.energy_produced,
