@@ -48,12 +48,17 @@ function resourceSummary(summary: Summary, ctx: TopBarContext): string {
   const energyBalance = summary.energy_produced - summary.energy_consumed;
   const coolingBalance = summary.cooling_available - summary.cooling_used;
   const compute = summary.compute_produced;
+  const researcherBalance = summary.researchers_available - summary.researchers_required;
+  const researcherStatus = researcherStatusLabel(researcherBalance, summary.researchers_required);
   const tooltip = t("hud.resources.tooltip", {
     energyProduced: fmt(summary.energy_produced),
     energyConsumed: fmt(summary.energy_consumed),
     coolingAvailable: fmt(summary.cooling_available),
     coolingUsed: fmt(summary.cooling_used),
     compute: fmt(compute),
+    researchersAvailable: fmt(summary.researchers_available),
+    researchersRequired: fmt(summary.researchers_required),
+    researcherShortageRegions: fmt(summary.researcher_shortage_regions),
     co2Tier: summary.co2_tier
   });
   return `
@@ -73,6 +78,11 @@ function resourceSummary(summary: Summary, ctx: TopBarContext): string {
         <strong>${escapeHtml(fmt(compute))}</strong>
         <small>${escapeHtml(t("hud.resources.productionShort"))}</small>
       </div>
+      <div class="resource-pill resource-research ${researcherBalance < 0 ? "has-deficit" : ""}">
+        <span>${escapeHtml(t("hud.resources.researchers"))}</span>
+        <strong>${escapeHtml(fmt(summary.researchers_available))}/${escapeHtml(fmt(summary.researchers_required))}</strong>
+        <small>${escapeHtml(researcherStatus)}</small>
+      </div>
       <div class="resource-pill resource-co2">
         <span>${escapeHtml(t("hud.resources.co2"))}</span>
         <strong>${escapeHtml(summary.co2_tier)}</strong>
@@ -80,6 +90,16 @@ function resourceSummary(summary: Summary, ctx: TopBarContext): string {
       </div>
     </section>
   `;
+}
+
+function researcherStatusLabel(balance: number, required: number): string {
+  if (required <= 0.01 || Math.abs(balance) < 0.05) {
+    return t("hud.resources.optimal");
+  }
+  if (balance < 0) {
+    return t("hud.resources.missing", { value: fmt(Math.abs(balance)) });
+  }
+  return t("hud.resources.surplus", { value: fmt(balance) });
 }
 
 function topBrand(ctx: TopBarContext): string {

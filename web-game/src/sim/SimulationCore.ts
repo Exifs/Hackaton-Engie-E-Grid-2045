@@ -47,9 +47,11 @@ interface SimulationTotals {
   energy_technology_points: number;
   ai_technology_points: number;
   ai_research_centers: number;
+  ai_research_capacity: number;
   blackout_regions: number;
   severe_blackout_regions: number;
   network_efficiency_sum: number;
+  researcher_shortage_regions: number;
 }
 
 export class SimulationCore {
@@ -345,10 +347,11 @@ export class SimulationCore {
       const energyEfficiency = network.energy_efficiency;
       const coolingEfficiency = cooling.cooling_efficiency;
       const researcherEfficiency = regionMetrics.researcher_efficiency;
-      const finalEfficiency = Math.min(energyEfficiency, coolingEfficiency, researcherEfficiency);
+      const finalEfficiency = Math.min(energyEfficiency, coolingEfficiency);
       const computeProduced = regionMetrics.compute_potential * finalEfficiency;
       const energyTechnologyPoints = regionMetrics.energy_technology_points * finalEfficiency;
       const aiTechnologyPoints = regionMetrics.ai_technology_points * finalEfficiency;
+      const aiResearchCapacity = regionMetrics.ai_research_capacity * finalEfficiency;
       const technologyPoints = energyTechnologyPoints + aiTechnologyPoints;
 
       const cached: RegionCachedMetrics = {
@@ -377,7 +380,8 @@ export class SimulationCore {
         technology_points: technologyPoints,
         energy_technology_points: energyTechnologyPoints,
         ai_technology_points: aiTechnologyPoints,
-        problems: this.regionProblems(network, cooling, finalEfficiency)
+        ai_research_capacity: aiResearchCapacity,
+        problems: this.regionProblems(network, cooling, finalEfficiency, researcherEfficiency)
       };
       region.cached = cached;
       this.addRegionTotals(totals, regionMetrics, cached, computeProduced, technologyPoints);
@@ -398,9 +402,11 @@ export class SimulationCore {
       energy_technology_points: 0,
       ai_technology_points: 0,
       ai_research_centers: 0,
+      ai_research_capacity: 0,
       blackout_regions: 0,
       severe_blackout_regions: 0,
-      network_efficiency_sum: 0
+      network_efficiency_sum: 0,
+      researcher_shortage_regions: 0
     };
   }
 
@@ -422,7 +428,11 @@ export class SimulationCore {
     totals.energy_technology_points += cached.energy_technology_points ?? 0;
     totals.ai_technology_points += cached.ai_technology_points ?? 0;
     totals.ai_research_centers += regionMetrics.ai_research_centers;
+    totals.ai_research_capacity += cached.ai_research_capacity ?? 0;
     totals.network_efficiency_sum += cached.energy_efficiency ?? 1;
+    if (regionMetrics.researchers_required > 0.01 && regionMetrics.researcher_efficiency < 0.9) {
+      totals.researcher_shortage_regions += 1;
+    }
     if (cached.blackout_state !== "stable") {
       totals.blackout_regions += 1;
     }
@@ -448,6 +458,7 @@ export class SimulationCore {
     this.state.severe_blackout_regions = totals.severe_blackout_regions;
     this.state.researchers_available = this.globalResearchersAvailable(metrics);
     this.state.researchers_required = this.globalResearchersRequired(metrics);
+    this.state.researcher_shortage_regions = totals.researcher_shortage_regions;
     this.state.co2_tier = this.co2TierForValue(this.state.cumulative_co2);
   }
 
@@ -467,7 +478,7 @@ export class SimulationCore {
     const agiGain = this.researchSystem.computeEuAgiGain(
       this.state.toSummary(),
       this.constants,
-      totals.ai_research_centers,
+      totals.ai_research_capacity,
       networkStability,
       aiBonus
     );
@@ -499,8 +510,6 @@ export class SimulationCore {
 
   private buildRegionMetrics(): Record<string, RegionMetrics> {
     const metrics: Record<string, RegionMetrics> = {};
-    let globalResearchersAvailable = 0;
-    let globalResearchersRequired = 0;
 
     for (const [regionId, region] of Object.entries(this.regions)) {
       const regionMetrics = this.baseRegionMetrics(region);
@@ -513,16 +522,14 @@ export class SimulationCore {
         regionMetrics.researchers_required += definition.researchers_required;
       }
 
-      globalResearchersAvailable += regionMetrics.researchers_available;
-      globalResearchersRequired += regionMetrics.researchers_required;
       metrics[regionId] = regionMetrics;
     }
 
-    const researcherEfficiency =
-      globalResearchersRequired > 0.01 ? clamp(globalResearchersAvailable / globalResearchersRequired, 0, 1) : 1;
-
     for (const [regionId, region] of Object.entries(this.regions)) {
       const regionMetrics = metrics[regionId];
+      const researcherEfficiency = regionMetrics.researchers_required > 0.01
+        ? clamp(regionMetrics.researchers_available / regionMetrics.researchers_required, 0, 1)
+        : 1;
       regionMetrics.researcher_efficiency = researcherEfficiency;
       for (const buildingId of region.buildings) {
         const definition = this.buildingDefinitions[buildingId];
@@ -550,7 +557,8 @@ export class SimulationCore {
       technology_points: 0,
       energy_technology_points: 0,
       ai_technology_points: 0,
-      ai_research_centers: 0
+      ai_research_centers: 0,
+      ai_research_capacity: 0
     };
   }
 
@@ -575,6 +583,7 @@ export class SimulationCore {
 
     if (definition.id === AI_RESEARCH_CENTER_ID) {
       metrics.ai_research_centers += 1;
+      metrics.ai_research_capacity += outputScale;
       metrics.ai_technology_points += 18 * outputScale;
     } else if (definition.id === ENERGY_RESEARCH_CENTER_ID) {
       metrics.energy_technology_points += 18 * outputScale;
@@ -727,7 +736,8 @@ export class SimulationCore {
   private regionProblems(
     network: { blackout_state: string; energy_efficiency: number; network_congested: boolean },
     cooling: { cooling_efficiency: number },
-    finalEfficiency: number
+    finalEfficiency: number,
+    researcherEfficiency: number
   ): string[] {
     const problems: string[] = [];
     if (network.blackout_state !== "stable") {
@@ -741,6 +751,9 @@ export class SimulationCore {
     }
     if (finalEfficiency < 0.9) {
       problems.push("efficiency");
+    }
+    if (researcherEfficiency < 0.9) {
+      problems.push("researchers");
     }
     if (network.network_congested) {
       problems.push("network");

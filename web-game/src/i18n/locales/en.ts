@@ -68,6 +68,7 @@ const en = {
       energy: "Energy",
       cooling: "Cooling",
       compute: "Compute",
+      researchers: "Researchers",
       co2: "CO2",
       energyShort: "E",
       coolingShort: "C",
@@ -77,11 +78,15 @@ const en = {
       produced: "produced",
       consumed: "consumed",
       available: "available",
+      required: "required",
       used: "used",
       productionShort: "prod.",
+      optimal: "optimal",
+      missing: "-{{value}} missing",
+      surplus: "+{{value}} spare",
       tooltip:
-        "Energy {{energyProduced}} produced for {{energyConsumed}} consumed. Cooling {{coolingAvailable}} available for {{coolingUsed}} used. Compute {{compute}} and CO2 status {{co2Tier}}.",
-      meta: "Energy, cooling, compute, CO2"
+        "Energy {{energyProduced}} produced for {{energyConsumed}} consumed. Cooling {{coolingAvailable}} available for {{coolingUsed}} used. Compute {{compute}}. Researchers {{researchersAvailable}} / {{researchersRequired}}, with {{researcherShortageRegions}} understaffed regions. CO2 status {{co2Tier}}.",
+      meta: "Energy, cooling, compute, researchers, CO2"
     },
     heatmaps: {
       energy: { label: "Energy", short: "PWR", body: "Shows production, demand, and energy deficit zones.", meta: "Power flow" },

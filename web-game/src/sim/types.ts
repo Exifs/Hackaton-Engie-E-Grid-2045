@@ -170,6 +170,7 @@ export interface RegionCachedMetrics {
   technology_points?: number;
   energy_technology_points?: number;
   ai_technology_points?: number;
+  ai_research_capacity?: number;
   problems?: string[];
 }
 
@@ -204,6 +205,7 @@ export interface RegionMetrics {
   energy_technology_points: number;
   ai_technology_points: number;
   ai_research_centers: number;
+  ai_research_capacity: number;
 }
 
 export interface NetworkFlow {
@@ -255,6 +257,7 @@ export interface GameSummary {
   co2_tier: string;
   researchers_available: number;
   researchers_required: number;
+  researcher_shortage_regions: number;
   compute_produced: number;
   compute_used: number;
   energy_produced: number;

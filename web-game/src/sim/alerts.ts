@@ -1,8 +1,6 @@
 import type { Alert, BuildingDefinition, RegionRuntime } from "./types";
 
 interface AlertState {
-  researchers_available: number;
-  researchers_required: number;
   co2_tier: string;
   eu_agi_progress: number;
   usa_agi_progress: number;
@@ -49,15 +47,12 @@ export function generateAlerts({
     if (slotsFree(region, buildingDefinitions) <= 0 && region.buildings.length > 0) {
       alerts.push(createAlert(6, "Slots saturated", displayName, "regional capacity is full", "choose another region", regionId, "market_info", false));
     }
-  }
 
-  if (
-    state.researchers_required > 0.01 &&
-    state.researchers_available / state.researchers_required < 0.9
-  ) {
-    alerts.push(
-      createAlert(4, "Researchers insufficient", "Europe", "needs exceed capacity", "build universities", "", "power_warning")
-    );
+    if ((cached.researchers_required ?? 0) > 0.01 && (cached.researcher_efficiency ?? 1) < 0.9) {
+      alerts.push(
+        createAlert(4, "Researchers insufficient", displayName, "needs exceed capacity", "build universities", regionId, "power_warning")
+      );
+    }
   }
 
   if (["elevated", "very_high", "critical"].includes(state.co2_tier)) {

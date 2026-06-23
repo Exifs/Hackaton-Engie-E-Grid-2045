@@ -39,6 +39,29 @@ describe("Network, cooling, and research systems", () => {
     expect(research.computeUsaProgress(2045, 1)).toBeCloseTo(100);
     expect(research.nextAvailableTechnology(data.technologies, {})).toBe("batteries");
   });
+
+  it("applies researcher efficiency locally by region", async () => {
+    const data = await loadFixtureData();
+    const { SimulationCore } = await import("../../src/sim/SimulationCore");
+    const core = new SimulationCore(data);
+    core.newGame("local-researchers");
+
+    expect(core.requestBuilding("fr_sud", "datacenter_standard").ok).toBe(true);
+    for (let index = 0; index < data.buildings.datacenter_standard.construction_months; index += 1) {
+      core.advanceMonth();
+    }
+
+    const region = core.getRegionSnapshot("fr_sud");
+    const summary = core.getSummary();
+
+    expect(summary.researchers_available).toBeGreaterThan(summary.researchers_required);
+    expect(region?.cached.researchers_available).toBeCloseTo(data.regions.fr_sud.starting_researchers);
+    expect(region?.cached.researchers_required).toBe(data.buildings.datacenter_standard.researchers_required);
+    expect(region?.cached.researcher_efficiency).toBeCloseTo(
+      data.regions.fr_sud.starting_researchers / data.buildings.datacenter_standard.researchers_required
+    );
+    expect(summary.researcher_shortage_regions).toBeGreaterThanOrEqual(1);
+  });
 });
 
 function baseMetrics(production: number, consumption: number): RegionMetrics {
@@ -56,6 +79,7 @@ function baseMetrics(production: number, consumption: number): RegionMetrics {
     technology_points: 0,
     energy_technology_points: 0,
     ai_technology_points: 0,
-    ai_research_centers: 0
+    ai_research_centers: 0,
+    ai_research_capacity: 0
   };
 }

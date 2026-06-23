@@ -1,7 +1,7 @@
 import { t } from "../../i18n";
 import { clampPctFloat, escapeHtml, fmt } from "./format";
 
-type ResourceTone = "energy" | "cooling" | "compute";
+type ResourceTone = "energy" | "cooling" | "compute" | "research";
 type TooltipAttrs = (title: string, body: string, meta?: string) => string;
 
 interface RegionStatusBlockOptions {
@@ -32,6 +32,15 @@ export function regionResourceStatusMetrics(
     [t("hud.region.localUse"), `${fmt(localUse, 1)} ${unit}`],
     [t("hud.region.export"), `${fmt(exportAmount, 1)} ${unit}`],
     [t("hud.region.balance"), `${signedMetric(balance)} ${unit}`]
+  ];
+}
+
+export function regionResearcherStatusMetrics(available: number, required: number): Array<[string, string]> {
+  const unit = t("hud.resources.researchersShort");
+  return [
+    [t("hud.resources.available"), `${fmt(available, 1)} ${unit}`],
+    [t("hud.resources.required"), `${fmt(required, 1)} ${unit}`],
+    [t("hud.region.balance"), `${signedMetric(available - required)} ${unit}`]
   ];
 }
 

@@ -36,6 +36,7 @@ describe("Demolition and manual research", () => {
   it("requires the player to start research manually", async () => {
     const core = await createCore("manual-research");
 
+    expect(core.requestBuilding("fr_nord", "university").ok).toBe(true);
     expect(core.requestBuilding("fr_nord", "energy_research_center").ok).toBe(true);
     for (let index = 0; index < 10; index += 1) {
       core.advanceMonth();
